@@ -3,7 +3,7 @@
 > A tiered, sovereign operating methodology for software development, agentic concurrency, and engineering cadence — installable across engineering teams, grounded in twenty-four numbered principles, and bridging executive OKRs to high-concurrency autonomous agent execution.
 
 Authored by **[Nathan Walker](https://nwalker.cc)** · Published by **[Ravenhelm LLC](https://ravenhelm.co)**  
-Current Release: **v1.0.0-draft** · [Changelog](CHANGELOG.md) · [Principles](docs/_shared/PRINCIPLES.md) · [Start Reading →](docs/chapters/01-what-this-is.md)
+Current Release: **v1.0.0** · [PDF (Light)](RDOM-v1.0.0.pdf) · [PDF (Dark)](RDOM-v1.0.0-dark.pdf) · [Changelog](CHANGELOG.md) · [Principles](docs/_shared/PRINCIPLES.md) · [Start Reading →](docs/chapters/01-what-this-is.md)
 
 ---
 
@@ -107,3 +107,29 @@ The book is organized into **18 chapters plus Appendix A**:
 | **Part III: Execution Mechanics** | [13](docs/chapters/13-six-sigma-wave-boundary-gates.md) – [17](docs/chapters/17-zero-waste-context-substrate-eat.md) | Six Sigma Gates, Poka-Yoke Interfaces, Andon Cord, Bare Worktrees, EAT Zero-Waste Substrate |
 | **Part IV: Governance & Integration** | [18](docs/chapters/18-the-sovereign-engineering-organization.md) | Operating Sovereign Human-Agent Fleets & End-to-End Method Integration |
 | **Appendix A** | [App. A](docs/chapters/appendix-a-presales-and-demo-ops.md) | Presales, Solution Architecture & DemoOps Integration |
+
+---
+
+## Publications & Artifacts
+
+The manuscript is typeset using **Typst** in two publication-grade editions conforming to Ravenhelm's brand standards (Source Serif 4 + IBM Plex Mono):
+
+- **[Download PDF (Dark Edition)](RDOM-v1.0.0-dark.pdf)** — Obsidian background (`#0B0C0E`), Bone ink (`#EDE8DC`), Garnet accents (`#A3222F`).
+- **[Download PDF (Print Edition)](RDOM-v1.0.0.pdf)** — Bone paper (`#EDE8DC`), Obsidian ink (`#0B0C0E`), designed for formal print and digest reading.
+
+To recompile the publication PDFs locally:
+
+```bash
+python3 scripts/build-pdf.py
+```
+
+---
+
+## License & Commercial Inquiries
+
+RDOM is published under the **Apache License, Version 2.0**. Commercial training, third-party certification, and enterprise fleet advisory rights are reserved by **Ravenhelm LLC**.
+
+For enterprise advisory, autonomous agent fleet architectures, or software delivery audits, contact:
+
+**Nathan Walker** · **Ravenhelm LLC**  
+Email: [nate@ravenhelm.co](mailto:nate@ravenhelm.co) · Web: [https://ravenhelm.co](https://ravenhelm.co)

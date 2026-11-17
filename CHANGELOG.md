@@ -4,6 +4,14 @@ All notable changes to the Ravenhelm Development Operations Methodology (RDOM) a
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-11-17
+
+### Added
+
+- Fully expanded all 18 core chapters and Appendix A to masterclass density (70,473 total words).
+- Built publication-grade PDF editions in both light (`RDOM-v1.0.0.pdf`) and dark (`RDOM-v1.0.0-dark.pdf`) modes using Typst and Pandoc.
+- Added automated compilation script `scripts/build-pdf.py` conforming to Ravenhelm digest typography (Source Serif 4 + IBM Plex Mono).
+
 ## [v1.0.0-draft] - 2026-11-17
 
 ### Added
