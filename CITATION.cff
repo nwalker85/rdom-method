@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you cite or adapt this methodology, please cite it as below."
+authors:
+  - family-names: "Walker"
+    given-names: "Nathan"
+    orcid: "https://orcid.org/0009-0003-8822-1021"
+title: "Ravenhelm Development Operations Methodology (RDOM): An Operating Model for Software Development, Agentic Concurrency, and Engineering Cadence"
+version: 1.0.0
+date-released: 2026-11-17
+url: "https://github.com/nwalker85/rdom-method"
+repository-code: "https://github.com/nwalker85/rdom-method"
+keywords:
+  - "autonomous agents"
+  - "operating model"
+  - "software engineering"
+  - "six sigma"
+  - "lean software development"
+  - "critical chain"
+  - "Ehwaz doctrine"
+  - "Valknut doctrine"
+  - "RDOM"
+  - "Ravenhelm"
+license: "Apache-2.0"
