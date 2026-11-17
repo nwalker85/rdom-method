@@ -24,25 +24,25 @@ IMPRINT = "Ravenhelm Publishing Series LLC"
 COPYRIGHT = "© 2026 Ravenhelm LLC. All rights reserved."
 
 CHAPTER_FILES = [
-    ("01-what-this-is.md", "01", "What This Is and Why Modern Engineering Drifts", "SCOPE: METHODOLOGY FRONT DOOR · APPLIES TO ALL TEAMS"),
-    ("02-the-sovereign-triad.md", "02", "The Sovereign Triad: RLOM, RDOM, RROM", "FOUNDATION: THE SOVEREIGN TRIAD · RLOM · RDOM · RROM"),
-    ("03-numbered-principles.md", "03", "The 24 Numbered Principles", "CANON: 24 NUMBERED PRINCIPLES · DP-1 THROUGH DP-24"),
-    ("04-the-hierarchy-of-deeds.md", "04", "The Hierarchy of Deeds: Wyrd Rune to Daily Deed", "TAXONOMY: DEED HIERARCHY · WYRD RUNE TO DAILY DEED"),
-    ("05-the-four-codices.md", "05", "The Four Codices: Shield, Cycle, Grimoire, Shield-Band", "STANDARDS: THE FOUR CODICES · SHIELD · CYCLE · GRIMOIRE · SHIELD-BAND"),
-    ("06-the-engineering-okr-framework.md", "06", "The Engineering OKR Framework: Faster, Bigger, Cheaper, Effective", "ALIGNMENT: VALKNUT OKR MATRIX · FASTER · BIGGER · CHEAPER · EFFECTIVE"),
-    ("07-ceremonies-of-truth.md", "07", "Ceremonies of Truth: Althing, Ráð, and Morning Muster", "CEREMONIES: ALTHING · RÁÐ · MORNING MUSTER · DOOM GATE"),
-    ("08-the-dependency-dag-and-critical-chain.md", "08", "The Dependency DAG: Critical Path vs. Critical Chain", "TOPOLOGY: DEPENDENCY DAG · GOLDRATT CCPM · CRITICAL CHAIN"),
-    ("09-topological-waves-replacing-sprints.md", "09", "Topological Waves: Replacing the Two-Week Sprint", "CADENCE: TOPOLOGICAL WAVES · HEIJUNKA LEVELING · BATCH CONTROL"),
-    ("10-zero-collision-multi-agent-boundaries.md", "10", "Zero Collision by Construction: Multi-Agent Fleet Boundaries", "CONCURRENCY: ZERO-COLLISION BOUNDARIES · DISJOINT BLAST RADIUS"),
-    ("11-jit-elaboration-and-anti-inventory.md", "11", "Just-In-Time Elaboration: Eradicating Inventory Waste (Muda)", "LEAN MANUFACTURE: JIT ELABORATION · ERADICATING INVENTORY MUDA"),
-    ("12-the-dry-hoisting-protocol.md", "12", "The DRY Hoisting Protocol: Anti-Snowflake Planning", "REFACTORING: DRY HOISTING PROTOCOL · TWO-CONSUMER GATE"),
-    ("13-six-sigma-wave-boundary-gates.md", "13", "Six Sigma Wave Boundary Gates: No Exit on a Promise", "QUALITY: SIX SIGMA WAVE GATES · DMAIC · TRIAD OF PROOF"),
-    ("14-poka-yoke-interface-design.md", "14", "Poka-Yoke Interface Design & The Live System Rule", "ERROR PROOFING: SHINGO POKA-YOKE · TYPE STATES · LIVE SYSTEM RULE"),
-    ("15-the-andon-cord-and-circuit-breakers.md", "15", "The Andon Cord Protocol & Upstream-Jump Circuit Breakers", "CIRCUIT BREAKERS: THE ANDON CORD · LIVE SILICON · STOP-THE-LINE"),
-    ("16-workspace-custody-bare-and-worktrees.md", "16", "Workspace Custody: Bare Repositories and Disposable Worktrees", "INFRASTRUCTURE: CHECKOUT CUSTODY STANDARD · BARE & WORKTREES"),
-    ("17-zero-waste-context-substrate-eat.md", "17", "The Zero-Waste Context Substrate: Topological Priming vs. Directory Dumps", "CONTEXT SUBSTRATE: EAT KNOWLEDGE SUBSTRATE · ZERO CONTEXT WASTE"),
-    ("18-the-sovereign-engineering-organization.md", "18", "The Sovereign Engineering Organization: Operating Human-Agent Fleets", "ORGANIZATION: THE SOVEREIGN FLEET · HUMAN ARCHITECTS & AGENT SLICES"),
-    ("appendix-a-presales-and-demo-ops.md", "A", "Presales, Solution Architecture & DemoOps Integration", "COMMERCIAL: DEMOOPS · EPHEMERAL SANDBOXES · PROTOTYPE HOISTING"),
+    ("01-what-this-is.md", "01", "What This Is and Why Modern Engineering Drifts", "SCOPE: METHODOLOGY FRONT DOOR · APPLIES TO ALL TEAMS", "The Theoretical Foundation · The Four Pillars of RDOM · Upstream & Downstream Integration"),
+    ("02-the-sovereign-triad.md", "02", "The Sovereign Triad: RLOM, RDOM, RROM", "FOUNDATION: THE SOVEREIGN TRIAD · RLOM · RDOM · RROM", "Cosmology & Triad Architecture · Interface Contracts · Concrete Failure Modes · Fleet Orchestration"),
+    ("03-numbered-principles.md", "03", "The 24 Numbered Principles", "CANON: 24 NUMBERED PRINCIPLES · DP-1 THROUGH DP-24", "Ehwaz Doctrine & Concurrency · Six Sigma & TDD Gates · DRY Architecture · Workspace Custody"),
+    ("04-the-hierarchy-of-deeds.md", "04", "The Hierarchy of Deeds: Wyrd Rune to Daily Deed", "TAXONOMY: DEED HIERARCHY · WYRD RUNE TO DAILY DEED", "Cosmology of Deed Custody · Four Invariants · Concrete Workflows · Lineage Traceability"),
+    ("05-the-four-codices.md", "05", "The Four Codices: Shield, Cycle, Grimoire, Shield-Band", "STANDARDS: THE FOUR CODICES · SHIELD · CYCLE · GRIMOIRE · SHIELD-BAND", "Living Documentation · Mechanical Enforcement · Anti-Patterns & Defect Escapes · Semantic Auditing"),
+    ("06-the-engineering-okr-framework.md", "06", "The Engineering OKR Framework: Faster, Bigger, Cheaper, Effective", "ALIGNMENT: VALKNUT OKR MATRIX · FASTER · BIGGER · CHEAPER · EFFECTIVE", "Valknut OKR Matrix · Mathematical Formulations · Quarterly Cadence · Triad Metric Alignment"),
+    ("07-ceremonies-of-truth.md", "07", "Ceremonies of Truth: Althing, Ráð, and Morning Muster", "CEREMONIES: ALTHING · RÁÐ · MORNING MUSTER · DOOM GATE", "Truth Invariants · Operational Mechanics · Doom Gate Protocols · Automated Verification"),
+    ("08-the-dependency-dag-and-critical-chain.md", "08", "The Dependency DAG: Critical Path vs. Critical Chain", "TOPOLOGY: DEPENDENCY DAG · GOLDRATT CCPM · CRITICAL CHAIN", "Topological Theory · Goldratt CCPM · Feeding Buffers · Automated DAG Synthesis & Fever Charts"),
+    ("09-topological-waves-replacing-sprints.md", "09", "Topological Waves: Replacing the Two-Week Sprint", "CADENCE: TOPOLOGICAL WAVES · HEIJUNKA LEVELING · BATCH CONTROL", "Wave Boundary Mathematics · Heijunka Leveling · Batch Control · Defect-Free Wave Execution"),
+    ("10-zero-collision-multi-agent-boundaries.md", "10", "Zero Collision by Construction: Multi-Agent Fleet Boundaries", "CONCURRENCY: ZERO-COLLISION BOUNDARIES · DISJOINT BLAST RADIUS", "Disjoint Blast Radii · Static Resource Isolation · Write-Intent Verification · Merge Gates"),
+    ("11-jit-elaboration-and-anti-inventory.md", "11", "Just-In-Time Elaboration: Eradicating Inventory Waste (Muda)", "LEAN MANUFACTURE: JIT ELABORATION · ERADICATING INVENTORY MUDA", "Anti-Inventory Canon · Two-Wave Planning Horizon · Late Binding · Eliminating Stale Specs"),
+    ("12-the-dry-hoisting-protocol.md", "12", "The DRY Hoisting Protocol: Anti-Snowflake Planning", "REFACTORING: DRY HOISTING PROTOCOL · TWO-CONSUMER GATE", "Two-Consumer Rule · Abstraction Economics · Platform Promotion · Anti-Snowflake Refactoring"),
+    ("13-six-sigma-wave-boundary-gates.md", "13", "Six Sigma Wave Boundary Gates: No Exit on a Promise", "QUALITY: SIX SIGMA WAVE GATES · DMAIC · TRIAD OF PROOF", "DMAIC Rigor · Triad of Proof (Pass/P99/Parity) · Zero-Defect Handoff · Evidence Capture"),
+    ("14-poka-yoke-interface-design.md", "14", "Poka-Yoke Interface Design & The Live System Rule", "ERROR PROOFING: SHINGO POKA-YOKE · TYPE STATES · LIVE SYSTEM RULE", "Shingo Error-Proofing · Type-State Compilers · Live System Confirmation · Anti-Mock Mandate"),
+    ("15-the-andon-cord-and-circuit-breakers.md", "15", "The Andon Cord Protocol & Upstream-Jump Circuit Breakers", "CIRCUIT BREAKERS: THE ANDON CORD · LIVE SILICON · STOP-THE-LINE", "Stop-the-Line Authority · Live Silicon Rule · Five Whys Root Cause · Circuit-Breaker Latches"),
+    ("16-workspace-custody-bare-and-worktrees.md", "16", "Workspace Custody: Bare Repositories and Disposable Worktrees", "INFRASTRUCTURE: CHECKOUT CUSTODY STANDARD · BARE & WORKTREES", "Checkout Custody Standard · Disposable Worktrees · Concurrent Fleet Isolation · Anti-Stash Canon"),
+    ("17-zero-waste-context-substrate-eat.md", "17", "The Zero-Waste Context Substrate: Topological Priming vs. Directory Dumps", "CONTEXT SUBSTRATE: EAT KNOWLEDGE SUBSTRATE · ZERO CONTEXT WASTE", "EAT Knowledge Substrate · AST Byte Retrieval · Sub-800 Token Priming · Context Economics"),
+    ("18-the-sovereign-engineering-organization.md", "18", "The Sovereign Engineering Organization: Operating Human-Agent Fleets", "ORGANIZATION: THE SOVEREIGN FLEET · HUMAN ARCHITECTS & AGENT SLICES", "Human Architects & Autonomous Slices · Metric Stack · Governance Rails · The Sovereign Firm"),
+    ("appendix-a-presales-and-demo-ops.md", "A", "Presales, Solution Architecture & DemoOps Integration", "COMMERCIAL: DEMOOPS · EPHEMERAL SANDBOXES · PROTOTYPE HOISTING", "Ephemeral Sandboxes · Prototype Hoisting · Zero-Drift Customer Demos · Commercial Rails"),
 ]
 
 def markdown_to_typst_via_pandoc(md_path, edition):
@@ -84,6 +84,32 @@ def build_typst_document(edition):
         card_bg = "#14171C"
         card_border = "#2B303A"
         raven_logo = "assets/ravenhelm-raven-bone-eye.svg"
+
+    def format_toc_title(t):
+        wrap_targets = [
+            "The Engineering OKR Framework: Faster, Bigger, Cheaper, Effective",
+            "Zero Collision by Construction: Multi-Agent Fleet Boundaries",
+            "Just-In-Time Elaboration: Eradicating Inventory Waste (Muda)",
+            "Workspace Custody: Bare Repositories and Disposable Worktrees",
+        ]
+        if t in wrap_targets and ": " in t:
+            p1, p2 = t.split(": ", 1)
+            return p1 + ":#linebreak()" + p2
+        return t
+
+    toc_p1_lines = []
+    for file_name, num, title, badge_text, summary in CHAPTER_FILES[:9]:
+        label_id = f"ch-{num.lower()}"
+        toc_title = format_toc_title(title)
+        toc_p1_lines.append(f'  #toc-entry("{num}", [{toc_title}], "{label_id}", "{summary}")')
+    toc_p1_str = "\n".join(toc_p1_lines)
+
+    toc_p2_lines = []
+    for file_name, num, title, badge_text, summary in CHAPTER_FILES[9:]:
+        label_id = f"ch-{num.lower()}"
+        toc_title = format_toc_title(title)
+        toc_p2_lines.append(f'  #toc-entry("{num}", [{toc_title}], "{label_id}", "{summary}")')
+    toc_p2_str = "\n".join(toc_p2_lines)
 
     preamble = f'''
 #let ink = rgb("{ink}")
@@ -186,6 +212,34 @@ def build_typst_document(edition):
 // Math equation styling
 #show math.equation.where(block: true): set text(size: 8.2pt)
 
+// Table of Contents custom entry helpers (RLOM standard)
+#let toc-prelim(title, label-id) = [
+  #v(0.25em)
+  #block(width: 100%)[
+    #text(font: "Source Serif 4", size: 8.6pt, style: "italic", fill: ink)[#link(label(label-id))[#title]]
+    #box(width: 1fr, pad(x: 4pt, repeat([#text(fill: ash, size: 7pt)[. ]])))
+    #text(font: "IBM Plex Mono", size: 7.8pt, fill: ash)[#context counter(page).at(label(label-id)).first()]
+  ]
+]
+
+#let toc-entry(num, title, label-id, summary) = [
+  #v(0.26em)
+  #grid(
+    columns: (18pt, 1fr),
+    gutter: 5pt,
+    text(font: "IBM Plex Mono", size: 7.8pt, weight: 600, fill: garnet)[#num],
+    [
+      #block(width: 100%)[
+        #text(font: "Source Serif 4", size: 8.4pt, weight: 600, fill: ink)[#link(label(label-id))[#title]]
+        #box(width: 1fr, pad(x: 4pt, repeat([#text(fill: ash, size: 7pt)[. ]])))
+        #text(font: "IBM Plex Mono", size: 7.8pt, fill: ash)[#context counter(page).at(label(label-id)).first()]
+      ]
+      #v(0.05em)
+      #text(font: "Source Serif 4", size: 7.0pt, fill: ash)[#summary]
+    ]
+  )
+]
+
 // ==========================================
 // 1. FRONT COVER
 // ==========================================
@@ -219,6 +273,17 @@ def build_typst_document(edition):
 // 2. VERSO / COPYRIGHT & IMPRINT
 // ==========================================
 #page(numbering: none, header: none, footer: none)[
+  #v(1.4in)
+  #align(center)[
+    #text(font: "Source Serif 4", size: 13pt, weight: 600)[Ravenhelm Development Operations Methodology]
+    #v(0.18in)
+    #text(font: "Source Serif 4", size: 9.5pt, style: "italic", fill: ash)[
+      "Concurrency is not granted by calendar fiat;\\
+       it is earned through topological proof."
+    ]
+    #v(0.08in)
+    #text(font: "IBM Plex Mono", size: 7pt, fill: garnet, tracking: 0.14em)[— THE FIRST CONCURRENCY INVARIANT (DP-2)]
+  ]
   #v(1fr)
   #set text(font: "IBM Plex Mono", size: 7pt, fill: ash, tracking: 0.04em, hyphenate: false)
   #set par(justify: false, first-line-indent: 0em, leading: 0.9em)
@@ -241,43 +306,47 @@ def build_typst_document(edition):
 ]
 
 // ==========================================
-// 3. HALF TITLE & EPIGRAPH
+// 3. TABLE OF CONTENTS (RLOM STANDARD)
 // ==========================================
-#page(numbering: none, header: none, footer: none)[
-  #v(2.3in)
-  #align(center)[
-    #text(font: "Source Serif 4", size: 14pt, weight: 600)[Ravenhelm Development Operations Methodology]
-    #v(0.25in)
-    #text(font: "Source Serif 4", size: 10.5pt, style: "italic", fill: ash)[
-      "Concurrency is not granted by calendar fiat;\\
-       it is earned through topological proof."
-    ]
-    #v(0.12in)
-    #text(font: "IBM Plex Mono", size: 7.5pt, fill: garnet, tracking: 0.14em)[— THE FIRST CONCURRENCY INVARIANT (DP-2)]
+#page(
+  margin: (top: 0.65in, bottom: 0.65in, inside: 0.85in, outside: 0.75in),
+  numbering: none,
+  header: none,
+  footer: none
+)[
+  #v(0.08in)
+  #align(left)[
+    #text(font: "Source Serif 4", size: 20pt, weight: 600, fill: ink)[Contents]
   ]
+  #v(0.12in)
+
+  #toc-prelim("How to read it", "front-how-to-read")
+  #toc-prelim("The principles at a glance", "front-principles")
+
+  #v(0.6em)
+
+{toc_p1_str}
+]
+
+#page(
+  margin: (top: 0.65in, bottom: 0.65in, inside: 0.85in, outside: 0.75in),
+  numbering: none,
+  header: none,
+  footer: none
+)[
+  #v(0.12in)
+{toc_p2_str}
 ]
 
 // ==========================================
-// 4. TABLE OF CONTENTS
-// ==========================================
-#page(numbering: none, header: none, footer: none)[
-  #v(0.4in)
-  #align(center)[
-    #text(font: "Source Serif 4", size: 18pt, weight: 600)[Contents]
-  ]
-  #v(0.25in)
-  #outline(title: none, depth: 1, indent: auto)
-]
-
-// ==========================================
-// 5. HOW TO READ IT
+// 4. HOW TO READ IT
 // ==========================================
 #page(numbering: none, header: none, footer: none)[
   #v(0.3in)
   #align(left)[
     #text(font: "IBM Plex Mono", size: 8.5pt, weight: 600, fill: garnet, tracking: 0.16em)[GUIDE]
     #v(0.08in)
-    #heading(level: 1, numbering: none, outlined: true)[How to Read It]
+    #heading(level: 1, numbering: none, outlined: true)[How to Read It] <front-how-to-read>
     #v(0.05in)
     #line(length: 100%, stroke: 0.5pt + ash)
   ]
@@ -309,14 +378,14 @@ def build_typst_document(edition):
 ]
 
 // ==========================================
-// 6. THE PRINCIPLES AT A GLANCE
+// 5. THE PRINCIPLES AT A GLANCE
 // ==========================================
 #page(numbering: none, header: none, footer: none)[
   #v(0.3in)
   #align(left)[
     #text(font: "IBM Plex Mono", size: 8.5pt, weight: 600, fill: garnet, tracking: 0.16em)[CANON]
     #v(0.08in)
-    #heading(level: 1, numbering: none, outlined: true)[The Principles at a Glance]
+    #heading(level: 1, numbering: none, outlined: true)[The Principles at a Glance] <front-principles>
     #v(0.05in)
     #line(length: 100%, stroke: 0.5pt + ash)
   ]
@@ -360,7 +429,7 @@ def build_typst_document(edition):
 ]
 
 // ==========================================
-// 7. RUNNING HEADERS & BODY PAGES
+// 6. RUNNING HEADERS & BODY PAGES
 // ==========================================
 #set page(
   numbering: "1",
@@ -386,7 +455,7 @@ def build_typst_document(edition):
 '''
 
     body_chapters = []
-    for file_name, num, title, badge_text in CHAPTER_FILES:
+    for file_name, num, title, badge_text, summary in CHAPTER_FILES:
         chapter_path = os.path.join(DOCS_DIR, file_name)
         if not os.path.exists(chapter_path):
             continue
@@ -401,7 +470,7 @@ def build_typst_document(edition):
 #align(left)[
   #text(font: "IBM Plex Mono", size: 8.5pt, weight: 600, fill: garnet, tracking: 0.16em)[{label_prefix} · {num}]
   #v(0.08in)
-  #heading(level: 1, numbering: (..n) => "{num}", outlined: true)[{title}]
+  #heading(level: 1, numbering: (..n) => "{num}", outlined: true)[{title}] <ch-{num.lower()}>
   #v(0.12in)
   #text(font: "IBM Plex Mono", size: 7pt, fill: ash, tracking: 0.08em)[{badge_text}]
   #v(0.05in)
