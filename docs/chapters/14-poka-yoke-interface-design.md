@@ -33,7 +33,10 @@ $$\operatorname{Malformed}(c) \iff p \notin \mathcal{V}$$
 
 In a permissive or stringly-typed architecture, the set of invocations accepted by the compiler $\mathcal{C}_{\text{compile}}$ encompasses the entire syntactically valid space $\mathcal{C}$. Malformed invocations pass through compilation unnoticed, leaving detection to runtime assertions or catastrophic failure:
 
-$$\text{Permissive Architecture:} \quad \mathcal{C}_{\text{compile}} = \mathcal{C}, \quad \text{where } \exists c \in \mathcal{C}_{\text{compile}} \text{ such that } \operatorname{Malformed}(c)$$
+$$\begin{aligned}
+\text{Permissive Architecture:} \quad &\mathcal{C}_{\text{compile}} = \mathcal{C}, \\
+&\text{where } \exists c \in \mathcal{C}_{\text{compile}} \text{ such that } \operatorname{Malformed}(c)
+\end{aligned}$$
 
 Under Principle **DP-9 (Poka-Yoke Interface Design)**, the interface boundary is structurally constrained such that the compiler's acceptance domain $\mathcal{C}_{\text{compile}}$ is mathematically isomorphic to the valid parameter domain $\mathcal{V}$:
 

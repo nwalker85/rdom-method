@@ -152,18 +152,19 @@ def build_typst_document(edition):
   inset: (x: 2.5pt, y: 0pt),
   outset: (y: 2.5pt),
   radius: 2pt
-)[#text(font: "IBM Plex Mono", size: 8.2pt, it)]
+)[#text(font: "IBM Plex Mono", size: 8.0pt, it)]
 
 // Code styling: block code
 #show raw.where(block: true): it => block(
   width: 100%,
+  clip: true,
   breakable: true,
   fill: card_bg,
   stroke: 0.5pt + card_border,
   inset: 7pt,
   radius: 3pt,
   spacing: 0.9em,
-  text(font: "IBM Plex Mono", size: 7.2pt, fill: ink, it)
+  text(font: "IBM Plex Mono", size: 6.8pt, fill: ink, it)
 )
 
 // Quote / Callout styling
@@ -179,28 +180,38 @@ def build_typst_document(edition):
 )
 
 // Table styling
-#show table: set text(font: "IBM Plex Mono", size: 7.2pt)
+#show table: set text(font: "IBM Plex Mono", size: 6.8pt)
 #show table.cell.where(y: 0): set text(weight: "bold", fill: ink)
+
+// Math equation styling
+#show math.equation.where(block: true): set text(size: 8.2pt)
 
 // ==========================================
 // 1. FRONT COVER
 // ==========================================
-#page(margin: 0in, numbering: none, header: none, footer: none)[
-  #place(top + left, rect(width: 100%, height: 100%, fill: paper))
-  #place(center + horizon, dy: -1.3in)[
-    #image("{raven_logo}", width: 3.5in)
-  ]
-  #place(center + horizon, dy: 1.4in)[
-    #set align(center)
-    #text(font: "Source Serif 4", size: 24pt, weight: 600, fill: ink)[Ravenhelm Development Operations]
+#page(
+  margin: (x: 0.85in, top: 0.9in, bottom: 0.9in),
+  numbering: none,
+  header: none,
+  footer: none
+)[
+  #align(center)[
+    #v(0.35in)
+    #image("{raven_logo}", width: 2.25in)
+    #v(0.45in)
+    #text(font: "Source Serif 4", size: 16.5pt, weight: 600, fill: ink)[Ravenhelm Development Operations]
     #v(0.08in)
-    #text(font: "Source Serif 4", size: 18pt, weight: 400, fill: garnet)[Methodology]
-    #v(0.2in)
-    #text(font: "IBM Plex Mono", size: 8.2pt, fill: ash, tracking: 0.14em)[A LEAN, TOPOLOGICAL, AND DEFECT-GATED FRAMEWORK FOR AUTONOMOUS AND HYBRID FLEETS]
-    #v(0.55in)
-    #text(font: "Source Serif 4", size: 11pt, weight: 600, fill: ink)[{BYLINE}]
-    #v(0.05in)
-    #text(font: "IBM Plex Mono", size: 7.5pt, fill: ash, tracking: 0.12em)[RAVENHELM LLC · 2026]
+    #text(font: "Source Serif 4", size: 14.5pt, weight: 400, fill: garnet)[Methodology]
+    #v(0.28in)
+    #block(width: 82%)[
+      #set par(leading: 0.65em)
+      #text(font: "IBM Plex Mono", size: 7.0pt, fill: ash, tracking: 0.10em)[A LEAN, TOPOLOGICAL, AND DEFECT-GATED FRAMEWORK FOR AUTONOMOUS AND HYBRID FLEETS]
+    ]
+    #v(1fr)
+    #text(font: "Source Serif 4", size: 10.5pt, weight: 600, fill: ink)[{BYLINE}]
+    #v(0.06in)
+    #text(font: "IBM Plex Mono", size: 7.2pt, fill: ash, tracking: 0.12em)[RAVENHELM LLC · 2026]
+    #v(0.15in)
   ]
 ]
 
