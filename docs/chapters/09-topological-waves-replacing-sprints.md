@@ -17,24 +17,24 @@ RDOM completely eliminates the calendar sprint. In its place, it installs **Topo
   └────────────────────────────────────────────────────────┘     hidden dependencies
 
   RDOM Topological Wave Structure (Structural Progression):
-  ┌────────────────────────┐
-  │ Wave 0: Foundations    │  DB Migrations, Shared Schemas, Client SDKs
-  └────────────────────────┘
+  ┌─────────────────────────────────┐
+  │ Wave 0: Foundations & Schemas   │  DB Migrations, Shared Schemas, Client SDKs
+  └─────────────────────────────────┘
               │  (Verified Green Gate: DP-7)
               ▼
-  ┌────────────────────────┐
-  │ Wave 1: Core Services  │  Service A Worker, Service B API (Disjoint Blast Radii)
-  └────────────────────────┘
+  ┌─────────────────────────────────┐
+  │ Wave 1: Core Slices (Disjoint)  │  Service A Worker, Service B API (Zero Collision: DP-3)
+  └─────────────────────────────────┘
               │  (Verified Green Gate: DP-7)
               ▼
-  ┌────────────────────────┐
-  │ Wave 2: Composite Flow │  Integration Layer, Cross-Service Telemetry, UI Flow
-  └────────────────────────┘
+  ┌─────────────────────────────────┐
+  │ Wave 2: Composite Integrations  │  Integration Layer, Cross-Service Telemetry, UI Flow
+  └─────────────────────────────────┘
               │  (Verified Green Gate: DP-7)
               ▼
-  ┌────────────────────────┐
-  │ Wave 3: E2E & Gate     │  End-to-End Synthetic Tests, Performance Verification
-  └────────────────────────┘
+  ┌─────────────────────────────────┐
+  │ Wave 3: E2E, Docs & Showcase    │  Verification, Living Docs, Executable Showcase (UAT)
+  └─────────────────────────────────┘
 ```
 
 ### The Wave Progression Model
@@ -57,10 +57,10 @@ A topological wave is not a timebox; it is an event-driven execution wavefront g
 - **Scope**: Orchestration pipelines, gateway routing, user interface workflows, and cross-service event handlers that compose Wave 1 components.
 - **Exit Gate**: Successful integration test suites verifying data flow across multiple services.
 
-#### Wave 3: End-to-End System Verification
+#### Wave 3: End-to-End Verification, Documentation & UAT Showcase
 
-- **Scope**: Synthetic transaction tests, performance benchmarks, chaos drills, and deployment artifact validation.
-- **Exit Gate**: Wave Doom verification passes cleanly with zero defects (DP-7, DP-11).
+- **Scope**: Synthetic transaction tests, performance benchmarks, chaos drills, artifact packaging, user-facing documentation updates (`docs/`, runbooks, `AGENTS.md`), and the generation of an executable **Showcase / Demonstration Deed** (DP-11).
+- **Exit Gate**: 100% green Doom verification, documentation merged into repo authority, and the Showcase deed witnessed and submitted to RLOM for final User Acceptance Testing (UAT) sign-off (DP-7, DP-11).
 
 ### The Invariants of Wave Progression
 
@@ -68,17 +68,18 @@ A topological wave is not a timebox; it is an event-driven execution wavefront g
 2. **Variable Duration**: A wave lasts as long as required to achieve verified green—whether four hours or four days. There is no calendar cutoff.
 3. **Zero Rollover**: Tasks do not "roll over" into the next wave. If a task fails or stalls, the wave remains open and the Andon cord is pulled (DP-12).
 4. **Instant Advancement**: The moment the final gate of Wave $N$ turns green, Wave $N+1$ worktrees are authorized immediately without waiting for a planning meeting.
+5. **The Feature Triad Invariant**: A feature branch is incomplete if code passes tests but user documentation is missing or no showcase deed demonstrates the running system. Documentation and Showcases are first-class wave deliverables.
 
 > **Augmentation Surface — Automated Wave Gate Orchestration**
 >
-> Where an agent layer transforms this practice: the orchestration system continuously listens to CI completion webhooks. As soon as all Wave $N$ pull requests are merged and verified, the orchestrator automatically provisions the isolated worktrees and briefs for all Wave $N+1$ tasks.
+> Where an agent layer transforms this practice: the orchestration system continuously listens to CI completion webhooks. As soon as all Wave $N$ pull requests are merged and verified, the orchestrator automatically provisions the isolated worktrees and briefs for all Wave $N+1$ tasks, drafting the skeleton for the Wave 3 Showcase walkthrough.
 
 <!-- RUBRIC_CHECK:
   structural: pass
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 740
+  word-count: 820
   principle-citations: DP-2, DP-3, DP-7, DP-11, DP-12
   flagged-principle-gaps: none
 -->

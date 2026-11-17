@@ -28,7 +28,7 @@ The **Sovereign Triad** establishes total coherence across these three lifecycle
 
 Governed by 29 principles (`P-1` through `P-29`), RLOM manages how intent enters the organization, how initiatives decompose into projects, and how projects decompose into deliverable issues. It treats the issue tracker as an active, living work graph, not a historical junkyard.
 - **The Core Axiom**: *"If it isn't witnessed by a deed, it didn't happen."*
-- **Role**: Declares *what* needs to be built and *why*, securing business alignment and customer demand before engineering capacity is committed.
+- **Role**: Declares *what* needs to be built and *why*, securing business alignment, customer demand, and acceptance criteria before engineering capacity is committed.
 
 #### 2. RDOM — Execution, Concurrency, and Engineering Cadence
 
@@ -42,27 +42,34 @@ Governed by 18 principles (`RP-1` through `RP-18`), RROM governs what happens on
 - **The Core Axiom**: *"Builds are the unit; releases are names."*
 - **Role**: Governs *where* and *how* verified artifacts are promoted, ensuring that runtime deployments are bit-for-bit identical across all stages without rebuilding.
 
-### The Lifecycle Handoffs
+### The Lifecycle Handoffs and the UAT Showcase Loop
 
-The handoffs between the members of the Triad are governed by strict contractual boundaries:
+The handoffs between the members of the Triad are governed by strict contractual boundaries, bound together by the **Showcase-as-UAT** feedback loop:
 
 1. **RLOM $\to$ RDOM (The Intake Contract)**:
    Engineering does not start work on unrefined, ambiguous tickets. RLOM issues must satisfy the Definition of Ready: clear acceptance criteria, verified user demand, and an assigned owner. RDOM converts these issues into topological DAG nodes (DP-1).
-2. **RDOM $\to$ RROM (The Merge Boundary)**:
-   Code cannot be merged into `main` or `develop` on a developer's promise. It must pass all automated Six Sigma gates, attach witnessed deeds (test execution logs, benchmark reports), and undergo formal code review (DP-7, DP-11, DP-23).
-3. **RROM $\to$ RLOM (The Evidence Feedback Loop)**:
-   When RROM successfully deploys an immutable build to staging or production, it updates the RLOM work graph with the immutable digest, closing the loop between strategic intent and live reality.
+2. **RDOM Delivery: The Feature Release Triad (Code, Docs, Showcase)**:
+   In RDOM, a feature release is never complete when functional code simply compiles. Every release must produce three co-equal deliverables (DP-11):
+   - **Functional Silicon**: Code verified green via automated TDD suites (DP-7, DP-8).
+   - **Living Documentation**: Authoritative user documentation, updated architecture decisions (ADRs), and executable runbooks.
+   - **The Showcase / Demonstration Deed**: An executable walkthrough, interactive sandbox session, or recorded CLI/UI demonstration proving the feature operating against the live running system (DP-10).
+3. **RDOM $\to$ RLOM (The Showcase as User Acceptance Testing)**:
+   The Showcase deed is not marketing collateral; it is the physical artifact required for **RLOM Validation and User Acceptance Testing (UAT)** (P-6). Product operators and stakeholders do not review abstract code diffs; they evaluate the Showcase against the original RLOM acceptance criteria. UAT sign-off is gated on the witnessed showcase.
+4. **RDOM $\to$ RROM (The Merge Boundary)**:
+   Code cannot be merged into `main` on a developer's promise. It must pass all automated Six Sigma gates, attach witnessed deeds (test logs, docs, showcase proof), and satisfy the PR boundary (DP-7, DP-11, DP-23).
+5. **RROM $\to$ RLOM (The Proven Deployment Loop)**:
+   When RROM deploys an immutable build to production, it stamps the RLOM issue with the immutable container digest or Homebrew release tag, transitioning the issue to Done with verified live evidence.
 
 > **Augmentation Surface — Triad State Reconciliation**
 >
-> Where an agent layer transforms this practice: an autonomous auditor continuously monitors the synchronization between the RLOM issue graph, the RDOM git worktrees, and the RROM container registries, alerting on drift before it manifests as blocked work.
+> Where an agent layer transforms this practice: an autonomous auditor continuously monitors the synchronization between the RLOM issue graph, the RDOM git worktrees, and the RROM container registries, validating that every candidate release carries its living documentation and executable showcase before notifying stakeholders for UAT.
 
 <!-- RUBRIC_CHECK:
   structural: pass
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 750
-  principle-citations: DP-1, DP-7, DP-11, DP-23
+  word-count: 880
+  principle-citations: DP-1, DP-7, DP-8, DP-10, DP-11, DP-23
   flagged-principle-gaps: none
 -->

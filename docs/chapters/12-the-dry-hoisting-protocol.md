@@ -43,6 +43,22 @@ During the Ráð (Wave Architecture Council), candidate tasks are evaluated thro
 2. **The Schema Filter**: Does this feature expose or consume data models that cross service or component boundaries? If yes, the schema must be declared as a typed contract (Protobuf, OpenAPI, TypeScript interface) in an earlier wave.
 3. **The Utility Filter**: Does this task contain helper logic (string manipulation, token parsing, retry loops) that other slices will plausibly need? If yes, it is hoisted into a shared internal library.
 
+### The Consumption Contract & Floor (DP-15)
+
+Hoisting common libraries is only half the battle; the other half is ensuring that new repositories and worker slices actually consume them instead of building redundant shadow implementations.
+
+In Project Factory, this principle was ratified after `runestack-ai` was generated with valid boilerplate but proceeded to have brand color hex codes typed into CSS by hand—because `token-forge` already existed to generate those tokens, but nothing in the scaffold forced the question.
+
+RDOM institutes the **Consumption Contract** (DP-15):
+
+> **The Sovereign Consumption Rule**:
+> *A repository, service, or task slice may decline to use an established estate surface. It may not do so silently.*
+
+1. **Supply-Side vs. Demand-Side Registry**:
+   The estate maintains a supply-side catalog of published library surfaces (`registry/library-surfaces.json`). Per service lane, it declares a demand-side floor (`registry/lane-consumption.json`): the exact surfaces a repo in that lane is expected to consume (e.g., auth middleware, telemetry SDK, canonical receipt validators).
+2. **Explicit Exemption Invariant**:
+   If a task or repository intentionally chooses not to consume an established platform surface (for example, building a standalone zero-dependency CLI), it must declare an explicit `consumes_exemption` documenting the technical justification. Omitting the declaration is an automated validation failure.
+
 ### Zero Unacknowledged Duplication
 
 Under Principle DP-15, copy-pasting code or boilerplates across repositories or modules is strictly prohibited. If temporary duplication is required for tactical decoupling:
@@ -59,7 +75,7 @@ Under Principle DP-15, copy-pasting code or boilerplates across repositories or 
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 730
+  word-count: 880
   principle-citations: DP-7, DP-13, DP-14, DP-15, DP-17
   flagged-principle-gaps: none
 -->

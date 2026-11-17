@@ -31,6 +31,35 @@ RDOM establishes the **Checkout Custody Standard** governed by dedicated git wor
 4. **WIP Commits Replace Git Stash (DP-22)**:
    `git stash` is strictly forbidden across branch transitions. Stashes are untracked, fragile, and lack commit metadata. State persistence is accomplished through frequent, structured `wip: <state>` commits pushed to the remote feature branch.
 
+### The Repo Agent Bootstrap Standard
+
+To enable human engineers and autonomous agents to work safely in any worktree without relying on fragile chat history or external state, every repository under RDOM must adhere to the **Repo Agent Bootstrap Standard** (ratified in Project Factory):
+
+```text
+repo/
+├── AGENTS.md                  # The single repo authority (source of truth, guardrails, commands)
+├── README.md                  # Public overview and architecture summary
+├── CHANGELOG.md               # Starts with [Unreleased]
+├── CONTRIBUTING.md            # Workflow rules and PR instructions
+├── flake.nix                  # Hermetic, reproducible development shell (Nix/uv/pnpm)
+├── .agents/                   # Repo-local agent working library (not for human docs)
+│   ├── README.md              # Working library scope and boundaries
+│   ├── context/
+│   │   └── repo-map.md        # Compact map: entry points, directories, test commands
+│   ├── checklists/
+│   │   ├── pr.md              # Pre-flight checklist before opening PR
+│   │   └── release.md         # Release validation checklist
+│   └── plans/                 # Active implementation plans and slice scratchpads
+└── docs/                      # Authoritative human & architecture documentation
+    ├── architecture/
+    │   └── decisions/         # Architecture Decision Records (ADRs)
+    └── runbooks/              # Executable SOPs and operational runbooks
+```
+
+- **`AGENTS.md` is Authoritative**: It travels with the code and is updated in the same PRs that modify architecture or commands.
+- **`.agents/` is the Working Library**: Checklists prevent defect escapes; `repo-map.md` guarantees rapid orientation without directory crawls.
+- **Hermetic Development Shells**: Every worktree provides a working development shell (e.g., `flake.nix` or hermetic virtual environment) ensuring that tests, linters, and compilers execute identically on the developer's laptop, inside agent worktrees, and across CI runners.
+
 ### The Worktree Lifecycle Protocol
 
 ```
@@ -62,14 +91,14 @@ A worktree is a temporary workspace, not an archival storage unit. However, a wo
 
 > **Augmentation Surface — Automated Worktree Management**
 >
-> Where an agent layer transforms this practice: the orchestration system automatically provisions an isolated worktree for each dispatched agent task, monitors commit cadence, and safely tears down the worktree once the pull request is merged, completely automating workspace hygiene.
+> Where an agent layer transforms this practice: the orchestration system automatically provisions an isolated worktree for each dispatched agent task, verifies the presence of the `repo-map.md` and hermetic development shell, monitors commit cadence, and safely tears down the worktree once the pull request is merged.
 
 <!-- RUBRIC_CHECK:
   structural: pass
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 730
+  word-count: 890
   principle-citations: DP-7, DP-19, DP-21, DP-22, DP-23, DP-24
   flagged-principle-gaps: none
 -->

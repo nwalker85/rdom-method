@@ -75,19 +75,19 @@ RDOM is governed by twenty-four inviolable principles across four operational pi
 | **DP-4** | **The Critical Chain Floor** | The longest dependent path sets the schedule floor and receives primary focus; non-critical paths are managed as buffered slack. |
 | **DP-5** | **Upstream-Jump Circuit Breaker** | Workers cannot branch outward to build against unfinished dependencies; blocked workers stop and sound the Andon cord. |
 | **DP-6** | **Progressive JIT Elaboration** | Only the active wave ($W_k$) receives granular TDD specs; detailing downstream waves is toxic inventory waste (*Muda*). |
-| **DP-7** | **Verified Green Precedes Promotion** | Wave $W_{k+1}$ opens only when all exit criteria of Wave $W_k$ pass mechanical verification against the live running system. |
+| **DP-7** | **Verified Green Precedes Promotion** | Wave $W_{k+1}$ opens only when all exit criteria of Wave $W_k$ pass mechanical verification against the live running system with active runner capacity. |
 | **DP-8** | **Red-Green-Refactor State Transitions** | Work begins with a failing test asserting behavior, followed by minimal passing code, followed by refactoring. |
 | **DP-9** | **Poka-Yoke Interface Design** | Public APIs, schemas, and CLI flags must make invalid states unrepresentable; errors must be structural types. |
 | **DP-10** | **Live Running System as Truth** | Hypotheses and fixes are confirmed against the live running kernel/system state—never stale documentation or memory. |
-| **DP-11** | **Witnessed Deed Attachment** | Developmental units must emit machine-verifiable evidence (tests, logs, compiler proofs) to satisfy RLOM Review gates. |
+| **DP-11** | **Witnessed Deed Attachment (Code, Docs, Showcase)** | Every feature release requires the Triad of Proof: verified automated tests, living documentation/runbooks, and an executable showcase serving as the empirical basis for RLOM User Acceptance Testing (UAT). |
 | **DP-12** | **The Andon Cord Protocol** | On circular dependencies or silent corruption, the worker halts immediately, flags the blocker, and yields. |
 | **DP-13** | **Planning-Time DRY Refactoring** | Before execution, scan the DAG for duplicate capability and refactor the graph to prevent snowflakes before code is written. |
 | **DP-14** | **The Hoist-vs-Defer Rule** | Known interfaces are hoisted upstream into early waves; guessed interfaces are built inline with scheduled deferred extractions. |
-| **DP-15** | **Zero Unacknowledged Duplication** | Every repeated capability identified in planning must either be hoisted or explicitly assigned a deferred extraction issue. |
+| **DP-15** | **Zero Unacknowledged Duplication (Consumption Contract)** | A repo or slice may decline to use an established estate surface, but it may not do so silently; bypassing a platform library requires an explicit `consumes_exemption`. |
 | **DP-16** | **Scaffolding from Working Reality** | Frameworks, SDKs, and base classes are extracted only from working, tested implementations—never imagined in a vacuum. |
 | **DP-17** | **Shared Substrate Invariance** | Shared memory buffers, IPC wire protocols, and cancellation barriers belong to Layer 0 substrate crates, never re-rolled. |
 | **DP-18** | **Locality Invariance** | Subsystems must expose identical interfaces whether running in-process, across POSIX shared memory, or over remote QUIC. |
-| **DP-19** | **Dedicated Worktree Custody** | Every task slice operates in an isolated, disposable git worktree projected from a single canonical `.bare/` repository. |
+| **DP-19** | **Dedicated Worktree Custody** | Every task slice operates in an isolated, disposable git worktree projected from a canonical `.bare/` repository, adhering to the Repo Agent Bootstrap Standard (`AGENTS.md` + `.agents/`). |
 | **DP-20** | **Anti-Thrash Context Priming** | Agents must never crawl directories blindly; ingestion uses topological EAT digests (`eat prime`, `eat read`) to protect context. |
 | **DP-21** | **Zero Ambient Mutation on Hosts** | Development never edits live configs on server hosts via SSH; all mutations pass through repos, PRs, and GitOps pipelines. |
 | **DP-22** | **WIP Commit Checkpointing** | Never use `git stash` across branch switches; session momentum is preserved via WIP commits and Gamer-style Quicksaves. |
