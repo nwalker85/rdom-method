@@ -1,260 +1,239 @@
 <!-- LICENSE: © 2026 Ravenhelm LLC. Licensed material. -->
 <!-- All rights reserved except as granted in LICENSE. Inquiries: nate@ravenhelm.co -->
 
-## Chapter 4 — The Hierarchy of Deeds (Wyrd Rune to Daily Deed)
+## Chapter 4 - The Topological Work Hierarchy: From Strategic Invariant to Atomic Commit
 
-At 9:00 AM on the first Monday of the fiscal year, executive leadership unveils the multi-year vision: *Unified Distributed Mesh*, *Zero-Trust Autonomous Agent Substrate*, and *Sub-Ten-Millisecond Ingress*. Capital is allocated, and strategic key results are celebrated.
+In the middle of a live architecture session on the Ravenhelm bench, we opened a simple operational question: *which model and harness should hold the fleet supervisor seat?* To answer that question properly, we checked how the supervisor authenticates its worker slices. That branched one level down into internal PKI certificate issuance. PKI certificate issuance touched Zitadel and OpenBao service identities, which branched outward into the estate-wide identity stack. The identity stack raised a question about how platform capabilities get scaffolded across repositories, which branched into a Project Factory platform design, which exposed a gap in how agents recall architectural rulings, which triggered a full rewrite of the structured memory tree. Four hours later, the memory tree was refactored, three draft specs sat open across four terminals, and the original question - *who holds the fleet supervisor seat?* - remained completely unanswered.
 
-Nine months later, the quarterly business review opens in bewilderment. Product leadership claims engineering completed "eighty-four percent of planned story points." Yet when asked for a live demonstration of the multi-region mesh, engineering leads stammer. What actually shipped was a patchwork: three rewritten frontend panels, ad-hoc migration scripts in staging, twenty-four unmerged branches with conflicting protocol buffers, and maintenance tickets labeled "Tech Debt."
+If you are a seed thinker or a systems architect, that failure mode is in your blood (`watch-nates-blindspots`). Every problem you touch is legitimately connected to the foundation underneath it and the platform beside it; it is all one work at different altitudes (`it-is-all-one-work-at-different-altitudes.md`). When a human architect branches down into PKI and sideways into memory layouts without an external altitude lock, an afternoon vanishes. When you hand that same unlayered workspace to twenty concurrent AI coding agents, the estate explodes.
 
-This failure stems from a **broken chain of custody** between strategic intent and code execution. Boardroom objectives and terminal pull requests are unanchored. Strategy lives in slide decks; execution is tracked in ticketing queues where arbitrary "Epics" act as wastebaskets. Commits merge into trunk with messages like `fix: tweak listener`—carrying zero provenance, structural lineage, or physical proof of advancing business goals.
+We saw the corpse of that v1 when we audited Ravenhelm's own Linear workspace after months of high-velocity building (`designs-systems-not-operations.md`): **14 workflow states, ~160 ad-hoc labels, and 0 of 45 projects with a health status set.** Issues sat in flat queues with no parent project; PRs merged to `main` with titles like `fix: update handler` and no `RAV-<id>` reference; worker slices spawned child tasks that drifted three architectural layers away from the quarterly goal they were hired to close. Everyone was working at full throttle. Nobody could prove which commits were moving the needle on the quarter's critical path and which commits were rewiring the house to change a lightbulb.
 
-When autonomous AI coding agents enter this void, the chasm widens. Agents churn out thousands of lines of syntactically valid code within isolated context windows, spawning pull requests that solve local puzzles while fracturing system architecture.
-
-The **Hierarchy of Deeds** replaces subjective status reporting, floating stories, and phantom epics with an unbroken, verifiable chain of custody from sovereign intent down to the atomic git commit.
+The **Topological Work Hierarchy** is the structural antidote to altitude drift. It replaces flat ticket bags, bottomless epics, and unanchored commits with a strict six-level chain of custody from a multi-year **Strategic Invariant** down to an **Atomic Commit & PR**. When you discover a lower-level PKI defect while working a supervisor-seat issue, you do not silently descend the ladder and lose your thread; you stamp a typed issue at the appropriate level, wire the causal `blocks` edge in the Ehwaz DAG, and stay at your assigned altitude until the gate requires a replan.
 
 ---
 
-### The Formal Cosmology of Deed Custody
+### The Six Levels of the Topological Work Hierarchy
 
-To guarantee no line of code is written without strategic necessity, software delivery is formalized as a strict, multi-tiered projection of custody.
+To guarantee that no line of code is cut without lineage and no strategic goal floats without execution receipts, work is projected downward across six explicit altitudes:
 
-Let $\mathcal{R}$ represent multi-year sovereign goals, $\mathcal{S}$ annual architectural initiatives, $\mathcal{V}$ quarterly engineering contracts, $\mathcal{W}$ topological execution waves, $\mathcal{D}$ atomic daily deeds, and $\mathcal{C}$ physical git commits. Custody is an unbroken downward projection:
+Let $\mathcal{I}_{\text{strat}}$ be Multi-Year Strategic Invariants, $\mathcal{P}_{\text{init}}$ be Annual Program Initiatives, $\mathcal{Q}_{\text{contract}}$ be 13-Week Quarterly Engineering Contracts, $\mathcal{M}_{\text{wave}}$ be Projects and Wave Milestones, $\mathcal{D}_{\text{issue}}$ be Atomic Deliverables (`RAV-<id>`), and $\mathcal{C}_{\text{git}}$ be Physical Git Commits and Pull Requests. Every commit carries an unbroken upward pointer:
 
-$$\mathcal{C} \xrightarrow{\pi_1} \mathcal{D} \xrightarrow{\pi_2} \mathcal{W} \xrightarrow{\pi_3} \mathcal{V} \xrightarrow{\pi_4} \mathcal{S} \xrightarrow{\pi_5} \mathcal{R}$$
+$$\mathcal{C}_{\text{git}} \xrightarrow{\pi_1} \mathcal{D}_{\text{issue}} \xrightarrow{\pi_2} \mathcal{M}_{\text{wave}} \xrightarrow{\pi_3} \mathcal{Q}_{\text{contract}} \xrightarrow{\pi_4} \mathcal{P}_{\text{init}} \xrightarrow{\pi_5} \mathcal{I}_{\text{strat}}$$
 
-Proof of delivery is an upward aggregation of mechanical witnesses: every daily deed verifies physical silicon; waves aggregate verified deeds; quarterly contracts fulfill engineering OKRs; and completed sagas fortify the sovereign moat.
+Intent flows down the ladder as bounded scope; proof flows up the ladder as verified receipts.
 
 ```
-       [ WYRD RUNE ]           Sovereign North Star (Multi-Year Existential Moat)
-             │                 Horizon: 3-5 Years | Authority: Sovereign Architect / Board
-             ▼
-       [ LONG-SAGA ]           Strategic Architecture & Platform Initiatives
-             │                 Horizon: 1-2 Years | Authority: Principal Systems Architect
-             ▼
-      [ SAGA'S VOW ]           Quarterly Commitment (Faster, Bigger, Cheaper, Effective)
-             │                 Horizon: 1 Quarter | Authority: Engineering Director & Leads
-             ▼
-     [ TOPOLOGICAL WAVE ]      Coherent Execution Wavefront (Ehwaz DAG Waves W_0..W_N)
-             │                 Horizon: 1-3 Weeks | Authority: Execution Engine / Fleet Dispatch
-             ▼
-       [ DAILY DEED ]          Atomic Deliverable Slice & Verified Pull Request
-                               Horizon: 2-8 Hours | Authority: Paired Engineers & Agent Slices
+   LEVEL 1: [ STRATEGIC INVARIANT ]          Multi-Year Existential Moat & Non-Negotiable Law
+                  │                          Horizon: 3-5 Years | Linear: Top-Level Initiative
+                  ▼
+   LEVEL 2: [ PROGRAM INITIATIVE ]           Annual Platform & Architecture Spine
+                  │                          Horizon: 12 Months | Linear: Program Initiative
+                  ▼
+   LEVEL 3: [ QUARTERLY CONTRACT ]           13-Week Binding Commitment (Faster/Bigger/Cheaper/Effective)
+                  │                          Horizon: 13 Weeks  | Linear: Quarterly Initiative / Cycle Target
+                  ▼
+   LEVEL 4: [ PROJECT & WAVE MILESTONE ]     Ehwaz DAG (G = V,E) Partitioned into Waves W_0..W_m
+                  │                          Horizon: 1-4 Weeks | Linear: Project + Wave Milestones
+                  ▼
+   LEVEL 5: [ DELIVERABLE / ISSUE ]          Single-Owner Work Unit (RAV-<id>) in Isolated Worktree
+                  │                          Horizon: 2-8 Hours | Linear: Issue / Sub-Issue (RAV-<id>)
+                  ▼
+   LEVEL 6: [ ATOMIC COMMIT & PR ]           Squash-Merged Commit Carrying the Triad of Proof
+                                             Horizon: <2 Hours  | Git: Worktree Branch + Forgejo/GH PR
 ```
 
 ```mermaid
 flowchart TD
-    subgraph STRATEGY["Strategic Intent (Downstream Custody Flow)"]
-        WR["1. Wyrd Rune: Multi-Year Moat\n(Inviolable Existential Purpose)"]
-        LS["2. Long-Saga: Annual Strategic Initiative\n(Platform & Architecture Themes)"]
-        SV["3. Saga's Vow: Quarterly Engineering OKR\n(Faster, Bigger, Cheaper, Effective)"]
+    subgraph STRATEGY["Strategic Governance (Book I: RLOM Spine)"]
+        L1["1. Strategic Invariant (Multi-Year)\nSovereign Boundary & Existential Moat"]
+        L2["2. Program Initiative (Annual)\nPlatform Spine & ADR Architecture"]
+        L3["3. Quarterly Engineering Contract (13-Week)\nScorecard: Faster · Bigger · Cheaper · Effective"]
     end
 
-    subgraph EXECUTION["Topological Cadence (Ehwaz Execution Engine)"]
-        DAG["Dependency Graph: G = (V, E)\n(Critical Chain Floor — DP-4)"]
-        W0["Wave W_0: Substrate Primitives\n(Hoisted Shared Abstractions)"]
-        W1["Wave W_1: Protocol & Storage Engines\n(Topological Wavefront — DP-2)"]
-        WN["Wave W_N: Interface Projections\n(Zero Cross-Wave Concurrency — DP-3)"]
+    subgraph TOPOLOGY["Wave Orchestration (Book II: RDOM Ehwaz Engine)"]
+        L4["4. Project & Wave Milestone\nDependency DAG G=(V,E) & Critical Chain (DP-4)"]
+        W0["Wave W_0: Hoisted Shared Substrates (DP-13, DP-14)"]
+        W1["Wave W_1: Core Engines & Protocol Servers (DP-2)"]
+        WM["Wave W_m: Edge Consumers & Projections (DP-3)"]
     end
 
-    subgraph TERMINAL["Terminal Deliverable Slices (Triad of Proof)"]
-        DD1["Daily Deed: Isolated Worktree (DP-19)\n(Red-Green-Refactor State — DP-8)"]
-        DD2["Daily Deed: Atomic Pull Request (DP-23)\n(Live System Verification — DP-10)"]
-        WIT["Witnessed Deed Triad (DP-11)\n[Passing Silicon | Living Docs | Showcase]"]
+    subgraph SILICON["Factory Floor Execution (Worktree & PR Custody)"]
+        L5["5. Deliverable / Issue (RAV-id)\nOne Disposable .bare Worktree per PR (DP-19)"]
+        L6["6. Atomic Commit & Pull Request (DP-23)\nRed-Green-Refactor (DP-8) + Live System Test (DP-10)"]
+        PROOF["Triad of Proof (DP-11) + RROM Digest (:bN@sha256)"]
     end
 
-    WR -->|"Governs"| LS
-    LS -->|"Decomposes To"| SV
-    SV -->|"Ratified As"| DAG
-    DAG -->|"Partitions Into"| W0
+    L1 -->|"Constrains"| L2
+    L2 -->|"Funds & Scopes"| L3
+    L3 -->|"Decomposes Into"| L4
+    L4 -->|"Partitions"| W0
     W0 -->|"Verified Green Gate (DP-7)"| W1
-    W1 -->|"Verified Green Gate (DP-7)"| WN
-    WN -->|"JIT Elaboration (DP-6)"| DD1
-    DD1 -->|"Transforms To"| DD2
-    DD2 -->|"Physical Witnessing"| WIT
+    W1 -->|"Verified Green Gate (DP-7)"| WM
+    WM -->|"JIT Detailing (DP-6)"| L5
+    L5 -->|"Executes Via"| L6
+    L6 -->|"Produces"| PROOF
 
-    WIT -.->|"Showcase UAT"| SV
-    SV -.->|"Milestone Attestation"| LS
-    LS -.->|"Moat Verification"| WR
+    PROOF -.->|"Live Validation Receipt"| L4
+    L4 -.->|"Milestone Health Attestation"| L3
+    L3 -.->|"Quarterly Scorecard Audit"| L2
 ```
 
-#### 1. The Wyrd Rune (Sovereign North Star)
+#### Level 1: Strategic Invariant (Multi-Year Horizon)
 
-The Wyrd Rune embodies the multi-year existential purpose, competitive moat, and physical boundary of the enterprise (horizon: 3–5 years). It defines what the organization builds—and explicitly refuses to build. In Nordic cosmology, *Wyrd* represents systemic cause and effect. A Wyrd Rune is an architectural compass (e.g., *Sovereign Local-First Automation with Cryptographic Auditability*). Work lacking direct lineage to a Wyrd Rune is an unratified distraction.
+A **Strategic Invariant** defines the multi-year architectural boundary and commercial moat of the enterprise (3 to 5 years). It states what the organization builds and what it permanently refuses to tolerate: *Sovereign Local-First Execution*, *Zero-Ambient Privilege with Human-Attributed Accountability*, or *Build-Once Content-Addressed Custody*. A Strategic Invariant is not a feature wish list; it is a constitutional filter. If a proposed project violates a Strategic Invariant - such as introducing a vendor dependency without self-hosting, full API coverage, and OpenTelemetry - it is rejected at intake before a single engineering hour is spent.
 
-#### 2. The Long-Saga (Annual Strategic Architecture)
+#### Level 2: Program Initiative (Annual Horizon)
 
-The Long-Saga spans twelve to twenty-four months, translating the Wyrd Rune into foundational platforms (e.g., *Content-Addressed Silicon Entities* or *Global Active-Active Failover Mesh*). Owned by a Principal Systems Architect, each Long-Saga requires an economic thesis, an Architectural Decision Record (ADR), and annual milestone criteria, ensuring capital investments compound over time.
+A **Program Initiative** spans 12 months and translates a Strategic Invariant into a concrete platform spine across the 11-office Ravenhelm model: standing up the `Norns` 3-node HA K3s cluster (`urd`, `verdandi`, `skuld`), unifying the `Bifrost` MCP tool gateway, or dissolving the estate filesystem into the `EAT` knowledge substrate. Every Program Initiative is anchored by a ratified Architecture Decision Record (ADR) and an explicit decommission plan for whatever legacy surface it replaces (ADR-011).
 
-#### 3. The Saga's Vow (Quarterly Commitment / Engineering OKRs)
+#### Level 3: Quarterly Engineering Contract (13-Week Cadence)
 
-The Saga's Vow is the binding quarterly covenant (thirteen-week Valknut cadence) between engineering and leadership. It replaces story points with four orthogonal engineering dimensions:
+The **Quarterly Engineering Contract** is the binding 13-week operational commitment ratified at the **Quarterly Invariant Review**. It replaces vague roadmap slides and story-point velocity theater with measurable targets across all four dimensions of the **Four-Dimensional Engineering Scorecard** (Chapter 6):
 
-- **Faster**: Reductions in latency or build cycle times (e.g., *Reduce P99 ingestion latency from 180ms to 22ms*).
-- **Bigger**: Verified expansions in capacity or throughput (e.g., *Sustain 50,000 concurrent agent WebSockets on an 8-core host*).
-- **Cheaper**: Physical decreases in compute spend or memory footprint (e.g., *Drop memory per daemon from 120MB to 14MB via zero-copy IPC*).
-- **Effective**: Measurable improvements in reliability or disaster recovery (e.g., *Zero unhandled panics across 100M RPC calls; verified 10-minute restore*).
+- **Faster:** Lead time, PR cycle time, and Critical Chain wave latency (e.g., *Cut markdown and docs CI verification time from 9m23s to <15s via path filtering*).
+- **Bigger:** Fleet concurrency and wave width (e.g., *Sustain 12 concurrent Doom worker slices across disjoint worktrees with zero RAM swap thrash*).
+- **Cheaper:** Token efficiency, context scrap reduction, and compute unit cost (e.g., *Enforce `<800`-token `eat prime` orientation across 100% of coding slices, cutting fleet cache-read quota drain by 65%*).
+- **Effective:** Zero wave-boundary defect escapes, 100% caller reachability, and verified backup coverage (e.g., *Expand logical PostgreSQL backups on `hrafngud` from 1 database to all 8 live databases with automated restore hash checks*).
 
-A Saga's Vow undergoes topological feasibility analysis before ratification: calculating the critical chain floor (**DP-4**) to guarantee physical resolvability within the quarter.
+Before a Quarterly Engineering Contract is ratified, its dependency graph is compiled (**DP-1**) and its Critical Chain floor is summed (**DP-4**). If the Critical Chain exceeds the 65 working days of the quarter, scope is cut or dependencies are hoisted before the quarter starts.
 
-#### 4. The Topological Wave (Ehwaz Execution Wavefront)
+#### Level 4: Project & Wave Milestone (1-to-4-Week Horizon)
 
-RDOM replaces calendar sprints with a Directed Acyclic Graph ($G = (V, E)$) executed across discrete **Topological Waves** ($W_0, W_1, \dots, W_N$) (**DP-1**, **DP-2**). A wave consists exclusively of tasks whose inbound dependencies achieved verified green status in prior waves:
+Inside a quarter, work is organized into finite **Projects**, and each Project's deliverables are partitioned into **Ehwaz Topological Waves** ($W_0, W_1, \dots, W_m$) mapped to Linear Milestones (**DP-2**):
 
 $$W_k = \{ v \in V \mid \forall (u, v) \in E, u \in W_j \text{ where } j < k \text{ and } \text{status}(u) = \text{VerifiedGreen} \}$$
 
-Concurrency is permitted *only* within active wave $W_k$ (**DP-3**). Cross-wave speculative execution is barred (**DP-5**).
+A Project is never an ongoing department or a permanent bucket (`0 of 45 projects with health set` happens when projects are treated as immortal folders). Every Project has a concrete exit criterion, a named owner, a weekly health status (`On Track`, `At Risk`, `Off Track`), and a finite sequence of wave milestones. Wave $W_0$ holds hoisted shared crates and schemas (**DP-13**, **DP-14**); subsequent waves unlock strictly as prior waves pass Six Sigma verification (**DP-7**).
 
-#### 5. The Daily Deed (Atomic Deliverable Slice)
+#### Level 5: Deliverable / Issue (`RAV-<id>`, 2-to-8-Hour Horizon)
 
-The Daily Deed is the atomic execution unit (2–8 hours). Implemented in an isolated git worktree (**DP-19**), it represents an atomic pull request (**DP-23**) that transitions the repository to a verified state. Under Principle **DP-11**, completion requires the physical **Triad of Proof**:
-1. Deterministic automated test verification against real runtime environments (**DP-10**).
-2. Authoritative operational documentation and ADRs committed alongside code.
-3. An executable showcase deed (terminal transcript or test runner attestation) proving behavioral satisfaction.
+The **Deliverable** (tracked as a Linear Issue or Sub-Issue `RAV-<id>`) is the unit of dispatch for a human engineer or a bounded Doom worker slice. A valid Deliverable fits within a single day's execution window (2 to 8 hours), touches a bounded file manifest disjoint from every sibling Deliverable in the same open wave (**DP-3**), and executes inside its own dedicated `.bare/` git worktree (**DP-19**).
 
----
+When an issue requires multiple sequential or component pull requests, child sub-issues (`RAV-<id>`) are minted so that each PR binds 1-to-1 with an atomic worktree and never triggers GitHub's premature parent-issue auto-close trap (`linear-auto-closes-the-issue-when-any-github-pr-titled-with-its-id-merges.md`).
 
-### The Four Invariants of Deed Custody
+#### Level 6: Atomic Commit & Pull Request (`<2`-Hour Horizon)
 
-The Hierarchy of Deeds enforces four non-negotiable invariants. Any violation halts pipeline promotion immediately.
-
-#### Invariant 1: Zero Unanchored Work ($c \in \text{Deed}$)
-
-$$\forall c \in \mathcal{C}, \exists d \in \mathcal{D} \text{ such that } c \models d$$
-
-No commit may enter version control without citing an active Daily Deed. Unanchored code is manufacturing scrap (*Muda*). Pre-receive hooks and PR linters scan for `Deed-Id:` trailers, rejecting unanchored commits at the git boundary.
-
-#### Invariant 2: Zero Rogue Deeds ($d \in W_k$)
-
-$$\forall d \in \mathcal{D}, \exists W_k \in \mathcal{W} \text{ such that } d \in W_k \subseteq V(G)$$
-
-Every Daily Deed must reside as a validated node in a topological wave within a ratified DAG ($G = (V, E)$) (**DP-1**). Isolated tasks lacking inbound prerequisites or outbound consumers are either platform primitives that must be hoisted to Layer 0 (**DP-13**, **DP-14**) or rogue work that must be purged.
-
-#### Invariant 3: Lineage Provenance ($W \to V \to S \to R$)
-
-Lineage is transitive and unbroken. Deeds anchor to waves; waves trace to quarterly Saga's Vows; vows fulfill annual Long-Sagas; sagas fortify Wyrd Runes. Unaligned requests cannot bypass the topology to inject work into developer queues.
-
-#### Invariant 4: Cryptographic & Mechanical Witnessing
-
-Status transitions require physical verification (**DP-11**). Deeds achieve "Done" only through passing CI suites against live containers (**DP-10**), immutable OCI container digests (`sha256:...`) from Harbor, and verifiable showcase artifacts. Status reflects observed physical reality, never verbal promises.
+At the bench floor sits the **Atomic Commit** and the **Pull Request** (**DP-22**, **DP-23**). Every commit on a worktree branch represents a clean state transition in the Red-Green-Refactor loop (**DP-8**) or an explicit WIP checkpoint before a risky boundary (**DP-22**). When the Deliverable is complete, the branch opens a Pull Request bound to `RAV-<id>` carrying the complete **Triad of Proof** (**DP-11**): passing live-system tests with caller reachability (**DP-10**), updated local docs (`AGENTS.md` / ADR / runbook), and a verbatim showcase transcript.
 
 ---
 
-### Operational Mechanics & Concrete Workflows
+### The Four Custody Invariants (Stopping Altitude Drift)
 
-Decomposing high-level strategic intent into atomic execution slices follows five deterministic steps:
+How does this six-level hierarchy stop an architect or an agent slice from starting on the supervisor seat and ending up four hours deep in a memory-tree rewrite? By enforcing four mechanical custody laws at every gate.
 
-1. **Vow Ratification & Critical Chain Calculation**: The systems architect maps required capabilities into an explicit dependency DAG ($G = (V, E)$) (**DP-1**) and calculates the **Critical Chain Floor** (**DP-4**). If the longest dependent path exceeds sixty-five working days, the vow is unfeasible and is refactored before execution begins.
+#### Invariant 1: No Commit or PR Without an Issue Key (`prs-require-linear-issue.md`)
 
-2. **Planning-Time DRY Hoisting**: The architect audits the graph for duplicated capabilities across slices (**DP-13**). Applying the Hoist-vs-Defer Rule (**DP-14**), known interfaces are hoisted into Wave $W_0$ as shared crates, while speculative interfaces remain inline in Wave $W_1$ with scheduled extraction in Wave $W_2$. Silent duplication is prohibited (**DP-15**).
+$$\forall \text{PR} \in \text{Forge}, \exists \text{RAV-}k \in \mathcal{D}_{\text{issue}} \text{ such that } \text{PR} \models \text{RAV-}k$$
 
-3. **Progressive JIT Elaboration**: Specifying downstream code weeks in advance is inventory waste (*Muda*) (**DP-6**). Only when Wave $W_{k-1}$ achieves verified green status (**DP-7**) is Wave $W_k$ elaborated into Daily Deeds with red-green test specifications (**DP-8**) and invariant boundary assertions (**DP-9**).
+Every pull request must bind to a live `RAV-<id>` issue in its title and inline JSON payload (`linear-ref-guard-reads-inline-json-only.md`). Unanchored commits and "drive-by refactor" PRs are rejected automatically by CI. If you stumble across a broken PKI helper while working `RAV-2100`, you cannot silently rewrite the PKI stack inside the `RAV-2100` worktree.
 
-4. **Surgical Worktree Dispatch**: Workers receive isolated git worktrees projected from a canonical `.bare/` repository (**DP-19**). Direct mutations on shared branches or live hosts via SSH are barred (**DP-21**). Context thrash is prevented by priming workers exclusively through topological EAT digests (`eat prime`, `eat read`) (**DP-20**).
+#### Invariant 2: The Branch-Capture Rule (Mint, Link, and Return)
 
-5. **Git & Issue Schema Enforcement**: Every git interaction reflects the custody chain through strict metadata:
+When work at Level 5 (`RAV-2100`) uncovers a missing prerequisite or an adjacent defect at another layer:
 
-   - **Branch Naming Standard**:
+1. **Do not descend inline.** Never expand the current worktree's blast radius across wave boundaries (**DP-3**, **DP-5**).
+2. **Mint the node in RLOM.** Create `RAV-2101` in less than sixty seconds with the exact symptom and file receipt.
+3. **Evaluate the edge.** Ask one question: *Can `RAV-2100` pass its live verification gate without `RAV-2101`?*
+   - If **yes**, `RAV-2101` goes into `Triage` or a subsequent wave, and you return immediately to finishing `RAV-2100`.
+   - If **no**, wire `RAV-2101 --blocks--> RAV-2100`, pull the Andon cord (**DP-12**) on `RAV-2100`, checkpoint the worktree (`doom checkpoint`), and let the supervisor schedule `RAV-2101` cleanly.
 
-     ```bash
-     git worktree add ../deeds/DEED-4102-quic-framing -b deeds/DEED-4102/quic-framing
-     ```
+That single rule cures the seed thinker's branch trap. Every tangent is captured in the graph so nothing is forgotten, while the active worktree stays locked to its altitude.
 
-   - **Commit Trailer Schema**:
+#### Invariant 3: No Orphan Issues or Immortal Epics
 
-     ```text
-     feat(transport): implement zero-copy QUIC frame ring buffer
+Every `RAV-<id>` Deliverable in an active wave must link to a finite Project and Wave Milestone ($W_k$), which in turn links to a Quarterly Engineering Contract. Issues floating without project parentage cannot clear the Definition of Ready. Projects that finish their final wave milestone are closed immediately so active views never rot into a cemetery of 45 unmonitored buckets.
 
-     Implements vectorized memory writes for inbound QUIC frames,
-     reducing kernel allocations from 12 to 0 per datagram packet.
+#### Invariant 4: Paper Decisions Never Satisfy Runtime Edges
 
-     Deed-Id: DEED-4102
-     Wave-Id: WAVE-02
-     Vow-Id: VOW-2026-Q1-INGRESS
-     Lineage: RUNE-PERF-01/SAGA-CORE-MESH/VOW-2026-Q1-INGRESS
-     Signed-off-by: Engineer Name <engineer@ravenhelm.co>
-     ```
-
-   - **PR Gate & Witness Anchoring**: CI validates lineage validity, verifies predecessor green status, and confirms the Triad of Proof is embedded in the PR description (**DP-11**). Approved PRs squash-merge into trunk (**DP-23**), permanently recording trailers in git history.
+As proven on 2026-09-21 when two merged Yggdrasil ADRs falsely signaled that a runtime gate had cleared, the hierarchy distinguishes **Design Deliverables** (`type:Decision` / ADR) from **Substrate Deliverables** (`type:Feature` / compiled crate or migration). Merging an ADR closes the design issue, which unlocks the Wave $W_0$ substrate implementation issue - never the Wave $W_1$ downstream consumers directly.
 
 ---
 
-### Concrete Anti-Patterns & Defect Escapes
+### Bench Mechanics: Walking a Deliverable Through the Hierarchy
 
-Organizations lacking Deed Custody suffer from characteristic operational breakdowns:
+Here is how a concrete piece of work travels down and back up the six levels without drifting:
 
-- **The Orphan Commit**: A developer pushes a PR titled `miscellaneous fixes` touching core routines without a deed reference. Unanchored commits introduce unverified side effects and invalidate wave assumptions. RDOM enforces pre-receive hooks that reject commits lacking valid `Deed-Id:` trailers.
+1. **Level 1 $\to$ Level 3 (Ratifying the Contract):** Under the **Strategic Invariant** of *Zero-Loss Fleet Custody*, the annual **Program Initiative** *Estate Backup Assurance* scopes a **Quarterly Engineering Contract**: bring 100% of stateful PostgreSQL instances under verified multi-database logical dumps with cryptographic restore proof.
+2. **Level 4 (Compiling the Project Waves):** Following the discovery that `hrafngud`'s nightly backup had run green for seven months while dumping only `-d ravenmaskos` out of eight live databases (`postgres-dump-covers-one-database-of-eight.md`) and that `RAV-2079` compared two empty strings (`"" == ""`) on a broken restore, the architect compiles the Ehwaz DAG (**DP-1**):
+   - **Wave $W_0$:** Fix the restore verifier so empty checksums fail hard (**DP-7**), and hoist the multi-database enumeration contract (**DP-13**).
+   - **Wave $W_1$:** Roll out per-database dump lanes for `outline`, `harbor`, `keycloak_dev`, and sibling schemas across `hrafngud` and `Norns` (`bifrost-postgres-backup` with explicit `activeDeadlineSeconds` so an `ImagePullBackOff` under `concurrencyPolicy: Forbid` never wedges the lane for 17 days).
+3. **Level 5 (Provisioning the Deliverable Worktree):** When Wave $W_0$ opens, `Doomcourt` dispatches `RAV-2079` into an isolated `.bare/` worktree (**DP-19**):
 
-- **The Infinite Epic**: A Jira epic named "Platform Modernization" accumulates tickets for twenty months with no closure criteria, serving as an organizational trash can. RDOM replaces epics with quarterly Saga's Vows and finite waves ($V$). Once Wave $W_k$ completes its final deed, it closes permanently (**DP-7**).
+   ```bash
+   # Projected from the canonical .bare repository - one worktree per PR
+   git worktree add ~/src/platforms/ravenhelm/backup/rav-2079-verify-nonempty -b fix/rav-2079-verify-nonempty
+   eat prime ~/src/platforms/ravenhelm/backup/rav-2079-verify-nonempty
+   ```
 
-- **The Cargo-Cult OKR**: Goals are stated in ambiguous prose: "Accelerate cloud readiness." Teams claim "75% completion" based on subjective consensus while production crashes. Under the Valknut OKR Quad (Faster, Bigger, Cheaper, Effective), vows require verified Daily Deeds whose showcase artifacts mathematically demonstrate metric satisfaction.
+4. **Level 6 (Cutting the Atomic Commit & PR):** The worker slice writes a failing test reproducing the empty-string `sha256sum` pass (**DP-8**), patches the verifier to fail closed on empty output, runs the suite against a real corrupt archive (**DP-10**), and commits with explicit lineage:
 
-- **The Promissory Deed**: A PR passes unit tests and merges with the note: *"Core logic merged; will add integration tests and docs in a follow-up ticket."* Velocity is faked by transferring verification debt downstream. In RDOM, Principle **DP-11** makes completion binary: a deed is verified across the complete Triad of Proof or it is incomplete. Wave $W_{k+1}$ never opens on a promise (**DP-7**).
+   ```text
+   fix(verify): fail closed when backup or restore sha256 is empty
+
+   Previously, a failed restore emitted an empty string on both sides of the
+   checksum comparison ("" == "") and printed "matches backup ()" with exit 0.
+   Assert non-empty 64-hex sha256 digests before equality comparison.
+
+   Refs: RAV-2079
+   Wave: W0
+   ```
+
+5. **Upward Attestation (Closing the Loop):** The PR opens with the `RAV-2079` reference and the Triad of Proof showing the verifier rejecting an empty archive and passing a real restore (**DP-11**). The supervisor squash-merges the PR (**DP-23**), RROM deploys the updated verifier, and RLOM marks `RAV-2079` `Done`, unlocking Wave $W_1$.
+
+---
+
+### Concrete Anti-Patterns & Escape Forensics
+
+| Anti-Pattern | What It Looks Like on the Floor | How the Hierarchy Kills It |
+|:---|:---|:---|
+| **Altitude Drift (The PKI Rabbit Hole)** | A session starts on supervisor routing, dives into PKI, identity, and memory layouts, and never answers the root question. | **Invariant 2 (Branch-Capture):** Mint `RAV-<id>` for the lower-level discovery, wire the `blocks` edge if required, and stay at the current worktree's altitude. |
+| **The Reuse-After-Merge Stranding** | Keep coding Phase 2 inside a worktree whose Phase 1 PR already merged (`yager/rav-1541-dashboard` stranding 277 lines of `TurnPhase` code on 2026-08-31). | **1-to-1 Worktree-to-Issue Binding (DP-19, DP-24):** One Deliverable (`RAV-<id>`) = one PR = one disposable worktree. Phase 2 gets a fresh issue and a fresh worktree off updated `main`. |
+| **The Multi-PR Premature Auto-Close** | An issue needs 3 PRs across 2 repos; merging PR #1 titled `feat: RAV-1800 part 1` causes the GitHub webhook to auto-close `RAV-1800` while parts 2 and 3 are unbuilt. | **Component Sub-Issues:** Decompose multi-PR work into 1-PR sub-issues (`RAV-1801`, `RAV-1802`, `RAV-1803`) under parent `RAV-1800`, or use non-closing `Refs: RAV-1800` until the final wave PR. |
+| **The Immortal Epic Trash Can** | 45 open Linear projects with 0 health updates where unrelated bugs and ideas pile up for a year. | **Wave-Bounded Projects:** Every Level 4 Project is a finite Ehwaz DAG ($G=(V,E)$) with weekly health checks that closes permanently when Wave $W_m$ validates. |
 
 ---
 
 ### Upstream & Downstream Integration
 
-The Hierarchy of Deeds is the central transmission gear connecting the Sovereign Triad:
+The Topological Work Hierarchy is the spine that threads all three books together:
 
 ```
-       RLOM (Demand Engine)
+       RLOM (Book I: Intent)
              │
-             │ Definition of Ready (DoR): Wyrd Rune -> Long-Saga -> Saga's Vow
+             │ Level 1-3: Strategic Invariant -> Program Initiative -> Quarterly Contract
+             │ Level 4-5: Project Waves (W_0..W_m) -> Ready Deliverable (RAV-<id>)
              ▼
-       RDOM (Execution Engine)
+       RDOM (Book II: Execution)
              │
-             │ Topological Waves (W_0..W_N) -> Daily Deeds -> Triad of Proof
+             │ Level 5-6: 1-to-1 .bare Worktree -> Atomic Commits -> PR + Triad of Proof
              ▼
-       RROM (Release Engine)
+       RROM (Book III: Custody)
              │
-             │ Immutable OCI Compilation (:b42@sha256:...) & Deed Attestation
+             │ Harbor Build (:b<N>@sha256:...) -> Rail A/B/C Deploy -> Live Reachability Receipt
              ▼
-       RLOM (UAT Sign-off)
+       RLOM (Validation -> Done)
 ```
 
-#### Upstream Integration: RLOM Demand Ratification
+- **Upstream (RLOM):** Levels 1 through 5 live as structured objects in Linear under RLOM governance. RLOM enforces the 9 canonical workflow states (`Triage`, `Backlog`, `Ready`, `In Progress`, `In Review`, `Validation`, `Done`, `Canceled`, `Duplicate`) and guarantees that no issue enters `Ready` without parent lineage and falsifiable acceptance criteria.
+- **Downstream (RROM):** When a Level 6 Pull Request merges to `main`, RROM stamps the git commit SHA and `RAV-<id>` lineage into the immutable Harbor OCI image metadata, promotes `:b<N>` to production, and returns the runtime verification receipt that closes Level 5 (`Validation -> Done`) and advances the Level 4 Wave Milestone.
 
-1. **Demand Ingestion**: Strategic demand enters RLOM, structured into Wyrd Runes, Long-Sagas, and Saga's Vows.
-2. **Definition of Ready (DoR)**: A Saga's Vow passes into RDOM only after DAG construction, critical chain calculation (**DP-4**), and capacity verification.
-3. **Deed Custody Binding**: Daily Deeds receive content-addressed identifiers (`DEED-XXXX`) that serve as mandatory foreign keys across branches, commits, and CI artifacts.
-
-#### Downstream Integration: RROM Immutable Artifact Custody
-
-1. **Trunk Merge Event**: Approved PRs carrying the Triad of Proof merge into trunk (**DP-23**), transferring custody to RROM.
-2. **Immutable Stamping**: Under the release doctrine (*"Builds are the unit; releases are names"*), RROM compiles the commit once into an immutable OCI container image, injecting lineage directly into container annotations (`dev.ravenhelm.deed.id`, `dev.ravenhelm.wave.id`, `dev.ravenhelm.vow.id`).
-3. **Closed-Loop Showcase UAT**: When RROM deploys the container digest (`:b42@sha256:...`), telemetry confirms health. RROM posts an automated attestation to RLOM. Stakeholders review the **Showcase Deed** against live telemetry, concluding UAT and closing the deed.
-
----
-
-### Augmentation Surface — Lineage Traceability & Automated Custody Verification
-
-Operating Deed Custody manually across high-velocity teams introduces friction. Autonomous agents enforce mechanics while preserving engineering throughput.
-
-> **Augmentation Surface — Automated Lineage & Custody Enforcement**
+> **Augmentation Surface - Automated Lineage & Altitude Guards**
 >
 > Where an agent layer transforms this practice:
 >
-> 1. **Autonomous Work Graph Validation**: Orchestration agents audit the RLOM graph, verifying that every open issue traces to an active Wyrd Rune. Unanchored tickets are halted before developers touch them.
-> 2. **Pre-Receive & PR Governance**: Bot agents inspect incoming branches and pull requests, verifying branch conventions, `Deed-Id:` trailers, active wave membership, and green attestation of Wave $W_{k-1}$ predecessors (**DP-7**).
-> 3. **Synthetic Witness Assembly**: Agent tools automatically assemble the Triad of Proof: recording headless terminal sessions (`.cast` files), capturing container test logs (**DP-10**), and generating documentation deltas for PR bodies.
-> 4. **Topological Wave Boundary Auditing**: When all deeds in Wave $W_k$ merge, governance agents run regression suites across live test runners. Upon green verification, agents open Wave $W_{k+1}$ and provision worktrees for the next wave (**DP-19**).
+> 1. **Inline Reference Gate:** Forgejo and GitHub CI guards (`linear-ref-guard`) inspect the inline PR payload on every push, blocking any branch that lacks a valid `RAV-<id>` Deliverable key.
+> 2. **Altitude Scope Lock:** `Doomcourt` compares each active worker slice's `git diff --stat` against the file manifest declared on its `RAV-<id>` brief. If a worker begins editing PKI or auth crates outside its wave slice, `Doomcourt` flags the scope breach before the branch contaminates its PR.
+> 3. **Worktree Lifecycle Hygiene:** When a PR merges, `doom` checks the corresponding worktree for uncommitted diffs (`git status --porcelain`), rescues any dirty state before pruning (**DP-24**), and provisions a clean worktree for the next wave's Deliverable.
 >
-> What the human architect keeps:
->
-> - **Sovereign Wyrd Rune Definition**: Leadership alone sets the existential purpose and competitive moat.
-> - **Saga's Vow Ratification**: Humans negotiate quarterly covenants across Faster, Bigger, Cheaper, and Effective.
-> - **Architectural Hoisting Authority**: Hoisting interfaces into Wave $W_0$ or deferring them (**DP-14**) requires human systems intuition.
-> - **Sovereign Cutover Approvals**: Production cutovers and irreversible migrations remain strictly gated by human authorization.
-
----
+> What the human architect keeps: Setting Level 1 Strategic Invariants, ratifying Level 3 Quarterly Engineering Contracts, deciding when an uncovered rabbit hole warrants halting the wave versus filing a deferred ticket, and personally approving every Level 6 Pull Request merge.
 
 <!-- RUBRIC_CHECK:
   structural: pass
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 2357
-  principle-citations: DP-1, DP-2, DP-3, DP-4, DP-5, DP-6, DP-7, DP-8, DP-9, DP-10, DP-11, DP-13, DP-14, DP-15, DP-19, DP-20, DP-21, DP-23
+  word-count: 2548
+  principle-citations: DP-1, DP-2, DP-3, DP-4, DP-5, DP-6, DP-7, DP-8, DP-10, DP-11, DP-12, DP-13, DP-14, DP-19, DP-22, DP-23, DP-24
   flagged-principle-gaps: none
 -->

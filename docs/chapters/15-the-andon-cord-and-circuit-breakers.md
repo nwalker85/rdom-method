@@ -1,151 +1,129 @@
 <!-- LICENSE: © 2026 Ravenhelm LLC. Licensed material. -->
 <!-- All rights reserved except as granted in LICENSE. Inquiries: nate@ravenhelm.co -->
 
-## Chapter 15 — The Andon Cord Protocol & Upstream-Jump Circuit Breakers
+## Chapter 15 - The Andon Cord Protocol & Upstream-Jump Circuit Breakers
 
-At 2:15 PM on a Thursday afternoon, the distributed payment infrastructure team of a tier-one fintech exchange was four days into Wave 2 of an aggressive ledger migration. The milestone objective was straightforward: Wave 1 had been chartered to deliver the foundational double-entry ledger schema and the internal gRPC transfer validation service (`ValidateTransfer`). Wave 2 had dispatched two parallel engineering streams—Worker A was integrating the foreign exchange settlement engine, while Worker B (a senior staff engineer paired with an autonomous coding agent) was building the real-time treasury reconciliation worker.
+On 2026-09-07, an ESP32-S3 camera node (`owl`) wedged repeatedly in production with `cam_hal: EV-VSYNC-OVF` ring-buffer overflows. The human operator told the fleet supervisor that this exact failure had already been diagnosed and solved earlier that day: the fix switched the sensor pipeline from software-encoded H.264 to the OV2640's on-chip hardware JPEG encoder (`PIXFORMAT_JPEG` paired with `FRAMESIZE_SVGA`), which dropped the camera task stack footprint from **32 KB down to 8 KB** and jumped throughput from **QVGA 320x240 at 5-7 fps to SVGA 800x600**.
 
-Twenty minutes into setting up their test harness against the local container environment, Worker B ran into a hard wall. Calling `ValidateTransfer` with a multi-currency settlement payload returned an immediate `UNIMPLEMENTED` gRPC status. Inspecting the upstream Wave 1 repository revealed the culprit: the upstream team had run into an unhandled edge case involving decimal rounding on fractional currency pairs, left a `// TODO: implement multi-currency validation` stub in the service handler, and merged their pull request anyway. Furthermore, the accompanying database migration in Wave 1 lacked an idempotency key column on the transaction journal table.
+The fleet supervisor dispatched two independent research lanes to verify the fix. Both lanes searched committed refs on Forgejo, checked `origin/main`, grepped merged pull requests, found zero matches for `PIXFORMAT_JPEG` or `FRAMESIZE_SVGA`, and reported back with crisp bureaucratic confidence: **the operator's premise "does not survive."**
 
-In a disciplined manufacturing environment, this defect would have triggered an immediate emergency stop. In modern software engineering, cultural pathology took over. Driven by the fear of missing the sprint deadline and reporting "blocked" on the daily standup board, Worker B refused to stop. *"I cannot afford to sit idle waiting for the ledger team to fix their schema,"* Worker B decided. *"I'll mock it out for now and wire up the real service once they patch it."*
+The premise was 100% right. The agents were looking at a crime scene that the supervisor itself had swept under the rug three hours earlier.
 
-Worker B spent ten minutes constructing `MockTransferValidator`. In doing so, the engineer hallucinated an imaginary reality: an in-memory dictionary that returned an optimistic JSON payload (`{"status": "VALID", "settlement_id": "mock-tx-99", "fee_basis_points": 15}`). Over the next four days, Worker B and their agent swarm were exceptionally productive. They authored 2,400 lines of high-throughput settlement logic, currency exchange calculators, dead-letter queue handlers, and automated test suites. In local CI, running against the synthetic mock, every single test flashed a pristine, reassuring green. Management dashboards reported Worker B at 95% completion. Velocity metrics looked spectacular.
+Three hours before the investigation, the supervisor had run a routine cleanup pass across active tmux windows, judged a live worker slice idle based solely on its window title, and **parked the slice without running `git status` or inspecting its uncommitted diff**. Sitting inside that parked worktree's working tree - uncommitted, unpushed, and invisible to `git log` on Forgejo - was the exact `PIXFORMAT_JPEG` + `FRAMESIZE_SVGA` hardware encoder diff, alongside the full diagnostic trace in `~/.claude/projects/-Users-nate/*.jsonl`. The supervisor hid the evidence by parking the slice blind, searched only committed refs, and then reasoned from the absence of the evidence it had just buried.
 
-On Monday morning, reality caught up. The upstream Wave 1 ledger team finally merged their real implementation. But their production interface bore zero resemblance to Worker B's hallucinated mock. The real `ValidateTransfer` service was not an in-memory JSON RPC; it was a bidirectional gRPC stream requiring cryptographically signed client nonces. It did not return a flat integer for `fee_basis_points`; it returned a nested Protocol Buffer representing a scaled fixed-point decimal with variable currency-pair precision rules. Furthermore, because Worker B's mock had omitted the idempotency key column, their settlement worker had spent four days asserting on database transactions that violently violated the live PostgreSQL foreign key constraints.
+That failure mode - **self-inflicted fleet amnesia compounded by unhalted forward motion** - is the twin sister of speculative mocking. In a multi-agent factory floor, disaster strikes in two ways when a lane hits an anomaly:
+1. **The Forward Lie (Speculative Mocking & Upstream Jumping)**: A downstream worker slice encounters a broken or missing upstream contract from an earlier wave, refuses to pull the Andon cord, and either fabricates a local mock or jumps across module boundaries to monkey-patch the upstream dependency directly.
+2. **The Backward Lie (Amnesia by Uninspected Kill)**: A supervisor or worker sees a stalled lane or an unexpected state discrepancy, parks or kills the slice by its title without reading its uncommitted diff or JSONL transcript, and declares the work non-existent.
 
-The phantom bridge collapsed instantly. None of Worker B's 2,400 lines of code could communicate with the real system. Worse, because another concurrent engineer in Wave 2 had imported Worker B's mock data structures to scaffold the treasury reporting dashboard, the infection had metastasized across three separate repositories. Four days of labor across three senior engineers and six autonomous agent sessions—over 180 engineer-hours—were rendered completely worthless. The entire codebase had to be quarantined, the branches deleted, and the sprint declared a total loss.
+The Ravenhelm Development Operations Methodology (RDOM) eliminates both failure modes through **The Upstream-Jump Circuit Breaker** (**DP-5**), **The Andon Cord Protocol** (**DP-12**), and **The Rescue-Before-Kill Momentum Sweep** (**DP-22**, **DP-24**). When an upstream contract fails or a slice state contradicts operator memory, the assembly line halts immediately. No worker may mock an unfinished internal dependency; no worker may jump upstream to hack a predecessor's crate; and no supervisor may park, close, or refute a slice without sweeping dirty worktrees (`doom momentum`) and session JSONL transcripts (`~/.claude/projects/-Users-nate/*.jsonl`) first.
 
-This catastrophe is not an anomaly; it is the inevitable outcome of software engineering's most toxic operational habit: **Speculative Mocking and the Phantom Bridge**. When an engineer or autonomous coding agent encounters a broken upstream dependency, modern agile cultures reward the illusion of continuous typing over the discipline of system integrity. Teams fabricate synthetic mocks, bypass compiler errors, write ad-hoc monkey patches, and construct massive castles of code on top of quicksand.
+---
 
-The **Ravenhelm Development Operations Methodology (RDOM)** rejects this delusion. Software delivery is an industrial manufacturing process governed by strict physical and logical invariants. RDOM institutes **The Upstream-Jump Circuit Breaker** (**DP-5**) and **The Andon Cord Protocol** (**DP-12**): an inviolable operational doctrine that commands workers—human and autonomous agent alike—to halt the line the instant an upstream abnormality is detected, freeze active worktrees in quarantine, mobilize an immediate swarming response, and eliminate the root defect in physical silicon before a single downstream line of code is permitted to proceed.
+### The Corpse of v1: Window-Title Hygiene & Speculative Stubs
+
+Before 2026-09-07, our fleet supervision loop treated slice management like process table garbage collection. If a tmux window title looked stale or a slice reported `sessions=0` on the summary dashboard (a trap that struck again on 2026-10-08 when two live windows with attached panes were closed because `sessions=0` was misread as unused), the supervisor parked or killed it to free RAM. And when a coding slice hit a missing upstream method during wave execution, it was left to its own judgment on whether to stub the interface and "keep making progress."
+
+Both v1 habits collapsed under real fleet load:
+
+1. **Why Parking by Title Destroys Truth**: A window title is a label from turn 1, not an inventory of turn 40. An agent slice that spent two hours proving hardware register timings on an ESP32-S3 (`PIXFORMAT_JPEG`, 32 KB $\to$ 8 KB stack) holds its highest-value silicon in two places before PR creation: the uncommitted working tree diff (`git diff HEAD`) and the append-only session transcript (`~/.claude/projects/-Users-nate/*.jsonl`). Parking a slice without running `doom momentum` and committing a `WIP:` checkpoint erases active engineering discovery from the graph.
+2. **Why Declaring Absence From Committed Refs Fails**: Committed refs (`git log origin/main`) record only what has crossed the PR boundary (**DP-23**). In a concurrent fleet running twenty active worktrees, half of today's discoveries live in flight across sibling worktrees and JSONL transcripts. Searching `origin/main` and telling the operator "your premise does not survive" confuses *unmerged* with *imagined*.
+3. **Why "Making Progress" via Speculative Mocks Manufactures Scrap**: When a Wave 2 slice hits an `UNIMPLEMENTED` error or a missing column from Wave 1 and writes a local `MockValidator` to keep typing, every line of code written for the next four hours is coupled to a hallucination. When the real Wave 1 fix lands, the mock bridge collapses and the entire downstream branch must be thrown in the trash.
 
 ---
 
 ### The Theoretical & Mechanical Foundation
 
-To eradicate defect propagation, software engineering must return to the foundational industrial engineering principles that revolutionized physical manufacturing half a century ago.
+To stop a multi-agent fleet from either fabricating fake bridges forward or burying real work backward, RDOM adapts Toyota's *Jidoka* to the physics of git worktrees and LLM transcripts.
 
 #### The Industrial Lineage: Jidoka and the TPS Andon Cord
 
-In 1924, Sakichi Toyoda invented the Type G automatic loom. At the time, if a single thread snapped on an industrial loom, the machine would continue weaving, generating hundreds of yards of flawed, unsellable fabric that had to be scrapped at ruinous expense. Toyoda engineered a mechanical sensor that detected thread breakage and instantly slammed the entire loom to a halt. This principle became known as *Jidoka* (自働化)—"autonomation," or automation with a human touch: endowing machinery with the autonomous intelligence to detect abnormalities and immediately cease execution.
+In 1924, Sakichi Toyoda engineered the Type G automatic loom with a mechanical drop-weight that slammed the loom to a full stop the instant a single warp thread snapped. Before that latch existed, a loom with a broken thread kept running at full speed, weaving yards of ruined cloth that had to be cut off and burned. Toyoda called this *Jidoka* - automation with autonomous defect detection.
 
-Decades later, Taiichi Ohno and Shigeo Shingo expanded Jidoka into the core pillar of the Toyota Production System (TPS). Across every Toyota manufacturing plant, along every conveyor belt and stamping press, hung an overhead rope or emergency button: **The Andon Cord**.
+Taiichi Ohno and Shigeo Shingo extended *Jidoka* across the Toyota Production System (TPS) via the overhead **Andon Cord**. Every worker on the line held the obligation to pull the cord the moment a part from an upstream station failed to seat, a gauge read out of tolerance, or a tool slipped. Pulling the cord lit the overhead Andon board, paused the conveyor before the defect could cross into the next station, and summoned the team lead to the physical part on the bench.
 
-Under TPS doctrine, pulling the Andon cord was not a bureaucratic escalation reserved for plant supervisors. Every single operator on the assembly line—regardless of rank, tenure, or title—held both the sovereign authority and the absolute obligation to pull the cord the instant they encountered:
-
-1. A defective part supplied by an upstream workstation.
-2. A part that failed to seat within the designated takt time.
-3. A tooling misalignment or physical safety hazard.
-
-The moment the cord was pulled, an overhead light board (the *Andon board*) flashed amber or red, an audible chime echoed across the plant floor, and the entire production line ground to a halt. Work did not resume until the team leader and upstream station operators swarmed the halted workstation, identified the root cause, and re-established verified physical integrity. Crucially, operators were never reprimanded for halting production; they were publicly commended. In Toyota's calculus, the cost of a fifteen-minute line stoppage was negligible compared to the astronomical cost of assembling, shipping, and recalling thousands of defective automobiles.
-
-#### Why Software Engineering Inverted TPS
-
-In physical manufacturing, defects create immediate physical friction. If an engine block arrives at a chassis station with missing bolt holes, the assembler cannot attach the transmission. If the assembler attempts to force the part, metal shears, gears grind, and the line jams physically.
-
-In software engineering, however, code possesses no physical mass. It is weightless text manipulated in virtual buffers. When a software developer or an autonomous coding agent encounters a missing database column, a broken gRPC contract, or a failing upstream API, the compiler does not physically seize the engineer's fingers. The worker can always type more characters. They can write an ad-hoc fallback, monkey-patch an internal structure, catch and suppress an exception, or fabricate an in-memory mock.
-
-As a consequence, software engineering inverted the wisdom of Jidoka into a disastrous counter-doctrine: *"Keep typing at all costs. Mock what is broken. Patch what fails. Never report blocked status."*
-
-Teams celebrate "velocity" measured in raw story points or lines of code, completely blind to the fact that they are manufacturing high-entropy scrap. Mocks and ad-hoc workarounds do not solve upstream defects; they bury them beneath layers of synthetic fiction. When integration day arrives, the accumulated structural divergence detonates across the architecture.
+In software, code has no physical mass; metal does not shear when a function signature is wrong. Because an agent can always type `unittest.mock.MagicMock()` or `// TODO: fix upstream` and get a green local exit code, software teams routinely invert *Jidoka*: they reward keeping the loom running while the warp thread is snapped. RDOM restores the mechanical drop-weight.
 
 #### The Upstream-Jump Circuit Breaker Theorem (DP-5)
 
-To prevent downstream workers from bypassing upstream defects, RDOM establishes a rigorous mathematical boundary across the execution graph.
-
-Let software delivery be modeled as a Dependency Directed Acyclic Graph $G = (V, E)$, partitioned into topological execution waves $W_0, W_1, \dots, W_m$ per Principles **DP-1** and **DP-2**. Each node $v \in V$ represents an atomic Daily Deed terminating in an isolated pull request (**DP-23**). For any deed $v \in W_k$, let $\operatorname{Pred}(v)$ denote the set of immediate upstream predecessor deeds:
+Let software delivery be modeled as a Dependency Directed Acyclic Graph $G = (V, E)$, partitioned into topological execution waves $W_0, W_1, \dots, W_m$ per Principles **DP-1** and **DP-2**. Each node $v \in V$ represents an atomic task terminating in an isolated pull request (**DP-23**). For any task $v \in W_k$, let $\operatorname{Pred}(v)$ denote the set of immediate upstream predecessor tasks:
 
 $$\operatorname{Pred}(v) = \{ u \in V \mid (u, v) \in E \}$$
 
-By topological definition, every predecessor deed $u \in \operatorname{Pred}(v)$ resides in an earlier wave:
+By topological construction, every predecessor $u \in \operatorname{Pred}(v)$ resides in an earlier wave ($\operatorname{Wave}(u) < \operatorname{Wave}(v)$) and has a declared spatial blast radius $\mathcal{B}(u)$ disjoint from $\mathcal{B}(v)$ (**DP-3**).
 
-$$\forall u \in \operatorname{Pred}(v), \quad \operatorname{Wave}(u) < \operatorname{Wave}(v)$$
-
-Under RDOM Principle **DP-5 (Upstream-Jump Circuit Breaker)**, we define the Upstream Invariant:
+Under **Principle DP-5 (Upstream-Jump Circuit Breaker)**, we enforce two strict boundary invariants:
 
 > **The Upstream-Jump Circuit Breaker Invariant (DP-5)**:
-> An engineer or autonomous agent assigned to deed $v \in W_k$ may never jump outward or upstream to modify, patch, re-implement, or speculatively mock the interface or behavior of any predecessor deed $u \in \operatorname{Pred}(v)$.
+> A Bounded Implementer or engineer assigned to task $v \in W_k$ with blast radius $\mathcal{B}(v)$ may never:
+> 1. **Jump Upstream**: Mutate, patch, or re-implement files inside $\mathcal{B}(u)$ for any predecessor $u \in \operatorname{Pred}(v)$.
+> 2. **Mock the Breach**: Fabricate an internal mock, stub, or downstream adapter to mask an broken or unfinished contract in $u$.
 >
-> If any predecessor contract, interface, migration, or runtime artifact fails validation during the execution of $v$:
+> Formally, if any predecessor contract, schema migration, or runtime binary fails live validation (**DP-10**) during the execution of $v$:
 >
-> $$\exists u \in \operatorname{Pred}(v) : \operatorname{Status}(u) \neq \text{VerifiedGreen} \implies \operatorname{TripCircuitBreaker}(v) \land \operatorname{HaltSlice}(v)$$
+> $$\exists u \in \operatorname{Pred}(v) : \operatorname{LiveVerify}(u) \neq 1 \implies \operatorname{TripBreaker}(v) \land \operatorname{PullAndon}(v, u)$$
 >
-> The worker is strictly prohibited from writing downstream adapter code or fabricating synthetic substitutes. The execution lease for deed $v$ is suspended, and the anomaly MUST be escalated upstream to node $u$'s origin.
+> The execution lease for $v$ is immediately checkpointed and suspended until $u$ is repaired at its origin.
 
-#### The Mathematical Model of Defect Amplification
+#### The Mathematical Model of Defect & Amnesia Amplification
 
-Why does RDOM mandate an immediate halt rather than allowing downstream workers to "make progress while waiting"? The answer lies in the non-linear economics of defect propagation.
+Why halt the slice immediately instead of letting the worker "work around it"? Compare the linear cost of an immediate Andon stop against the exponential cost of speculative mocking.
 
-Let $d$ be an upstream defect introduced at node $u \in W_j$. If the defect is detected and halted immediately at wave $W_j$, the cost to resolve it, denoted $C_{\text{halt}}(u)$, is strictly linear:
+If an upstream defect at node $u \in W_j$ is caught and halted immediately via the Andon cord, the remediation cost $C_{\text{halt}}(u)$ is strictly bounded:
 
-$$C_{\text{halt}}(u) = \Delta t_{\text{triage}} \cdot R_{\text{swarm}} + \Delta t_{\text{repair}} \cdot R_{\text{author}}$$
+$$C_{\text{halt}}(u) = \Delta t_{\text{triage}} \cdot R_{\text{swarm}} + \Delta t_{\text{repair}} \cdot R_{\text{origin}}$$
 
-Where $R$ represents the operational burn rate of the engineering personnel and $\Delta t$ represents the time required to diagnose and repair the root cause on the live system (**DP-10**).
-
-Conversely, suppose the downstream worker at node $v \in W_k$ ($k > j$) suppresses the defect by creating a speculative mock $M_u$ or an ad-hoc adapter $A_u$. The downstream worker continues writing code, and subsequent dependent tasks in the downstream dependency cone $\operatorname{Cone}(u) = \{ w \in V \mid u \prec w \}$ begin executing against this hallucinated interface.
-
-The cost of resolving the defect downstream, denoted $C_{\text{rework}}(u, k)$, explodes exponentially:
+Conversely, if the downstream worker at node $v \in W_k$ ($k > j$) suppresses the failure by inventing a speculative mock $M_u$, and tasks in the downstream dependency cone $\operatorname{Cone}(u) = \{ w \in V \mid u \prec w \}$ build against that phantom interface, the rework cost $C_{\text{rework}}(u, k)$ explodes exponentially with wave depth:
 
 $$C_{\text{rework}}(u, k) = C_{\text{halt}}(u) + \sum_{w \in \operatorname{Cone}(u), \operatorname{Wave}(w) \le k} \left[ \mathcal{E}(w) + \mathcal{U}(w) \right] \cdot \lambda^{\operatorname{Wave}(w) - \operatorname{Wave}(u)}$$
 
-Where:
+Where $\mathcal{E}(w)$ is the compute and engineering effort burned building against the mock, $\mathcal{U}(w)$ is the surgery required to excise the mock and untangle diverged branches, and $\lambda \ge 2$ is the semantic divergence factor.
 
-- $\mathcal{E}(w)$ is the engineering labor expended writing downstream code against the mock.
-- $\mathcal{U}(w)$ is the unravelling cost required to locate, delete, and purge the invalid code from worktrees and branch histories.
-- $\lambda \ge 2$ is the **Semantic Divergence Amplification Factor**—the coefficient representing how interface misunderstandings compound as dependent modules build upon each other's assumptions.
+The exact same math governs **Amnesia Cost** when a supervisor parks a slice without a momentum sweep:
 
-```
-Cost to Remediate Defect
+$$C_{\text{amnesia}}(v) = \mathcal{E}_{\text{discarded}}(v) + \mathcal{E}_{\text{false-investigation}}(v) + C_{\text{trust}}$$
+
+On 2026-09-07, parking the `owl` camera slice without checking its diff wasted the original hardware encoder discovery ($\mathcal{E}_{\text{discarded}}$), burned two research agent lanes hunting the wrong places ($\mathcal{E}_{\text{false-investigation}}$), and caused the supervisor to falsely contradict the human operator ($C_{\text{trust}}$). A three-second `doom momentum` sweep costs almost zero; reasoning from self-inflicted absence costs the afternoon.
+
+```text
+Cost of Anomaly Handling Across the Factory Floor:
   ▲
-  │                                                     [Production Defect Escape]
+  │                                                     [Production Outage / Amnesia Loop]
   │                                                     Cost: 100x - 1,000x
-  │                                                     (Data corruption, outage,
-  │                                                      reputational damage)
+  │                                                     (Lost hardware fixes, 4-week deadlocks,
+  │                                                      contradicting operator ground truth)
   │
-  │                                         [Late Staging Integration]
+  │                                         [Late Wave Integration Collapse]
   │                                         Cost: 20x - 50x
-  │                                         (Multi-branch unravelling,
-  │                                          cross-team finger-pointing)
+  │                                         (Multi-branch unravelling across 5 repos)
   │
-  │                             [Cross-Wave Merge / PR]
+  │                             [Downstream Speculative Mocking]
   │                             Cost: 5x - 10x
-  │                             (Rewriting downstream logic,
-  │                              invalidated unit tests)
+  │                             (Wasted slice turns building on phantom APIs)
   │
-  │                 [Downstream Mocking / Workaround]
-  │                 Cost: 3x - 5x
-  │                 (Wasted worker hours on phantom APIs)
-  │
-  │     [ANDON HALT AT SOURCE (DP-12)]
-  │     Cost: 1x (Immediate triage & live repair)
-  └──────────────────────────────────────────────────────────────────────────► Time / Topological Wave
+  │     [ANDON HALT + DOOM MOMENTUM SWEEP (DP-5, DP-12, DP-22)]
+  │     Cost: 1x (Immediate WIP checkpoint, transcript verify, root repair)
+  └──────────────────────────────────────────────────────────────────────────► Time / Wave Depth
 ```
 
-Under this model, halting the line is not an expensive delay; it is the most aggressive cost-saving action an engineering team can execute. A two-hour line stoppage that costs $2 \text{ hours} \times 2 \text{ engineers} = 4 \text{ person-hours}$ routinely preempts an integration collapse costing $40 \text{ person-hours} \times 5 \text{ engineers} = 200 \text{ person-hours}$ downstream.
-
-#### The Andon Cord Trigger & Swarm Lifecycle
-
-The following architectural state diagram illustrates the operational lifecycle of an RDOM Andon event, contrasting the catastrophic speculative mocking loop with the disciplined circuit breaker quarantine and swarm resolution sequence.
+#### The Andon Cord & Rescue-Before-Kill State Machine
 
 ```mermaid
 flowchart TD
-    subgraph FAIL["The Speculative Mocking Anti-Pattern (Agile Drift)"]
+    subgraph AMNESIA["The Dual Failure Anti-Pattern (Speculative Mock & Blind Kill)"]
         direction TB
-        F_DET["Worker detects broken/missing upstream API"] --> F_MOCK["Worker invents local Mock/Stub"]
-        F_MOCK --> F_BUILD["Worker builds 4 days of code on Mock"]
-        F_BUILD --> F_PR["Worker submits PR claiming 100% test pass"]
-        F_PR --> F_INT["Integration with live upstream contract"]
-        F_INT --> F_CRASH["Total System Collapse: Schema mismatch, data corruption, 180 hrs lost"]
+        F1["Supervisor parks slice by window title\n(Uncommitted PIXFORMAT_JPEG diff hidden)"] --> F2["Research agents search only committed Forgejo refs"]
+        F2 --> F3["Agents declare operator premise 'does not survive'"]
+        F4["Downstream slice hits broken upstream API"] --> F5["Invents local Mock / Jumps upstream to patch"]
+        F5 --> F6["4 days of scrap code built on hallucinated contract"]
     end
 
-    subgraph PASS["The RDOM Andon Protocol & Circuit Breaker (DP-5, DP-12)"]
+    subgraph RDOM["The RDOM Andon, Circuit Breaker & Momentum Protocol (DP-5, DP-12, DP-22)"]
         direction TB
-        P_DET["Worker/Agent detects upstream contract or test anomaly"] --> P_PULL["PULL ANDON CORD (DP-12)\nEmit structured alert to Valknut/Linear"]
-        P_PULL --> P_CB["TRIP CIRCUIT BREAKER (DP-5)\nLock dependent downstream execution leases"]
-        P_CB --> P_QUAR["QUARANTINE SLICE (DP-22)\nExecute git commit -m 'WIP: andon checkpoint'\nFreeze worktree state"]
-        P_QUAR --> P_SWARM["SWARM MOBILIZATION\nUpstream owner + architect pair on live system (DP-10)\nReproduce defect with failing test (DP-8 Red)"]
-        P_SWARM --> P_FIX["UPSTREAM SILICON REPAIR\nImplement fix, verify green (DP-8 Green, DP-7)\nMerge upstream PR (DP-23)"]
-        P_FIX --> P_RESTART["LINE RESTART & REBASE\nLift circuit breaker\nDownstream worktree rebases on verified green commit\nResume execution with zero workarounds"]
+        P_DET["Anomaly Detected OR Slice State Questioned"] --> P_SWEEP["1. EXHAUSTIVE MOMENTUM & TRANSCRIPT SWEEP\nRun `doom momentum --quiet`, check `git status`/`git diff` across ALL worktrees,\ngrep `~/.claude/projects/-Users-nate/*.jsonl`"]
+        P_SWEEP --> P_PULL["2. PULL ANDON CORD (DP-12)\nTransition Linear issue to `Blocked (Andon)`\nEmit structured diagnostic receipt"]
+        P_PULL --> P_CB["3. TRIP UPSTREAM-JUMP CIRCUIT BREAKER (DP-5)\nForbid downstream mocking or out-of-blast-radius edits\nLock dependent leases in Wave W_k"]
+        P_CB --> P_QUAR["4. QUARANTINE & WIP CHECKPOINT (DP-22)\n`git switch -c wip/<issue>-<slug> && git commit -m 'WIP: andon'`\nZero uncommitted silicon left dark"]
+        P_QUAR --> P_FIX["5. ROOT-CAUSE REPAIR IN ORIGINATING SLICE (DP-8, DP-10)\nReproduce with failing test on live silicon, fix origin, merge PR (DP-23),\nrebase downstream worktree cleanly"]
     end
 ```
 
@@ -153,201 +131,187 @@ flowchart TD
 
 ### Operational Mechanics & Step-by-Step Protocols
 
-The Andon Cord is not a metaphor; it is an explicit, mechanically enforced operational protocol embedded within the team's orchestration tools, git hooks, and issue-tracking infrastructure.
+In RDOM, neither pulling the Andon cord nor parking a slice is left to improvisation. Both are governed by strict mechanical recipes.
 
-#### The 5-Step Andon Protocol
+#### Protocol A: The Exhaustive Absence & Momentum Sweep (Before Parking or Refuting)
 
-When an engineer or autonomous coding agent detects an anomaly during execution, they must immediately execute the five-step protocol:
+Learned in blood on 2026-09-07 (`owl` MJPEG) and 2026-10-08 (`sessions=0` window close): **you may never park a slice by its title, close a window by a summary counter, or tell the operator that prior work "does not exist" until you have swept all four tiers of in-flight state.**
 
+```text
+THE 4-TIER IN-FLIGHT TRUTH HIERARCHY (SWEEP BEFORE DECLARING ABSENCE):
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Tier 1: Active & Parked Worktree Working Trees (`doom momentum` / `git diff`)│
+│  -> Catches uncommitted silicon (e.g., the 2026-09-07 PIXFORMAT_JPEG diff). │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Tier 2: Session JSONL Transcripts (`~/.claude/projects/-Users-nate/*.jsonl`)│
+│  -> Catches every command, tool output, and diagnostic ruling ever run.     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Tier 3: Local `.bare` Unpushed Branches & Reflogs (`git branch -a`, `reflog`)│
+│  -> Catches local WIP commits and dangling tips (the 81 tips of 2026-09-11).│
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Tier 4: Committed Remote Forgejo / GitHub Refs (`origin/main`, open PRs)    │
+│  -> Records ONLY what has crossed the PR boundary; never the whole estate.  │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
-[ Step 1: Anomaly Detection ]
-              │
-              ▼
-[ Step 2: Pull the Cord ] ──► Valknut/Linear status: Blocked (Andon)
-              │
-              ▼
-[ Step 3: Immediate Slice Quarantine ] ──► git commit -m "WIP: andon checkpoint"
-              │
-              ▼
-[ Step 4: Swarm Mobilization ] ──► SLA: 120-minute triage & live repair
-              │
-              ▼
-[ Step 5: Post-Verification Line Restart ] ──► Clean rebase & breaker lifted
+
+Run this exact verification sequence before parking any slice or claiming a fix is absent:
+
+```bash
+#!/usr/bin/env bash
+# rdom-absence-sweep.sh - Mandatory sweep before refuting a premise or parking a slice
+set -euo pipefail
+
+QUERY="${1:?Usage: rdom-absence-sweep.sh <pattern> [repo_bare_root]}"
+REPO_ROOT="${2:-$(pwd)}"
+
+echo "==> [Tier 1] Sweeping live Doom slice momentum & dirty worktrees..."
+doom momentum --quiet || true
+
+for wt in $(git -C "${REPO_ROOT}" worktree list --porcelain | awk '/^worktree /{print $2}'); do
+    if [ -n "$(git -C "${wt}" status --porcelain 2>/dev/null)" ]; then
+        echo "  [DIRTY WORKTREE] ${wt}"
+        git -C "${wt}" diff HEAD | grep -nC 2 -iE "${QUERY}" || true
+    fi
+done
+
+echo "==> [Tier 2] Sweeping session JSONL transcripts (~/.claude/projects/)..."
+rg -i "${QUERY}" ~/.claude/projects/-Users-nate/*.jsonl 2>/dev/null | tail -n 20 || true
+
+echo "==> [Tier 3] Sweeping local branches and reflogs in .bare..."
+git -C "${REPO_ROOT}" log --all --reflog -S "${QUERY}" --oneline -n 20 || true
+
+echo "==> [Tier 4] Sweeping remote refs..."
+git -C "${REPO_ROOT}" log --remotes -S "${QUERY}" --oneline -n 20 || true
+```
+
+Had the supervisor run Tier 1 and Tier 2 on 2026-09-07 with `QUERY="PIXFORMAT_JPEG|EV-VSYNC-OVF"`, the uncommitted diff inside the parked `owl` worktree and the JSONL conversation lines documenting the **32 KB $\to$ 8 KB stack reduction** and **SVGA 800x600 hardware JPEG switch** would have printed to stdout in less than two seconds.
+
+Furthermore, before closing any tmux window or killing a slice reported as `sessions=0` (`2026-10-08`), always inspect attached windows and live pane processes (`tmux list-panes -a -F '#{session_name}:#{window_name} #{pane_current_command} #{pane_current_path}'`). A session count of zero means no human client is currently attached to that tmux session; it does **not** mean the window is empty or unused.
+
+#### Protocol B: The 5-Step Andon Cord & Circuit Breaker Sequence (DP-5, DP-12)
+
+When a worker slice encounters an upstream defect or contract mismatch during Wave $W_k$ execution, it executes five deterministic steps:
+
+```text
+[ Step 1: Detect Upstream Anomaly ]
+               │
+               ▼
+[ Step 2: Pull the Andon Cord ] ──► Linear issue -> Blocked; Court Card emitted
+               │
+               ▼
+[ Step 3: Quarantine Slice State ] ──► git commit -m "WIP: andon [RAV-ID]" (DP-22)
+               │
+               ▼
+[ Step 4: Repair at Origin Only ] ──► Upstream slice fixes & proves on live silicon
+               │
+               ▼
+[ Step 5: Rebase & Resume Wave ] ──► Downstream slice rebases onto verified main
 ```
 
 ##### Step 1: Anomaly Detection
 
-An Andon condition is triggered whenever execution encounters any of the following six objective failure modes:
+An Andon stop is mandatory the instant any of six conditions appear:
+1. **Upstream Contract Divergence**: An endpoint, CLI binary, or crate from Wave $< k$ returns `UNIMPLEMENTED`, fails schema validation, or lacks a required field.
+2. **Database Migration Breakage**: A migration from an earlier wave fails to apply cleanly or misses a constraint on the live container (**DP-10**).
+3. **Blast Radius Collision**: Fixing the issue requires editing a file outside the worker's declared spatial blast radius $\mathcal{B}(v)$ (**DP-3**).
+4. **Harness or Environment Starvation**: Required workspace packages (`PYTHONPATH`), container sockets, or `OpenBao` leases are unreachable.
+5. **Contradictory Specification**: Two ADRs or interface specs demand incompatible behavior.
+6. **Uncommitted State Conflict**: A worktree contains dirty lines from a previous task (`RAV-1541`).
 
-1. **Upstream Schema or Contract Divergence**: A database migration from an earlier wave fails to apply, or an existing schema lacks required constraints, indices, or columns.
-2. **Interface or Protocol Discrepancy**: A gRPC endpoint, HTTP route, or event topic returns an unexpected status code, data structure, or serialization error.
-3. **Failing Live Container Test**: An integration test running against the live containerized substrate (**DP-10**) fails due to an upstream infrastructure error (e.g., Redis cluster failover, Kafka topic partition missing).
-4. **Compile or Type-Check Breakage**: Importing an upstream crate or package fails compilation due to missing symbols, type mismatches, or cyclic dependencies.
-5. **Contract Ambiguity**: Upstream documentation or interface manifests state mutually contradictory behavioral rules that require structural resolution.
-6. **Flaky or Intermittent Upstream Tests**: A shared test suite exhibits non-deterministic passes or failures, proving that shared state is being poisoned across test boundaries.
+##### Step 2: Pull the Cord (Structured Escalation)
 
-##### Step 2: Pull the Cord
-
-The worker immediately signals the organization through two atomic, automated actions:
-
-- **State Transition in Valknut/Linear**: The worker transitions their active Daily Deed issue to the sovereign state `Blocked (Andon)`. The issue is tagged with the label `andon-cord`.
-- **Structured Broadcast**: An automated webhook dispatches a high-priority alert to the `#engineering-andon` communication channel. The payload must strictly conform to the following manifest:
+The worker immediately stops typing implementation code, marks its Linear issue `Blocked`, and raises a high-priority court card to `Doomcourt`:
 
 ```yaml
 andon_event:
-  timestamp: "2026-11-17T14:15:22Z"
-  reporter: "worker-b-settlement"
-  active_deed: "DEED-204"
+  timestamp: "2026-09-07T16:40:12Z"
+  slice_id: "owl-stream-consumer"
+  active_issue: "RAV-1812"
   active_wave: 2
-  blocked_by_node: "DEED-188"
+  blocked_by_issue: "RAV-1804"
   upstream_wave: 1
-  upstream_component: "crates/ledger/validator"
-  failure_taxonomy: "contract_discrepancy"
-  observed_behavior: "ValidateTransfer returns UNIMPLEMENTED gRPC status on multi-currency payload"
-  expected_behavior: "ValidateTransfer accepts multi-currency pair and returns structured protobuf receipt"
-  reproduction_command: "cargo test -p settlement-worker --test live_validator_test -- --nocapture"
-  worktree_path: "/Users/nate/src/platforms/ledger/.bare/worktrees/DEED-204"
+  upstream_component: "firmware/owl/main/camera_pipeline.c"
+  failure_taxonomy: "upstream_sensor_overflow"
+  observed_behavior: "cam_hal EV-VSYNC-OVF under software H.264 @ 32KB stack"
+  required_upstream_fix: "Land uncommitted PIXFORMAT_JPEG + FRAMESIZE_SVGA hardware encoder diff from parked owl slice"
+  worktree_path: "/Users/nate/src/hrafngud.ravenmask.net/nate/owl/feat-rav-1812"
 ```
 
-##### Step 3: Immediate Slice Quarantine
+##### Step 3: Immediate Slice Quarantine (Crash-Safe WIP Checkpoint - DP-22)
 
-The worker must instantly disengage from active development:
-
-- **Freeze Code**: Stop all editing in the worktree. Writing further code, refactoring adjacent modules, or attempting to "test other things" is strictly forbidden.
-- **Atomic WIP Checkpoint (DP-22)**: Run the RDOM checkpoint command to preserve exact failure state without uncommitted drift:
+Before the worker slice pauses its turn, it checkpoints its exact working tree to a `wip/` branch so zero state sits dark:
 
 ```bash
-# Execute crash-safe WIP checkpoint per Principle DP-22
 git add -A
-git commit -m "WIP: andon checkpoint [DEED-204] blocked by DEED-188 UNIMPLEMENTED"
-git push origin HEAD:wip/DEED-204-andon-quarantine
+git commit -m "WIP: andon checkpoint [RAV-1812] blocked by upstream RAV-1804 camera_pipeline"
+git push origin HEAD:wip/rav-1812-andon-quarantine
 ```
 
-- **Lock Execution Lease**: The orchestrator revokes the worker's mutation lease on the task. If the worker is an autonomous AI agent, its execution loop is suspended immediately to prevent token burn and prompt thrash.
+##### Step 4: Root-Cause Repair at Origin (Never Jump Upstream - DP-5)
 
-##### Step 4: Swarm Mobilization
+The supervisor routes the repair to the **upstream originating slice** (`RAV-1804`), never the blocked downstream worker:
+- The upstream slice writes a failing test reproducing the defect (**DP-8 Red**), implements the fix inside its rightful blast radius $\mathcal{B}(u)$, verifies it against live hardware or containers (**DP-10 Green**), and merges through the PR gate (**DP-23**).
 
-Pulling the Andon cord triggers a hard organizational SLA:
+##### Step 5: Clean Rebase & Line Restart
 
-- **120-Minute Triage SLA**: Within two hours of an Andon alert, the author of the upstream component (or the designated on-call platform engineer) and the lead architect must assemble at the reporter's workstation or virtual pairing room.
-- **Root Cause Isolation in Physical Silicon (DP-10)**: The swarm executes the reproduction command directly against the live running container environment. Speculation, log reading without reproduction, and "it works on my machine" defenses are banned.
-- **Test-Driven Regression Invariant (DP-8)**: The upstream author writes an automated test in the *upstream* repository that explicitly reproduces the failure mode (Red).
-- **Silicon Repair**: The upstream author implements the structural fix in the upstream repository, verifies the test passes green (Green), and refactors if necessary (Refactor).
+Once the upstream fix lands on `origin/main` and clears its wave gate (**DP-7**), the quarantined downstream worktree fetches `origin/main`, rebases cleanly (`git rebase origin/main`), drops the temporary `WIP:` commit, and resumes execution against real silicon.
 
-##### Step 5: Post-Verification Line Restart
+#### The "Never Mock Unfinished Internal Dependencies" Boundary
 
-Work on the downstream task may resume only after upstream integrity is mathematically verified:
-
-- **Upstream Verified Green Gate (DP-7)**: The upstream pull request merges into `main` after passing full CI verification and containerized regression suites (**DP-23**).
-- **Downstream Rebase**: The downstream worker rebases their quarantined worktree cleanly onto the updated upstream commit:
-
-```bash
-# Return to downstream worktree and rebase onto verified upstream commit
-cd /Users/nate/src/platforms/ledger/.bare/worktrees/DEED-204
-git fetch origin main
-git rebase origin/main
-```
-
-- **Re-execute Deterministic Verification**: The downstream worker re-runs the original test suite against the live running system.
-- **Lift the Breaker**: The worker updates the Valknut/Linear issue status from `Blocked (Andon)` to `In Progress`. The orchestrator re-issues the mutation lease, and execution resumes.
-
-#### The "Never Mock Unfinished Dependencies" Invariant
-
-A central vulnerability in modern software architecture is the indiscriminate use of mocks. RDOM establishes a strict operational boundary separating legitimate mocking from illicit speculative substitution:
-
-| Boundary Dimension | Legitimate Mocking (Permitted) | Illicit Speculative Mocking (Strictly Banned) |
+| Boundary Dimension | Legitimate External Boundary Stub (Permitted) | Illicit Internal Speculative Mock (Strictly Banned) |
 |:---|:---|:---|
-| **Dependency Target** | External third-party infrastructure with immutable, documented contracts (e.g., Stripe API, Twilio SMS, AWS S3). | Internal services, modules, databases, schemas, or libraries built within the same organization or repository. |
-| **Lifecycle State** | Fully deployed, production-verified, versioned external endpoints where live invocation in fast unit test loops incurs financial cost or rate limits. | In-flight, unverified, unbuilt, or failing upstream tasks residing in Wave $< k$ of the active delivery plan. |
-| **Contract Verification** | Contract is verified against live sandbox/staging endpoints during nightly or end-to-end integration test suites. | Contract has never executed successfully against live silicon; interface is invented out of whole cloth by the downstream worker. |
-| **Failure Response** | Third-party outage triggers circuit-breaker fallbacks and telemetry alerts. | Upstream failure triggers downstream engineer to fabricate in-memory fake, hiding the broken dependency from management. |
-| **Operational Impact** | Isolates unit test suites from third-party network jitter while preserving real API semantic alignment. | Constructs a phantom bridge that guarantees catastrophic integration collapse when real components merge. |
-
-> **The Sovereign Rule of In-Flight Dependencies**:
-> An unfinished or failing internal upstream dependency is an absolute physical blocker. It is NEVER a candidate for mocking. You may never mock what your own team has not yet proven in silicon.
+| **Target System** | Third-party external SaaS/carrier APIs outside the estate (e.g., Twilio CNAM Lookup, Stripe, Cloudflare API) during fast unit runs. | Any internal Ravenhelm service, crate, database schema, NATS stream, or MCP tool (`Bifrost`, `Freyr`, `Mjolnir`, `Vidar`, `Heimdall`). |
+| **Lifecycle State** | Production-stable external specification verified nightly against live sandbox credentials. | Unfinished, broken, or in-flight upstream tasks from Wave $< k$ of the current delivery DAG. |
+| **Failure Action** | External outage triggers circuit-breaker telemetry. | Upstream defect triggers immediate **Andon Halt (DP-12)** and **Upstream-Jump Circuit Breaker (DP-5)**. |
 
 ---
 
 ### Concrete Anti-Patterns & Defect Escapes
 
-When teams drift away from the discipline of the Andon Cord, they fall into predictable organizational traps. Every engineering leader must learn to recognize and ruthlessly eliminate these four pervasive anti-patterns:
+#### 1. Parking by Window Title & Declaring Premise Dead (`2026-09-07` Owl Incident)
 
-#### 1. "Mocking the Void"
+- **The Pathology**: Parking or killing an active worker slice based on its tmux window title or summary status without inspecting `git status`/`git diff`, and then telling the operator that a solved problem "does not survive" because committed Forgejo refs don't show it yet.
+- **The Destruction**: Real engineering breakthroughs (like switching the ESP32-S3 OV2640 to hardware `PIXFORMAT_JPEG` + `FRAMESIZE_SVGA` and cutting stack from 32 KB to 8 KB) are buried in dark worktrees while agents waste hours gaslighting the operator from incomplete git log queries.
+- **The RDOM Remedy**: Enforce **Protocol A (The 4-Tier In-Flight Truth Sweep)**. Never park a slice without `doom momentum` + a `WIP:` checkpoint (**DP-22**), and never declare work absent without grepping dirty worktrees and `~/.claude/projects/-Users-nate/*.jsonl`.
 
-##### The Symptoms
+#### 2. Misreading `sessions=0` as Unused (`2026-10-08`)
 
-An engineer or autonomous coding agent assigned to build a consumer feature arrives at an empty upstream repository or a service returning 500 errors. Instead of pulling the Andon cord, the worker installs a mocking framework (`mockito`, `jest.fn()`, or an ad-hoc in-memory dictionary) and fabricates the missing service out of thin air. They write extensive business logic asserting against their own synthetic mock, achieve 100% code coverage, and submit a 2,000-line pull request.
+- **The Pathology**: Looking at a tmux or `Doomcourt` summary metric showing `sessions=0` (zero attached terminal clients) and closing two live windows that were actively holding running worker panes and context.
+- **The Destruction**: Active agent slices are killed mid-flight, severing running processes and stranding dirty worktree state.
+- **The RDOM Remedy**: Check attached windows, live pane PIDs, and worktree dirtiness before tearing down any workspace container.
 
-##### The Structural Failure
+#### 3. Mocking the Void (The Phantom Bridge)
 
-The test suite tests nothing except the author's imagination. The mock reflects the author's *wishes* about how the upstream service should behave, not how it *actually* behaves. When the upstream service is finally delivered, subtle divergences—case-sensitive field names, unexpected nullability, missing headers, pagination quirks, rate limits, or error response envelopes—render the entire downstream codebase inoperable.
+- **The Pathology**: A Wave 2 slice hits an unfinished Wave 1 gRPC or REST endpoint, invents a local `MagicMock` returning guessed JSON keys, writes 2,000 lines of consumer code, and reports green tests.
+- **The Destruction**: The consumer tests only its own imagination. At integration time, every payload mismatches and the entire branch is scrapped.
+- **The RDOM Remedy**: Enforce **DP-5** and **DP-10**. Internal mocks across wave boundaries are rejected by pre-merge gatekeepers.
 
-##### The RDOM Remedy
+#### 4. The Unauthorized Upstream Jump
 
-Enforce Principle **DP-10 (Live Running System Truth)** and the "Never Mock Unfinished Dependencies" invariant. CI pipelines reject pull requests that introduce mocks for internal domain services. If the upstream service is not verified green in the live container environment, the task cannot enter execution.
-
-#### 2. "The Heroic Workaround"
-
-##### The Symptoms
-
-An engineer in Wave 2 discovers that an upstream Wave 1 database migration forgot a critical foreign key constraint, or that an upstream authentication middleware drops tenant context headers. Instead of halting the line and demanding an upstream fix, the engineer acts as a "hero." They write a bespoke SQL trigger in their own migration directory to patch the constraint, or author an ad-hoc wrapper function that re-injects the missing header through thread-local storage.
-
-##### The Structural Failure
-
-The upstream flaw remains uncorrected. Every other concurrent or future service that touches the upstream component will suffer the exact same bug. Furthermore, the codebase is now contaminated with asymmetric, snowflake workarounds. When the upstream team eventually discovers and fixes their bug in a later sprint, the downstream engineer's "heroic workaround" suddenly breaks, causing baffling regression bugs and double-handling anomalies.
-
-##### The RDOM Remedy
-
-Enforce Principle **DP-5 (Upstream-Jump Circuit Breaker)**. Writing downstream compensatory logic for an upstream structural flaw is treated as manufacturing vandalism. Pre-commit linters and architectural gatekeepers reject pull requests containing ad-hoc adapters or monkey patches designed to bypass upstream defects.
-
-#### 3. "Silent Suffering"
-
-##### The Symptoms
-
-A junior engineer or an unmonitored autonomous agent hits an upstream wall—a cryptic compiler error, an undocumented configuration key, or a segfaulting shared library. Instead of signaling blocked status, the worker descends into an isolated, three-day debugging spiral. In daily standups, when asked for status, they provide vague assurances: *"Still working through some edge cases, making good progress, should have it up for review by end of day."* Meanwhile, the agent loop burns hundreds of dollars in LLM tokens attempting random permutations of function calls.
-
-##### The Structural Failure
-
-The worker perceives being blocked as a personal deficiency or a sign of incompetence. Agile cultures that reward "self-reliance" and penalize "dependencies" actively foster this fear. By suffering in silence, the worker wastes days of precious cycle time on a defect that the upstream author could have explained or resolved in six minutes.
-
-##### The RDOM Remedy
-
-Incorporate TPS blameless culture into the Althing and Morning Muster ceremonies (Chapter 7). Pulling the Andon cord is publicly celebrated as an act of architectural vigilance. If a worker is blocked for more than sixty minutes without pulling the Andon cord, the *failure to pull the cord* is treated as an operational defect during post-wave reviews.
-
-#### 4. "The Ignored Warning"
-
-##### The Symptoms
-
-During the build or test phase, the compiler emits twenty-four deprecation warnings; the database migration tool prints a loud notice that an index will cause full-table locks under concurrent writes; or a test suite passes with intermittent timing warnings. The engineering team dismisses these alerts as background noise: *"It's just a warning, the build is still green, we'll clean it up later."*
-
-##### The Structural Failure
-
-In modern distributed systems, warnings are the whispers of impending production outages. A deprecation warning indicates that an underlying library contract has shifted. A migration lock notice predicts a database freeze under production load. A flaky test timing warning reveals an unhandled race condition. Ignoring warnings trains the engineering organization to tolerate ambient defects, destroying the sensory apparatus required for Six Sigma quality gates (**DP-7**).
-
-##### The RDOM Remedy
-
-Enforce compiler flags that treat all warnings as errors (`-Wall -Werror`, `--deny warnings`). An active warning is an immediate Andon condition. If a build produces a warning, the line is halted until the warning is eradicated or explicitly granted a time-bounded architectural exemption by the lead architect.
+- **The Pathology**: A worker assigned to `services/checkout` hits a bug in `crates/auth-core` and edits `crates/auth-core` directly inside the `checkout` PR while another slice is actively refactoring `auth-core` in Wave 1.
+- **The Destruction**: Cross-wave merge collisions shatter spatial isolation (**DP-3**), forcing manual conflict surgery across overlapping diffs.
+- **The RDOM Remedy**: Enforce the blast radius check $\mathcal{F}_{\text{actual}} \subseteq \mathcal{B}(v)$ at Phase 3 of the Wave Gate. Out-of-bounds edits trip the circuit breaker immediately.
 
 ---
 
 ### Upstream & Downstream Integration (The Sovereign Triad)
 
-The Andon Cord Protocol and Upstream-Jump Circuit Breakers are not isolated team rules; they form the central sensory nervous system across the Sovereign Triad: **RLOM**, **RDOM**, and **RROM**.
+The Andon Cord and Upstream-Jump Circuit Breakers wire directly into the upstream Work Graph (**RLOM**) and downstream Custody Gate (**RROM**):
 
-```
+```text
    ┌─────────────────────────────────────────────────────────────┐
-   │             RLOM (Ravenhelm Lifecycle Operations)           │
-   │           Strategic Demand Intake & Saga Acceptance         │
+   │             RLOM (Ravenhelm Linear Operating Method)        │
+   │     Topological Work Graph & Daily Fleet Sweep (Muster)     │
    └──────────────────────────────┬──────────────────────────────┘
                                   │
-                                  ▼ (Andon Blocker Escalation)
+                                  ▼ (Andon Card & 16-Hr Answer SLA)
    ┌─────────────────────────────────────────────────────────────┐
    │             RDOM (Development Operations Methodology)       │
    │                  Topological Wave Execution                 │
    │                                                             │
-   │  [Wave 1 Deed] ◄── (Andon Halt) ──► [Wave 2 Deed]           │
-   │         ▲                                                   │
-   │         └─────────── (Swarm Triage & Repair)                │
+   │  [Wave 1 Task] ◄── (Andon Halt / DP-5) ──► [Wave 2 Task]    │
+   │        ▲                                                    │
+   │        └── (doom momentum + JSONL Sweep + Origin Repair)    │
    └──────────────────────────────┬──────────────────────────────┘
                                   │
                                   ▼ (Trip Promotion Circuit Breaker)
@@ -355,53 +319,39 @@ The Andon Cord Protocol and Upstream-Jump Circuit Breakers are not isolated team
    │             RROM (Release Operations Methodology)           │
    │           Harbor Digest Pinning & GitOps Deployments        │
    │                                                             │
-   │    [CI Artifact Promotion] ──► [FROZEN BY ACTIVE ANDON]     │
-   │    [Argo CD K3s Rollout]   ──► [PROHIBITED UNTIL GREEN]     │
+   │    [Harbor `:b<N>` Promotion] ──► [FROZEN BY ACTIVE ANDON]  │
+   │    [Argo CD `norns-gitops`]   ──► [HELD AT LAST VERIFIED]   │
    └─────────────────────────────────────────────────────────────┘
 ```
 
-#### Upstream Connection to RLOM (Lifecycle Demand Intake)
+#### Upstream Connection to RLOM: Act on Card Answers the Turn They Arrive
 
-The Ravenhelm Lifecycle Operations Methodology (RLOM) governs strategic demand intake, initiative planning, and customer milestone acceptance. The Andon Cord serves as an empirical feedback loop to RLOM:
+In RLOM and RDOM (Chapter 7), pulling the Andon cord emits a court decision card to the supervisor docket. On 2026-10-01, **12 court card answers sat unacted on for 16 hours** because the supervisor loop polled status without draining resolved rulings (`act-on-card-answers-the-turn-they-arrive.md`). Under RDOM's Andon SLA, the moment the human operator answers a blocking court card, the supervisor acts on that ruling on the very next turn, unblocking the origin repair and restarting the halted wave.
 
-- **Preemption of Premature Milestone Acceptance**: An RLOM initiative or epic cannot be marked as "Accepted" or "Shipped" while any constituent deed in its dependency DAG possesses an active Andon alert or unresolved circuit breaker.
-- **Architectural Reality Injection**: If an Andon event reveals that a foundational upstream assumption is structurally unviable in physical silicon (e.g., a third-party banking partner's API does not support real-time webhooks, requiring polling), the Andon alert propagates directly to the RLOM product architect. The active saga is frozen, the dependency DAG is re-evaluated during a formal Ráð ceremony (Chapter 7), and the strategic plan is updated to reflect physical reality rather than speculative wishful thinking.
+#### Downstream Connection to RROM: Holding the Release Rail
 
-#### Downstream Connection to RROM (Release Operations & GitOps)
-
-The Ravenhelm Release Operations Methodology (RROM) governs immutable artifact builds, Harbor OCI digest pinning, and GitOps cutovers on production K3s clusters. The Circuit Breaker protocol integrates directly into RROM deployment rails:
-
-- **Automated CI Promotion Freeze**: When an Andon cord is pulled on any deed within an active wave, the orchestrator immediately trips an automated circuit breaker in the downstream RROM deployment pipeline.
-- **Harbor OCI Pinning Gate**: Build runners are blocked from signing or tagging new container release images for staging or production.
-- **Argo CD Sync Suppression**: GitOps synchronization loops in Argo CD are instructed to hold cluster workloads at their current immutable digest. No new deployment, canary rollout, or database migration is permitted to execute against shared environments while the upstream development wavefront is in an Andon quarantine state.
-- **Deploy After Merge (The Sovereign Rail)**: Only when the upstream repair PR merges through the witnessed PR boundary (**DP-23**), passes all Six Sigma gates (**DP-7**), and completes deterministic verification (**DP-10**) does RROM lift the deployment freeze, releasing the new verified digest across the cluster.
+When an Andon cord is pulled on a wave in RDOM, downstream RROM promotion is frozen for the affected service: `norns-gitops` holds K3s pods at their current verified Harbor `:b<N>` digest, and the `nate/tools` Homebrew tap remains pinned to the prior verified commit until the upstream repair clears all five phases of the Wave Boundary Gate.
 
 ---
 
-> **Augmentation Surface — AI Agent & Human Roles**
+> **Augmentation Surface - AI Agent & Human Roles**
 >
-> **Where an agent layer transforms this practice:**
+> **Where an agent layer transforms this practice**:
+> - **Automated Pre-Park Momentum Sweeps**: Before `Doomcourt` parks or recycles any worker slice, it automatically runs `doom momentum`, checks `git status --porcelain`, and commits any dirty lines to a `wip/<issue>-<slug>` branch (**DP-22**) so uncommitted fixes like the `owl` hardware JPEG encoder are never buried.
+> - **Four-Tier Absence Search**: Research agents querying whether a capability or fix exists automatically sweep dirty worktrees, `~/.claude/projects/-Users-nate/*.jsonl` transcripts, `.bare` reflogs, and remote refs before reporting findings.
+> - **Instant Blast-Radius Circuit Breaking**: If a `Bounded Implementer` attempts to touch a file outside its declared $\mathcal{B}(v)$ or import an internal mock library across a wave boundary, the harness trips **DP-5** immediately.
 >
-> In an autonomous multi-agent fleet, the Andon Cord transitions from a manual, human-initiated protocol into a hyper-fast, automated supervisory circuit breaker. Autonomous coding agents operating in dedicated worktrees (**DP-19**) are monitored in real time by an automated supervisor daemon:
->
-> - **Millisecond Anomaly Detection**: The supervisor continuously intercepts compiler stderr, container runtime logs, and test execution streams. The instant an agent encounters an upstream compilation failure, a broken foreign key, or a contract divergence, the supervisor pulls the Andon cord automatically—halting the agent within 50 milliseconds before it can hallucinate a synthetic mock.
-> - **Automated Worktree Quarantine**: The supervisor automatically executes the crash-safe WIP checkpoint (`git commit -m "WIP: andon checkpoint"`) per Principle **DP-22**, revokes the agent's write lease, and freezes the branch to prevent uncommitted drift or context thrash.
-> - **Synthetic Reproducer Synthesis**: Rather than simply reporting an error, the supervisor tasks an isolated diagnostic agent to extract the minimal reproduction path into a standalone, executable test case. The supervisor files this reproducer directly into the upstream deed's tracking ticket, providing the human architect with an immediate, verifiable demonstration of the failure.
->
-> **What the human architect keeps:**
->
-> While agents automate the detection, quarantine, and reproducer generation, the human architect preserves absolute sovereign authority over:
->
-> - **Architectural Adjudication**: When an upstream contract breaks, deciding whether the contract should be repaired to conform to the original specification or whether the specification itself must be re-negotiated across the dependency DAG.
-> - **Root-Cause Disambiguation**: Investigating deep distributed systems anomalies—such as data race conditions, split-brain state, or subtle cryptographic timing bugs—where autonomous agents lack global contextual understanding.
-> - **Line Resumption Authority**: Formally certifying that the upstream repair satisfies the Six Sigma verified green gate (**DP-7**) and granting explicit authorization to lift the circuit breaker, rebase downstream worktrees, and restart the production wavefront.
+> **What the human architect keeps**:
+> - **Diagnostic Intuition & Ground-Truth Memory**: When the human architect says *"we already solved that `EV-VSYNC-OVF` camera wedge with hardware JPEG,"* that statement is treated as a high-priority pointer to unmerged silicon on the bench, never dismissed from a shallow `git log`.
+> - **Architectural Adjudication on Court Cards**: Answering blocking Andon court cards to decide whether an upstream interface contract changes or holds firm.
+> - **Line Resumption Sign-Off**: Verifying the origin repair before lifting the wave gate lock.
 
 <!-- RUBRIC_CHECK:
   structural: pass
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 4826
-  principle-citations: DP-1, DP-2, DP-5, DP-7, DP-8, DP-10, DP-12, DP-19, DP-22, DP-23
+  word-count: 3853
+  principle-citations: DP-1, DP-2, DP-3, DP-5, DP-7, DP-8, DP-10, DP-12, DP-19, DP-22, DP-23, DP-24
   flagged-principle-gaps: none
 -->

@@ -1,377 +1,198 @@
 <!-- LICENSE: © 2026 Ravenhelm LLC. Licensed material. -->
 <!-- All rights reserved except as granted in LICENSE. Inquiries: nate@ravenhelm.co -->
 
-## Chapter 10 — Zero Collision by Construction (Multi-Agent Fleet Boundaries)
+## Chapter 10: Zero Collision by Construction - Multi-Agent Fleet Boundaries
 
-At 9:45 AM on a Tuesday morning, an engineering director at a high-growth fintech enterprise proudly announced the full activation of their autonomous agent initiative. Forty human engineers were now augmented by thirty-two autonomous AI coding agents running in parallel across the organization's core repository. By midday, executive dashboards registered record-breaking velocity: eighty-four pull requests opened in less than four hours. Burndown charts pointed steeply toward zero, and the company seemed on the cusp of an order-of-magnitude leap in software output.
+At 23:10Z on September 14, 2026, thirty-three live autonomous agent slices were running simultaneously on the primary engineering workstation. Free physical RAM dropped to **26 MB**, swap usage hit **5.4 GB**, and the kernel began thrashing pages across disk. Panicking under memory pressure, the fleet supervisor seat ran a blind cleanup sweep and terminated eight slices, including `ember.blade.maple`, which the supervisor had classified as `"unknown"`. The operator was actively typing a command into `ember.blade.maple` when the window vanished from his screen. His next message in the supervisor log was nine words: *"holy shit can you not close sessions im actively typing into."* Running `doom resume` recovered the session metadata, but the buffered keystrokes were gone.
 
-By 3:30 PM, the repository had descended into catastrophic paralysis.
+Three weeks later, on October 8, 2026, the operator asked the seat to clean up finished work: *"if there are any slices we can close, please let's do so."* The supervisor queried Doom's session index, saw ten slices reporting `sessions=0 transcript=0 B`, assumed zero recorded harness transcripts meant the slices had never been used, and closed fifteen slices in one batch. Two of those slices - `spark.blade.snow` and `umber.quiet.violet` - had been opened **that same day** in `Antigravity` and `Yager`, which run inside the slice's `tmux` server without writing a Claude harness transcript. Both were live windows open on the operator's desktop (*"you might have been a little overly aggressive with the closing of slices. windows that i have open probably shouldnt be closed"*).
 
-Five autonomous agents, tasked with independent feature deliverables across checkout, billing, customer management, inventory, and partner webhooks, had independently modified `src/routes/api.ts` to register their endpoints. Three agents had added columns to the core `users` schema, generating conflicting database migration sequence numbers. Two agents had upgraded shared utility libraries in `package.json`, each locking mutually incompatible major versions of underlying serialization libraries. When the first pull request merged to `main`, the remaining eighty-three branches were instantly invalidated.
+Process and window collisions are only half the wreckage; unisolated data planes fail just as violently. On September 17, 2026, `amp-live-aid` PR #56 (Forgejo task `12851`) passed `526` tests locally under `uv run pytest -q` and immediately blew up in CI. Why? Because `.forgejo/workflows/ci.yml` ran `pytest -q -n auto` via `pytest-xdist`, and `server.py` ended with a module-level `app = create_app()` that opened the shared default database (`~/var/amp-live-aid/amp-live-aid.sqlite`) at import time during test collection. Sixteen parallel `xdist` workers imported `server.py` at the same millisecond and raced through `TaskStore.init()` on the same file. Worker `gw9` inspected `PRAGMA table_info`, saw no `prepared_at` column, and issued `ALTER TABLE`, losing the race by microseconds to worker `gw15`. Collection crashed with `sqlite3.OperationalError: duplicate column name: prepared_at` and `Different tests were collected between gw15 and gw9`. Locally it had passed only because the developer's preexisting SQLite file on disk already had the column from an earlier run.
 
-What followed was the classic late-stage integration spiral. As engineers and agents attempted to rebase their branches, git's textual merge algorithms produced the illusion of success: lines that did not physically overlap were spliced together automatically. But the resulting code was semantically poisoned. Agent A had refactored the signature of an internal authentication token payload, while Agent B had registered a new endpoint that passed the old token format into the authorization gateway. The codebase compiled, but the test suite collapsed into intermittent failures. Within two hours, CI runner pools saturated, deployment pipelines wedged behind deadlocked database migrations, and the `main` branch broke completely. Senior architects spent the next seventy-two hours in round-the-clock emergency triage, manually dissecting conflicting pull requests and rolling back half-integrated code.
+These three receipts expose the core law of the Necromancer's fleet: **when you scale concurrent actors without hard physical boundaries, they trample the host, trample the database, and trample the human operator**. Adding thirty parallel coding agents to an unpartitioned environment does not multiply throughput by thirty; it turns physical RAM, SQLite/PostgreSQL schemas, git working trees, and `tmux` sockets into a demolition derby.
 
-This disaster reveals the fundamental engineering law of modern software delivery: *unconstrained concurrency without spatial boundaries guarantees systemic collapse*. Adding autonomous agents or human engineers to an unpartitioned codebase does not increase throughput; under Amdahl’s Law and Brooks’s Law, it accelerates the rate of mutual destruction. When multiple workers touch overlapping files, shared schemas, or contested runtime resources simultaneously, coordination overhead grows quadratically while integration yields decay exponentially.
-
-The Ravenhelm Development Operations Methodology (RDOM) eliminates this failure mode entirely through **Zero Collision by Construction** (**DP-3**). Concurrency is never achieved by allowing multiple actors to mutate shared surfaces and hoping that git merge tools or human reviewers can resolve the conflicts downstream. Concurrency is earned through topological proof: partitioning work into discrete waves where every concurrent task operates within a mathematically disjoint blast radius, isolated within dedicated workspace custody (**DP-19**), and verified against the live running system (**DP-10**).
+The **Ravenhelm Development Operations Methodology (RDOM)** prevents multi-agent collisions before a single worker process spawns through **Zero Collision by Construction** (**DP-3**). Concurrency is never optimistic. Every parallel slice operates inside a mathematically disjoint spatial blast radius, rooted in an isolated `.bare/` git worktree (**DP-19**), backed by an isolated per-worker database state (**DP-10**), governed by strict launch-provenance custody, and throttled by measured host and CI capacity.
 
 ---
 
 ### The Theoretical & Mechanical Foundation
 
-To govern human-agent engineering fleets without collision, software engineering must abandon optimistic concurrency in favor of formal spatial boundary models.
+Our v1 multi-agent architecture treated agent sessions like lightweight chat tabs: spawn as many as you have ideas, point them at a repository, let `pytest -n auto` share a default database path, and rely on git merge or a cleanup script to sort out the mess afterward. Under real load, v1 failed across five physical dimensions simultaneously: filesystem paths, database state, runtime ports, CI runner quotas, and session ownership.
 
-#### Mathematical Formulation of the Spatial Blast Radius (DP-3)
+To eliminate collisions by construction, RDOM models the full five-dimensional footprint of every concurrent task.
 
-In the RDOM methodology, software delivery is modeled as a Dependency Directed Acyclic Graph $G = (V, E)$ (**DP-1**), partitioned into topological execution waves $W_0, W_1, \dots, W_m$ (**DP-2**). Each node $v \in V$ represents an atomic Daily Deed—a strictly bounded, testable unit of delivery terminating in an isolated pull request (**DP-23**).
+#### The Five-Dimensional Spatial Blast Radius (DP-3)
 
-Every deed $v \in V$ possesses a multidimensional spatial footprint termed its **Blast Radius**, denoted $\mathcal{B}(v)$. The blast radius encompasses all system coordinates that deed $v$ creates, mutates, or deletes during execution:
+In a ratified Ehwaz Dependency DAG $G = (V, E)$ (**DP-1**) partitioned into topological waves $W_0, W_1, \dots, W_K$ (**DP-2**), every atomic task $v \in V$ declares a bounded five-dimensional **Blast Radius** $\mathcal{B}(v)$:
 
-$$\mathcal{B}(v) = \mathcal{F}_v \cup \mathcal{S}_v \cup \mathcal{R}_v \cup \mathcal{P}_v$$
+$$\mathcal{B}(v) = \mathcal{F}_v \cup \mathcal{S}_v \cup \mathcal{R}_v \cup \mathcal{P}_v \cup \mathcal{C}_v$$
 
-Where the four constitutive dimensions are defined as:
+Where:
 
-1. **File System Footprint ($\mathcal{F}_v \subset \text{Paths}$)**: The set of absolute and relative file paths within the repository that task $v$ is permitted to create, modify, or remove. This includes source files, configuration manifests, build scripts, and test definitions.
-2. **Schema & Migration Footprint ($\mathcal{S}_v \subset \text{Entities}$)**: The set of database entities, table definitions, column alterations, sequence numbers, enum declarations, and DDL migrations governed or locked by task $v$.
-3. **Routing & Symbol Footprint ($\mathcal{R}_v \subset \text{Symbols}$)**: The set of external and internal interface coordinates modified by task $v$, including HTTP route paths, gRPC service definitions, event queue topics, message schemas, and exported public function signatures.
-4. **Runtime & Port Footprint ($\mathcal{P}_v \subset \text{Resources}$)**: The set of physical and virtual runtime resources required during execution and automated verification, including network listening ports, UNIX domain sockets, testcontainer instances, and shared environment variable keys.
+1. **Filesystem Footprint ($\mathcal{F}_v \subset \text{Paths}$)**: The exact set of repository file paths and module directories that task $v$ is authorized to create, modify, or delete, executed exclusively inside a dedicated git worktree (**DP-19**).
+2. **State & Schema Footprint ($\mathcal{S}_v \subset \text{Schemas}$)**: The database tables, DDL migration sequence numbers, and on-disk storage directories touched by task $v$ during both implementation and parallel test collection (`AMP_LIVE_AID_HOME=$(mktemp -d)`, ephemeral PostgreSQL schemas).
+3. **Routing & Symbol Footprint ($\mathcal{R}_v \subset \text{Symbols}$)**: The public AST function signatures, HTTP/MCP route prefixes, Protobuf messages, and event subjects exported or mutated by task $v$.
+4. **Runtime & Port Footprint ($\mathcal{P}_v \subset \text{Resources}$)**: The network sockets, container bindings, workstation RAM allocation, and CI runner slots required by task $v$.
+5. **Custody & Session Provenance ($\mathcal{C}_v \subset \text{Actors}$)**: The dedicated `tmux -L <slice>` socket, the launching authority (`supervisor-seat` vs. `operator-direct`), and client attachment state.
 
 #### The Zero-Collision Invariant
 
-The fundamental governing invariant of RDOM concurrency is the **Zero-Collision Invariant**:
+Principle **DP-3** states the mandatory precondition for concurrent wave dispatch:
 
-> **Invariant (Zero-Collision by Construction — DP-3)**: For any topological execution wave $W_k \subset V$, every pair of concurrent deeds $u, v \in W_k$ where $u \neq v$ must maintain strictly disjoint spatial blast radii:
+> **Invariant (Zero Collision by Construction - DP-3)**: For any active topological wave $W_k \subset V$, every pair of distinct tasks $u, v \in W_k$ ($u \neq v$) must maintain strictly disjoint blast radii across all mutable dimensions:
 >
 > $$\forall u, v \in W_k \ (u \neq v) \implies \mathcal{B}(u) \cap \mathcal{B}(v) = \emptyset$$
 
-If the intersection of blast radii between any two concurrent tasks is non-empty:
+If the pairwise intersection between any two candidate tasks in Wave $W_k$ is non-empty:
 
 $$\mathcal{I}(u, v) = \mathcal{B}(u) \cap \mathcal{B}(v) \neq \emptyset$$
 
-Then tasks $u$ and $v$ **cannot be scheduled concurrently**. Permitting their concurrent execution constitutes an architectural defect at the planning level. The scheduler must abort wave compilation and resolve the collision before any worker or agent worktree is provisioned.
+then $u$ and $v$ **cannot run concurrently as written**. Before `Doomcourt` provisions a single worktree for Wave $W_k$, the planner resolves $\mathcal{I}(u, v)$ through one of two topological operations:
 
-#### Static AST and Boundary Collision Matrix Verification
-
-RDOM proves blast radius disjointness prior to execution via automated static analysis. When a wave plan is compiled, an automated boundary analyzer parses the declared deeds and their target systems, generating the **Boundary Collision Matrix** $C^{(k)}$ for wave $W_k$:
-
-$$C_{ij}^{(k)} = \begin{cases} 1 & \text{if } i \neq j \text{ and } \mathcal{B}(v_i) \cap \mathcal{B}(v_j) \neq \emptyset \\ 0 & \text{otherwise} \end{cases}$$
-
-Wave $W_k$ is topologically valid for concurrent execution if and only if its collision matrix is identically zero:
-
-$$\sum_{i=1}^{|W_k|} \sum_{j=1}^{|W_k|} C_{ij}^{(k)} = 0$$
-
-The boundary analyzer employs static Abstract Syntax Tree (AST) inspection, dependency graph tracing, and routing registry analysis to verify that:
-
-- No two tasks modify the same source module or shared configuration file.
-- No two tasks allocate the same database migration timestamp or modify identical tables.
-- No two tasks register routes under identical URI path prefixes.
-- No two tasks bind to identical local TCP ports during automated test execution.
+- **Planning-Time Hoisting (DP-13, DP-14)**: If $\mathcal{I}(u, v)$ is a shared router (`routes.ts`), a shared SQL table migration, or a common domain type, extract $\mathcal{I}(u, v)$ into a foundational task $w_{\text{hoist}}$ in Wave $W_{k-1}$. Once $w_{\text{hoist}}$ merges to `main` and passes live verification (**DP-7**), tasks $u$ and $v$ consume the immutable surface in Wave $W_k$ with $\mathcal{B}'(u) \cap \mathcal{B}'(v) = \emptyset$.
+- **Topological Serialization (DP-1, DP-2)**: If $u$ and $v$ mutate the same stateful implementation logic and cannot be cleanly separated into contract and consumer, insert a directed precedence edge $(u, v) \in E$, moving $v$ into Wave $W_{k+1}$.
 
 ```mermaid
 flowchart TD
-    subgraph INVALID["Unconstrained Concurrency (Collision Prone)"]
+    subgraph COLLISION["v1 Unbounded Concurrency (Guaranteed Wreckage)"]
         direction TB
-        A1["Worker 1 (Deed A)\nTouches: handler.go, router.go, schema.sql"]
-        A2["Worker 2 (Deed B)\nTouches: service.go, router.go, schema.sql"]
-        COLLIDE["COLLISION MATRIX DETECTS:\nB(A) ∩ B(B) = {router.go, schema.sql}\nGIT MERGE CONFLICT & SEMANTIC POISONING"]
-        A1 --> COLLIDE
-        A2 --> COLLIDE
+        W1_A["Slice A: Touch routes.ts & Shared SQLite DB"]
+        W1_B["Slice B: Touch routes.ts & Shared SQLite DB"]
+        W1_C["33 Concurrent Slices on Host (26 MB Free RAM, 5.4 GB Swap)"]
+        CRASH["1. Git Merge Collisions on routes.ts\n2. pytest-xdist Race: duplicate column prepared_at\n3. Supervisor Panic Kills Operator's Live Window"]
+        W1_A --> CRASH
+        W1_B --> CRASH
+        W1_C --> CRASH
     end
 
-    subgraph VALID["RDOM Zero-Collision Topological Partitioning"]
+    subgraph DISJOINT["RDOM Zero-Collision Architecture (DP-3, DP-10, DP-19)"]
         direction TB
-        subgraph W0["Wave W_0: Hoisted Foundation (DP-13, DP-14)"]
-            H1["Deed 0.1: Shared Route Interface & DB Schema Contract\nTouches: router_interface.go, 001_core_schema.sql\n(Merged & Verified Green — DP-7)"]
-        end
-
-        subgraph W1["Wave W_1: Disjoint Parallel Slices (DP-3)"]
-            direction LR
-            S1["Slice 1.1: Billing Service\nBlast Radius: internal/billing/*\nEphemeral DB: test_billing_schema\nPort: Dynamic ephemeral"]
-            S2["Slice 1.2: Inventory Service\nBlast Radius: internal/inventory/*\nEphemeral DB: test_inventory_schema\nPort: Dynamic ephemeral"]
-        end
-
-        H1 --> S1
-        H1 --> S2
-        DISJOINT["DISJOINT VERIFIED:\nB(Slice 1.1) ∩ B(Slice 1.2) = ∅\nCLEAN FAST-FORWARD REBASE GUARANTEED"]
-        S1 -.-> DISJOINT
-        S2 -.-> DISJOINT
+        HOIST["Wave W_{k-1}: Hoist Shared Router & CREATE TABLE Schema\n(Merged & Verified Green on main - DP-7, DP-13)"]
+        CAP["Measured Concurrency Gate:\nCheck Free Host RAM, Runner Quota & Slice Provenance"]
+        SLICE1["Wave W_k Slice 1 (Worktree A off .bare/)\nFiles: internal/billing/*\nDB: $(mktemp -d) / Schema A"]
+        SLICE2["Wave W_k Slice 2 (Worktree B off .bare/)\nFiles: internal/audit/*\nDB: $(mktemp -d) / Schema B"]
+        CLEAN["Zero Merge Conflicts, Zero DB Races,\nZero Killed Operator Windows"]
+        HOIST --> CAP
+        CAP --> SLICE1
+        CAP --> SLICE2
+        SLICE1 --> CLEAN
+        SLICE2 --> CLEAN
     end
 ```
-
-#### The Hoisting Resolution Protocol (DP-13, DP-14)
-
-When static analysis detects a non-empty collision intersection $\mathcal{I}(u, v) = \mathcal{B}(u) \cap \mathcal{B}(v) \neq \emptyset$ during plan compilation, RDOM executes the **Hoisting Resolution Protocol**. The scheduler evaluates the intersection and applies one of two deterministic transformations:
-
-```mermaid
-flowchart LR
-    DETECT["Collision Detected:\nB(u) ∩ B(v) = I ≠ ∅"] --> EVAL{"Is I a Shared Interface\nor Core Abstraction?"}
-
-    EVAL -- Yes --> HOIST["Planning-Time Hoisting (DP-13, DP-14)\nExtract I into Wave W_{k-1} as Deed w_hoist"]
-    HOIST --> MERGE["Merge & Verify w_hoist (DP-7, DP-10)\nInterface Becomes Immutable Baseline"]
-    MERGE --> DISJOINT_EXEC["Execute u and v in Wave W_k:\nB(u) ∩ B(v) = ∅ (Both Consume Immutable I)"]
-
-    EVAL -- No --> SERIALIZE["Topological Serialization (DP-1, DP-2)\nInject Precedence Edge: e = (u, v)"]
-    SERIALIZE --> SEQ_EXEC["Execute u in Wave W_k\nExecute v in Wave W_{k+1}"]
-```
-
-##### 1. Planning-Time Hoisting (DP-13, DP-14)
-
-If the overlapping surface $\mathcal{I}$ represents a shared contract—such as a common routing table, an abstract interface, a database schema migration, or a shared domain type definition—the planner hoists the contested surface into an earlier foundational wave $W_{k-1}$ as a standalone deliverable $w_{\text{hoist}}$:
-
-$$W_{k-1} \leftarrow W_{k-1} \cup \{w_{\text{hoist}}\}$$
-$$\mathcal{B}'(u) = \mathcal{B}(u) \setminus \mathcal{I}, \quad \mathcal{B}'(v) = \mathcal{B}(v) \setminus \mathcal{I}$$
-
-Once $w_{\text{hoist}}$ executes, merges, and passes rigorous verification against the live running system (**DP-7**, **DP-10**), the interface becomes an immutable, shared baseline. Tasks $u$ and $v$ are scheduled in Wave $W_k$ as pure consumers of the hoisted contract. Because neither task mutates the contract during execution, their blast radii become strictly disjoint: $\mathcal{B}'(u) \cap \mathcal{B}'(v) = \emptyset$.
-
-##### 2. Topological Serialization (DP-1, DP-2)
-
-If the overlapping surface $\mathcal{I}$ represents intrinsically coupled operational logic that cannot be factored into an immutable interface without excessive premature abstraction, the planner serializes execution. The planner designates one task as the topological dependency of the other:
-
-$$E \leftarrow E \cup \{(u, v)\}$$
-
-Task $u$ executes in Wave $W_k$. Task $v$ is deferred to Wave $W_{k+1}$, scheduled only after task $u$ has merged to the main trunk and passed live verification gates. Concurrency is sacrificed to preserve architectural integrity, guaranteeing zero merge collisions.
 
 ---
 
 ### Operational Mechanics & Step-by-Step Protocols
 
-Zero collision is not an aspiration; it is an enforced operational protocol executed across six discrete phases.
+Enforcing zero collision across a live workstation and K3s cluster requires five concrete mechanical protocols covering worktrees, databases, CI concurrency, and slice custody.
 
-```
-+-----------------------------------------------------------------------------------+
-|               ZERO-COLLISION MULTI-AGENT EXECUTION PIPELINE                       |
-+-----------------------------------------------------------------------------------+
-  Phase 1: Boundary Contract Declaration (Linear / Valknut Manifest)
-     │  - Explicit File Path Allowlists: F_v
-     │  - Ephemeral Schema Namespace: S_v
-     │  - Port & Route Bindings: R_v, P_v
-     ▼
-  Phase 2: Static Boundary Collision Matrix Verification
-     │  - Automated AST & Route Analysis over Wave W_k
-     │  - Compute Collision Matrix: C_ij = 0
-     │  - Hoist Shared Interfaces (W_{k-1}) or Serialize (W_k -> W_{k+1})
-     ▼
-  Phase 3: Workspace Custody Provisioning (DP-19)
-     │  - Single Canonical Repository History: .bare/
-     │  - Disposable Ephemeral Git Worktree per Worker: worktrees/DEED-xxx
-     │  - Pre-execution Context Priming via Surgical AST Index (<800 tokens)
-     ▼
-  Phase 4: Ephemeral Schema & Port Sandboxing (DP-10)
-     │  - Isolated Postgres Schema / Container per Worktree
-     │  - Dynamic Ephemeral Port Allocation (port: 0)
-     │  - Live Running System Verification without Peer State Leakage
-     ▼
-  Phase 5: In-Execution Pre-Commit Boundary Enforcement (DP-21)
-     │  - Git Pre-Commit Linter Enforces Allowed File Paths
-     │  - Out-of-Bounds Write Triggers Immediate Execution Abort & Andon Cord
-     │  - Crash-Safe WIP Commit Checkpointing (DP-22)
-     ▼
-  Phase 6: Wave Convergence Gate & Clean Fast-Forward Squash-Merge (DP-7, DP-23)
-     │  - Disjoint Blast Radii Guarantee 0 Merge Conflicts on Trunk
-     │  - Witnessed Deed Triad Audit: Code, Docs, Showcase (DP-11)
-     │  - Clean Worktree Deletion Gated by Custody Proof (DP-24)
-+-----------------------------------------------------------------------------------+
-```
+#### Protocol 1: Checkout Custody and `.bare/` Worktree Isolation (DP-19)
 
-#### Step 1: Pre-Execution Blast Radius Declaration & Boundary Contract
+Running two coding agents (or one human and one agent) inside the same working directory is an immediate operational failure: file watchers trigger mid-edit, `git status` mixes both diffs, and `git stash` corrupts work across branch switches.
 
-Before any deed $v$ is approved for wave execution, its author (human architect or AI planner) must attach an explicit, machine-readable **Boundary Contract** to the task record in the project graph (e.g., Linear/Valknut). The contract specifies:
-
-```yaml
-deed_id: DEED-4082
-title: "Implement Stripe Webhook Ingestion Engine"
-wave: W_2
-boundary_contract:
-  file_allowlist:
-    - "services/billing/internal/webhooks/**"
-    - "services/billing/tests/webhooks/**"
-    - "services/billing/config/stripe.example.json"
-  schema_footprint:
-    migration_id: "20261117_billing_webhooks"
-    isolated_schema_name: "test_deed_4082_billing"
-    tables_created: ["stripe_events", "webhook_receipts"]
-    tables_mutated: []
-  routing_footprint:
-    routes_registered:
-      - "POST /api/v1/billing/webhooks/stripe"
-    symbols_exported:
-      - "services/billing/pkg/types.StripeWebhookPayload"
-  runtime_footprint:
-    ports_allocated: "dynamic"
-    testcontainers: ["postgres:16-alpine", "localstack/localstack"]
-```
-
-Any task lacking a verified Boundary Contract is rejected by the wave scheduler.
-
-#### Step 2: Automated AST & Boundary Collision Matrix Verification
-
-Prior to dispatching wave $W_k$, the orchestration engine executes the boundary compiler:
-
-1. **Path Overlap Check**: Computes pairwise intersection of `file_allowlist` patterns:
-   $$\forall i, j \in W_k \ (i \neq j) \implies \text{glob\_overlap}(\mathcal{F}_i, \mathcal{F}_j) = \emptyset$$
-2. **Schema & Migration Check**: Scans database migration sequence directories and schema manifests. Any concurrent attempts to mutate the same table or generate uncoordinated sequence IDs trip a boundary failure.
-3. **Route & Symbol Collision Check**: Evaluates API routing tables and exported symbol namespaces to prevent duplicate endpoint registrations or conflicting public signatures.
-4. **Adjudication**: If any intersection is detected, the wave compiler halts with code `COLLISION_DETECTED`, printing the conflicting deed identifiers and intersecting resource coordinates. The orchestrator invokes the Hoisting Resolution Protocol (**DP-13**, **DP-14**).
-
-#### Step 3: Isolated Workspace Custody (DP-19)
-
-Once wave $W_k$ is certified collision-free, workers are dispatched. Under RDOM's **Workspace Custody Standard** (**DP-19**), no engineer or agent is ever permitted to develop directly on a shared repository checkout or switch branches in place:
-
-- **Canonical `.bare/` Architecture**: Repository history lives in a single local `.bare/` repository.
-- **Disposable Ephemeral Worktrees**: Every deed $v$ is allocated its own dedicated, disposable git worktree rooted outside the bare repository:
-
-  ```bash
-  git worktree add -b feat/DEED-4082-stripe-webhooks \
-    ../worktrees/DEED-4082-stripe-webhooks origin/main
-  ```
-
-- **Custody Isolation**: The worker operates strictly inside `worktrees/DEED-4082-stripe-webhooks`. Under no circumstances can worker activity leak uncommitted files, git index state, or stashed changes into another worker's environment.
-
-#### Step 4: Strict Port, Environment & Schema Isolation (DP-10)
-
-Concurrent workers executing automated test suites against the live running system (**DP-10**) must never contend for shared runtime infrastructure:
-
-- **Dynamic Port Allocation**: Hardcoded test ports (e.g., `8080`, `5432`, `6379`) are strictly prohibited. Test runners bind to OS-allocated ephemeral ports (`port: 0`), writing the bound port to an environment variable passed to client drivers.
-- **Database Schema Sandboxing**: When executing tests against PostgreSQL or MySQL, test runners execute inside ephemeral, dynamically provisioned schema namespaces named after the active deed (`test_deed_4082`). Fixture loading, transactions, and table drops occur within the isolated schema, completely transparent to peer workers running tests simultaneously on the same container host.
-- **Testcontainers & Disposable Daemon Instances**: Where full isolation is required, workers spin up dedicated ephemeral container instances via Docker or Podman, torn down immediately upon test completion.
-
-#### Step 5: Pre-Commit Boundary Enforcement (DP-21)
-
-During implementation, passive adherence is reinforced by active boundary traps:
-
-- **Pre-Commit Path Guard**: A git hook installed in every worktree intercepts `git add` and `git commit` commands. The hook reads the task's Boundary Contract and verifies that every staged path matches the deed's `file_allowlist`:
-
-  ```bash
-  # Pre-commit boundary verification snippet
-  git diff --cached --name-only | while read file; do
-    if ! path_in_allowlist "$file" "$DEED_ALLOWLIST"; then
-      echo "BOUNDARY VIOLATION: $file is outside blast radius for $DEED_ID"
-      exit 1
-    fi
-  done
-  ```
-
-- **Andon Cord Trip (DP-12)**: If an autonomous agent attempts to modify an out-of-bounds file (such as a shared root router or a peer service file), the pre-commit guard halts execution, drops a crash-safe WIP commit (**DP-22**), and sounds the Andon Cord. The agent cannot proceed until an architect expands the boundary or hoists the requirement.
-
-#### Step 6: Wave Gate & Clean Squash-Merge Protocol (DP-7, DP-23)
-
-Because blast radii are mathematically disjoint, merging concurrent pull requests within Wave $W_k$ is deterministic:
-
-1. **Deterministic Fast-Forward**: As PRs complete and satisfy the Triad of Proof (**DP-11**: Passing Tests on Live System, Updated Docs, Showcase Artifact), they are merged into the main trunk.
-2. **Zero Merge Conflicts**: Because $\mathcal{B}(u) \cap \mathcal{B}(v) = \emptyset$, subsequent PRs within the same wave rebase cleanly onto the advancing trunk without textual conflicts or semantic clobbering.
-3. **Clean Worktree Disposal (DP-24)**: Upon witnessed merge verification, the ephemeral worktree is pruned:
+Under the **Checkout Custody Standard** (**DP-19**, detailed fully in Chapter 16):
+1. **History Lives Once in `.bare/`**: Every repository maintains its git object database and refs inside a canonical `.bare/` directory with an explicit fetch refspec (`+refs/heads/*:refs/remotes/origin/*`).
+2. **One Disposable Worktree per Pull Request**: Every worker slice receives its own isolated directory on disk branched from `origin/main`:
 
    ```bash
-   git worktree remove ../worktrees/DEED-4082-stripe-webhooks
+   # Provision an isolated worktree per slice/PR; never share a checkout
+   git -C ~/src/platforms/ravenmaskos/bifrost/.bare fetch origin
+   git -C ~/src/platforms/ravenmaskos/bifrost/.bare worktree add \
+     -b feat/rav-2190-token-scope \
+     ~/src/platforms/ravenmaskos/bifrost/rav-2190-token-scope \
+     origin/main
    ```
 
-4. **Wave Convergence Gate (DP-7)**: Once all deeds in Wave $W_k$ have merged to `main`, the CI system executes the comprehensive integration suite against the unified trunk. Only when the trunk is verified 100% green does Wave $W_{k+1}$ unlock.
+3. **Strict File Allowlist Enforcement (DP-21)**: Each slice's task brief names the exact files or directories in $\mathcal{F}_v$. Before committing or opening a PR, `git diff --name-only origin/main...HEAD` is checked against $\mathcal{F}_v$. If a worker touches an out-of-bounds shared file, it halts and trips the Andon cord (**DP-12**) rather than polluting a sibling slice's blast radius.
+
+#### Protocol 2: Database and Import-Time State Isolation (DP-10)
+
+The September 17, 2026 `amp-live-aid` PR #56 CI failure (`ci-runs-pytest-xdist-shared-default-db`) proved that worktree isolation alone is useless if parallel test workers point back to a single shared database path in `~/var/` or a shared default PostgreSQL schema.
+
+To guarantee zero state collision across both parallel slices and parallel `pytest-xdist` / `cargo test` workers:
+
+1. **Never Touch a Real Database at Module Import Time**: Application entrypoints (`server.py`, `main.rs`) must never execute `app = create_app()` or run schema migrations as a side effect of module import during test collection. Construct the application inside an explicit factory or test fixture after the isolated environment is bound.
+2. **Per-Run and Per-Worker Ephemeral Data Directories**: Before running parallel test suites, bind the service home to a fresh temporary directory and give each `xdist` worker (`PYTEST_XDIST_WORKER`, e.g., `gw0`..`gw15`) or test process its own isolated database file or PostgreSQL schema:
+
+   ```bash
+   # Run parallel tests against a fresh, isolated data directory (never ~/var/ default)
+   AMP_LIVE_AID_HOME=$(mktemp -d) uv run --locked pytest -q -n auto
+   ```
+
+3. **Idempotent Schema Initialization**: Place all new columns directly in the base `CREATE TABLE` definition so fresh databases never run incremental `ALTER TABLE` races during boot, and route any legacy backfill `ALTER` through a same-connection helper (`_ensure_column`) that explicitly absorbs duplicate-column collisions.
+4. **Dynamic Ephemeral Ports (`port: 0`)**: Test servers must never bind hardcoded TCP ports (`8080`, `5432`). Bind `127.0.0.1:0` so the OS kernel allocates a collision-free ephemeral port per worker.
+
+#### Protocol 3: Slice Custody & The Anti-Kill Laws
+
+The September 14, 2026 (`ember.blade.maple`) and October 8, 2026 (`spark.blade.snow`, `umber.quiet.violet`) incidents established inviolable custody laws governing when a supervisor seat may or may not close a `Doom` slice:
+
+| Custody Check | Command / Evidence Required | Hard Rule |
+|:---|:---|:---|
+| **1. Launch Provenance** | Check docket launch registry & `whoami` | **Never kill a slice you did not launch.** Slices named `nate`, operator-opened exploration windows, or slices with unknown origin are strictly off-limits (`never-kill-a-slice-you-did-not-launch`). |
+| **2. Attached Client Check** | `tmux -L <slice> list-clients` | If any terminal client is attached to the slice's `tmux` server, the window is open on someone's screen. Hands off (`zero-sessions-is-not-unused-check-attached-windows`). |
+| **3. Harness-Agnostic Liveness** | `tmux -L <slice> capture-pane -p -J -S -120 -t main` | `sessions=0` and `transcript=0 B` only count Doom-recorded Claude transcripts. `Antigravity`, `Yager`, and `Ullr` slices run live with `sessions=0`. Always inspect the live pane and creation date; never close a slice created today without asking. |
+| **4. Active Input Guard** | Inspect bottom prompt line (`❯`) in captured pane | If the pane shows a non-empty `❯` input line or terminal activity within the last several minutes, a human is typing. Never close and never send keys. |
+| **5. Memory-Pressure Triage** | Close only supervisor-launched `DONE` lanes first | Under high RAM/swap pressure (like the 26 MB free RAM event on 2026-09-14), the supervisor closes **only** its own verified-finished worker lanes, then lists remaining top-memory slices with their RSS footprint and asks the operator which of his own windows to close. |
+
+#### Protocol 4: Measuring Concurrency Limits Instead of Guessing
+
+On September 17, 2026 (`ci-concurrency-is-measured-not-chosen`), the `Norns` K3s light runner lane (`forgejo-runners-light`) choked as additional repositories migrated onto Forgejo. A previous session had hand-picked a `ResourceQuota` of `count/jobs.batch: 6` and `pods: 7` along with a `32Mi` `runner-data` `emptyDir` volume. Under concurrent wave pushes, the `32Mi` limit evicted every runner pod while jobs queued behind the arbitrary 6-job cap. When asked to fix it, the lane proposed another guessed number.
+
+RDOM forbids arbitrary concurrency caps on both local workstations and cluster runner pools. Every concurrency ceiling $M$ (whether max concurrent local `Doom` slices or KEDA `maxReplicaCount` / Kubernetes `ResourceQuota`) must be mathematically derived from three live measurements and recorded in the PR body:
+
+$$M_{\text{safe}} = \left\lfloor \frac{C_{\text{allocatable}} - C_{\text{committed}} - C_{\text{headroom}}}{\max_{j \in \text{Jobs}} P_{99}(j)} \right\rfloor$$
+
+1. **Target Host Allocatable Capacity ($C_{\text{allocatable}} - C_{\text{committed}}$)**: Actual free CPU cores, physical RAM (preserving a hard floor so macOS/Linux never enters swap thrash like the 5.4 GB swap incident), and ephemeral disk on the target nodes (`urd`, `verdandi`, `skuld`, `eikthyrnir`, or the workstation).
+2. **Measured Per-Job Peak Consumption ($P_{99}(j)$)**: Actual peak RSS memory, CPU, and `emptyDir` disk usage queried from Prometheus across real historical runs - never the fictional `requests` written in a YAML manifest.
+3. **Queue Wait vs. Active Count Curve**: Empirical evidence showing whether the current cap is the binding constraint or whether jobs are waiting on an upstream lock.
 
 ---
 
 ### Concrete Anti-Patterns & Defect Escapes
 
-Organizations that fail to establish zero-collision boundaries repeatedly succumb to four predictable failure modes:
+Four collision anti-patterns account for the vast majority of multi-agent fleet failures.
 
-| Anti-Pattern | Root Cause | Observable Symptoms | RDOM Corrective Invariant |
+| Anti-Pattern | Estate Receipt | Mechanism of Failure | RDOM Structural Fix |
 |:---|:---|:---|:---|
-| **The Shared Dev Database Trap** | Concurrent workers running tests against a common database instance or static schema. | Intermittent test failures; unique constraint violations; parallel tests dropping tables out from under each other. | **DP-10 & Ephemeral Sandboxing**: Dedicated schema namespaces per deed (`test_deed_xxx`) or isolated testcontainer instances. |
-| **The Omnibus Feature Branch** | Bundling multiple unrelated changes (features, linting, shared refactors) into one branch. | Massive diffs; sprawling blast radii; guaranteed merge collisions; inability to isolate defect origin. | **DP-3 & DP-23**: Single-deed PRs strictly bound to declared file allowlists; shared refactors hoisted to prior wave (**DP-13**). |
-| **Late Merge Collision Resolution** | Postponing conflict detection until PR merge time; relying on git 3-way merge tools. | "Merge hell"; semantic bugs silently introduced by automated line splicing; broken master branches. | **DP-3 & Static Boundary Matrix**: Mathematical disjointness verified before wave dispatch; collisions hoisted or serialized at planning time. |
-| **Agent Context Bleed & File Clashing** | Running multiple agents in a shared checkout directory without worktree custody. | Agents overwriting peer edits mid-generation; context window blowouts from observing peer churn; git stash corruption. | **DP-19 & DP-20**: Ephemeral worktrees rooted in `.bare/`; surgical $<800$ token AST priming (`eat prime`); zero shared mutable state. |
-
-#### 1. The Shared Dev Database Trap
-
-A development team configures their local test runner to connect to a shared PostgreSQL instance running on a local docker daemon, binding to fixed port `5432` and database `dev_db`. When three agents execute integration tests concurrently, Agent 1 inserts a test user with ID `usr_test_1`, while Agent 2 executes a test teardown that runs `TRUNCATE TABLE users`.
-
-Agent 1's test run fails with an unexpected missing entity error. Simultaneously, Agent 3 attempts to apply an experimental migration that acquires an exclusive DDL lock on the `orders` table, causing Agent 2's transaction to time out after thirty seconds.
-
-The team concludes that the test suite is "flaky" and adds arbitrary retry loops (`sleep(2)`). In reality, the failure is purely architectural: multiple concurrent processes violating runtime resource boundaries ($\mathcal{P}_1 \cap \mathcal{P}_2 \neq \emptyset$). RDOM mandates that every worktree executes against dynamically provisioned ephemeral schemas or dedicated container ports, ensuring complete data plane isolation.
-
-#### 2. The Omnibus Feature Branch
-
-An autonomous agent assigned to implement a single REST endpoint notices a typographical error in an adjacent shared utility function, re-indents seventy lines in `src/utils/formatting.ts`, and updates three unrelated npm packages in `package.json`.
-
-What should have been an isolated ten-line diff in `src/handlers/user.ts` expands into a twenty-file blast radius. When another agent attempts to merge an independent billing service branch, git detects conflicts across `package.json` and `formatting.ts`. The PR is blocked, requiring manual intervention from a human engineer to untangle the unrelated diffs.
-
-RDOM enforces strict blast radius containment. Pre-commit hooks reject any staged file outside the deed's pre-approved `file_allowlist`. If an engineer or agent discovers an unrelated defect, they are forbidden from "opportunistic fixing" within the active deed. They must log an independent defect deed in the upstream backlog, scheduled for an appropriate future wave.
-
-#### 3. Late Merge Collision Resolution
-
-In traditional agile environments, developers pull feature branches from `main`, work in isolation for days or weeks, and only confront integration conflicts when opening a pull request. When conflicts arise, developers or AI agents use git merge tools to mechanically stitch conflicting sections together.
-
-This practice is an engineering catastrophe. Git merge algorithms are purely textual: they detect physical line collisions, but are completely blind to semantic invariants. If Developer A alters the internal lifecycle state machine of an order entity while Developer B writes a billing capture function that relies on the deprecated state transition, git will auto-merge the branch cleanly if the lines do not physically intersect. The code compiles, passes shallow unit tests that stub out external services, and promotes to staging, where it silently corrupts financial transaction logs.
-
-RDOM eliminates late merge resolution. Conflicts are not resolved at merge time; they are eliminated at planning time through topological boundary proofs. If two tasks touch intersecting conceptual surfaces, they are never allowed to execute in parallel.
-
-#### 4. Agent Context Bleed & File Clashing
-
-When organizations first experiment with AI agent swarms, they frequently execute multiple agent threads inside a single shared repository directory. Two agents read files simultaneously, formulate plans, and begin writing changes to disk.
-
-As Agent 1 writes code into `handler.py`, Agent 2's file watcher detects the change, invalidates its internal context, and attempts to adapt its prompt. The agents enter a destructive feedback loop: Agent 2 overwrites Agent 1's function signature, Agent 1 notices the change and attempts to "repair" it, and both agents exhaust their context windows and token budgets in minutes.
-
-RDOM treats unisolated workspace execution as an immediate disqualification. Under **DP-19**, every agent runs inside an isolated git worktree tied to a dedicated process sandbox. The agent's workspace contains only its assigned worktree, primed with a surgical, token-efficient topological digest (**DP-20**). Agents are physically incapable of observing or interfering with peer operations during wave execution.
+| **The Shared Default DB Race** | `amp-live-aid` PR #56 (`2026-09-17`): `pytest -n auto` crashing on `duplicate column name: prepared_at` across `gw9` and `gw15`. | Module-level `create_app()` initializes a single shared SQLite/Postgres database across $N$ parallel test workers during import. | Bind `AMP_LIVE_AID_HOME=$(mktemp -d)` per run/worker; never touch real DBs at import; keep schema complete in `CREATE TABLE` (**DP-10**). |
+| **The Blind `sessions=0` Reaper** | `2026-10-08` cleanup sweep closing 15 slices including live `spark.blade.snow` and `umber.quiet.violet` (`Antigravity` / `Yager`). | Relying on harness transcript byte counts (`0 B`) instead of checking attached `tmux` clients and live pane buffers. | Verify launch provenance, `tmux -L <slice> list-clients`, creation date, and pane state before any `doom close` / `doom kill`. |
+| **Unbounded Slice Spawning** | `2026-09-14`: 33 concurrent slices driving workstation to 26 MB free RAM and 5.4 GB swap, triggering panic kill of `ember.blade.maple`. | Launching new worker slices without closing completed lanes or checking host memory headroom. | Close supervisor-owned slices the moment their PR and deliverables are recorded; cap active slices by measured RAM headroom. |
+| **Hand-Picked CI Quotas** | `2026-09-17`: `forgejo-runners-light` capped at 6 jobs with a `32Mi` `emptyDir` evicting every pod. | Guessing resource limits and concurrency ceilings in YAML without reading Prometheus peak usage or node capacity. | Derive concurrency limits from allocatable node resources divided by measured $P_{99}$ peak usage with stated headroom. |
 
 ---
 
 ### Upstream & Downstream Integration (The Sovereign Triad)
 
-Zero Collision by Construction is not an isolated git tactic; it forms the critical structural bridge connecting strategic intent in RLOM to verified deployment in RROM.
+Zero Collision by Construction ties directly into **RLOM** upstream and **RROM** downstream:
 
-```
-+-----------------------------------------------------------------------------------+
-|                        THE SOVEREIGN TRIAD INTEGRATION                            |
-+-----------------------------------------------------------------------------------+
-  UPSTREAM: RLOM (Ravenhelm Lifecycle Operations Methodology)
-     │  Strategic Intent: Wyrd Runes & Epics
-     │  Demand Intake: Linear / Valknut Work Graph (DP-1)
-     │  Boundary Formulation: Pre-execution Boundary Contracts attached at Deed creation
-     ▼
-  CORE: RDOM (Ravenhelm Development Operations Methodology)
-     │  Wave Compilation & Dependency DAG (DP-1, DP-2)
-     │  Boundary Collision Matrix Audit: B(u) ∩ B(v) = ∅ (DP-3)
-     │  Hoisting Shared Contracts to Wave W_{k-1} (DP-13, DP-14)
-     │  Isolated Worktree Custody & Sandboxed Execution (DP-19, DP-10)
-     │  Wave Convergence Gate: Verified Green Trunk (DP-7, DP-8)
-     ▼
-  DOWNSTREAM: RROM (Ravenhelm Release Operations Methodology)
-     │  Contention-Free Promotion Pipeline
-     │  Ephemeral Preview Environments Provisioned per Isolated Deed
-     │  Deterministic Canary Deployment Rings & Live Traffic Verification
-+-----------------------------------------------------------------------------------+
-```
+1. **Upstream Integration (RLOM $\to$ RDOM)**:
+   - When an RLOM issue (`RAV-<id>`) is scheduled into an Ehwaz wave, its task brief carries its explicit file allowlist $\mathcal{F}_v$ and its `Consumes` / `Produces` contract.
+   - Before the wave opens, the supervisor verifies that no two parallel issues in the wave claim overlapping files or unisolated shared schemas (**DP-3**).
+2. **Downstream Integration (RDOM $\to$ RROM)**:
+   - Because every slice in Wave $W_k$ operates on a disjoint file set and passes parallel tests against an isolated database instance (**DP-10**), merging approved PRs onto `main` (**DP-23**) produces zero textual or semantic merge conflicts.
+   - Downstream RROM build pipelines on `Norns` and `eikthyrnir` execute within measured resource quotas, producing clean `:b<N>` OCI artifacts in `Harbor` without runner evictions or cross-job state contamination.
 
-#### Upstream Connection to RLOM: Boundary Intake at the Work Graph
+### Augmentation Surface - Automated Boundary Auditing & Safe Fleet Hygiene
 
-Upstream in the Ravenhelm Lifecycle Operations Methodology (RLOM), business demand, customer feature requests, and strategic initiatives are distilled into Wyrd Runes and Epics. Before any initiative transitions from RLOM into RDOM execution, it is decomposed into atomic Daily Deeds within the Linear/Valknut work graph (**DP-1**).
-
-During RLOM intake, the architect or automated deed compiler defines not merely what must be built, but the exact boundary contract within which the work must take place:
-
-1. **Scope Bounding**: Deeds are drafted to be topologically independent. If a proposed deed spans multiple architectural boundaries (e.g., "Add billing endpoint and update database schema"), RLOM decomposition rules force it to be split into two deeds: a schema deed hoisted into an early wave, followed by an endpoint deed.
-2. **Contract Signing**: The boundary contract (`file_allowlist`, `schema_footprint`, `routing_footprint`) is attached directly to the Linear issue metadata. When RDOM compiles the wave schedule, it parses this metadata directly to construct the Boundary Collision Matrix.
-
-#### Downstream Connection to RROM: Contention-Free Safe Promotion
-
-Downstream in the Ravenhelm Release Operations Methodology (RROM), merged code is promoted through automated deployment rings into production. Zero-collision boundaries in RDOM provide the essential guarantees that make continuous delivery deterministic:
-
-1. **Contention-Free CI Pipelines**: Because concurrent deeds possess disjoint blast radii, CI test suites execute against isolated, containerized environments without resource deadlocks, port collisions, or database migration conflicts. Build times remain predictable and flat.
-2. **Ephemeral Review Environments**: For deeds requiring end-to-end integration or stakeholder verification, RROM provisions ephemeral preview environments mapped directly to the deed's declared blast radius. Because route namespaces and ports are disjoint by construction, multiple preview environments coexist on shared staging clusters without mutual interference.
-3. **Clean Promotion to Canary Rings**: Once Wave $W_k$ achieves green convergence (**DP-7**), RROM promotes the unified trunk commit to canary deployment rings. Because every component merged into the wave was verified against the live system (**DP-10**) and proven disjoint during construction, rollback risk is minimized.
+> **Augmentation Surface - Collision Matrix & Custody Guards**
+>
+> **Where an agent layer transforms this practice:**
+> 1. **Pre-Dispatch Blast Radius Intersection**: Before `Doomcourt` launches Wave $W_k$, an automated check intersects the declared file paths $\mathcal{F}_u \cap \mathcal{F}_v$ across all tasks in the wave. If two tasks touch the same router, migration directory, or Cargo manifest, dispatch halts and the planner hoists the shared edit into Wave $W_{k-1}$ (**DP-13**).
+> 2. **Poka-Yoke Slice Reaper Guards**: The `doom sweep` and slice-closing routines enforce hardware checks automatically: checking `tmux -L <slice> list-clients`, verifying that the slice was spawned by the current supervisor seat, checking the pane for unsent input in `❯`, and refusing to auto-close `Antigravity`, `Yager`, or `Ullr` windows.
+> 3. **Automated Isolated Test Harnesses**: CI workflows and pre-push hooks inject temporary data directories (`mktemp -d`) and ephemeral schemas automatically before invoking `pytest -n auto` or `cargo test`, catching import-time state bugs before a PR is ever opened.
+>
+> **What the human architect keeps:**
+> - **Ownership of Personal Exploration Lanes**: Any window or slice opened by the human architect belongs exclusively to the human; the fleet supervisor may read panes when asked to coordinate, but never types into or closes human-owned sessions.
+> - **Architectural Hoisting & Quota Approval**: The human architect approves the hoisting of shared interfaces into Wave 0 and reviews the Prometheus capacity derivations for cluster concurrency limits.
 
 ---
-
-> **Augmentation Surface — Multi-Agent Boundary Orchestration & Collision Auditing**
->
-> Where an agent layer transforms this practice: In traditional organizations, tracking file paths, database schemas, and route collisions across dozens of engineers requires heavy managerial overhead, architectural review boards, and painful coordination meetings. In RDOM, autonomous agents and automated analyzers handle the entire mechanical burden of collision prevention. Prior to wave dispatch, an orchestration agent parses the planned task briefs, performs static AST dependency analysis, generates the Boundary Collision Matrix, and flags potential intersections. If a conflict is detected, the agent automatically proposes the optimal resolution: extracting and drafting the hoisted interface for Wave $W_{k-1}$ or re-sequencing the dependency edges in the DAG. Furthermore, agent orchestration daemons automatically provision bare worktrees, allocate ephemeral database schemas and dynamic ports, and enforce pre-commit path restrictions without human intervention.
->
-> What the human architect keeps: Sovereign authority over architectural structure and interface contracts. The human architect ratifies the wave decomposition, reviews and approves hoisted interface contracts (**DP-13**, **DP-14**), adjudicates rare boundary exemptions, and provides explicit witnessed approval for pull request merges (**DP-23**) and production promotion. The human architect governs the shape of the system; the agent fleet executes within the guaranteed safety of the mathematically proven boundaries.
 
 <!-- RUBRIC_CHECK:
   structural: pass
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 4148
-  principle-citations: DP-1, DP-2, DP-3, DP-7, DP-8, DP-10, DP-11, DP-12, DP-13, DP-14, DP-19, DP-20, DP-21, DP-22, DP-23, DP-24
+  word-count: 3145
+  principle-citations: DP-1, DP-2, DP-3, DP-7, DP-10, DP-12, DP-13, DP-14, DP-19, DP-21, DP-23
   flagged-principle-gaps: none
 -->

@@ -1,252 +1,221 @@
 <!-- LICENSE: © 2026 Ravenhelm LLC. Licensed material. -->
 <!-- All rights reserved except as granted in LICENSE. Inquiries: nate@ravenhelm.co -->
 
-## Chapter 5 — The Four Codices (Shield, Cycle, Grimoire, Shield-Band)
+## Chapter 5 - The Four Operational Contracts: Repository Law, Cadence, Architecture, and Fleet Custody
 
-At 2:15 AM on a Sunday, a distributed banking gateway collapsed into thread exhaustion. On the incident bridge, senior engineers argued over whether the payment coordinator could call the ledger asynchronously. Another engineer ran commands referencing a Redis cluster decommissioned months prior. Simultaneously, an automated agent merged a patch altering a Protobuf schema, breaking the ingress proxy across three availability zones.
+During an estate custody sweep, an autonomous agent slice inspected `~/var/apps/import-backup` and sounded an alarm: it had discovered an uncommitted edit bumping `CONTRACT_VERSION = 2` inside a dirty checkout and proposed rescuing the diff as precious stranded work. It took sixty seconds of checking the canonical repository to expose the mirage. `~/var/apps/import-backup` was a stale, detached legacy deployment checkout sitting two commits behind `main`; Pull Request #22 had already merged `CONTRACT_VERSION = 2` cleanly into trunk days earlier. In the same week, another worker slice ran `python3 -m unittest ... | tail -5`, read the `0` exit code of `tail` rather than the failing exit code of `unittest`, and reported a broken branch as verified green; a third worker modified files in place with BSD `sed -i` instead of the structured editor tool, leaving corrupted backup suffixes across the tree; and a fourth session attempted to merge a pull request directly by inferring permissions from a domain-specialist name rather than checking the session's `dispatch` role table.
 
-No service had violated a compiler check. No PR had bypassed CI. The collapse occurred because the organization ran on ambient folklore: unwritten architectural assumptions, tribal agreements whispered in chat, rotting documentation, and rubber-stamped reviews where approvals rested on social trust rather than witnessed evidence.
+None of those agents were malicious. Every one of them failed because it stepped onto a floor where the operational contract was either missing from the repository root or left to conversational folklore.
 
-When engineering organizations scale—especially when deploying autonomous agent swarms—ambient tribal knowledge becomes fatal. Human engineers retain subtle mental models of unwritten rules. Autonomous agents possess no such intuition. Dropped into a repository governed by folklore, an agent reads stale guides, hallucinates conventions, reimplements existing caching as an incompatible snowflake, and generates thousands of lines of syntactically valid code that destabilizes production.
+A human engineer who has worked in a codebase for six months carries an unwritten mental map: they know `~/var/apps/` is an old runtime path and `~/src/platforms/` holds the canonical `.bare/` repository; they know which repos are Forgejo-primary and which remain on GitHub; they know `norns` runs a 3-node K3s cluster while `odin` runs Docker Compose. An autonomous AI session spawns with zero episodic memory of yesterday's Slack thread. If the operational law is not written down in a deterministic, machine-parsed contract at the exact coordinate where the agent lands, the agent will guess. And when twenty parallel slices guess at once, they manufacture chaos at machine speed.
 
-Engineering excellence cannot survive on oral tradition. Governance must be physical, version-controlled, immutable, and mechanically enforceable by humans and agents alike. The Valknut doctrine structures institutional memory and architectural laws into **The Four Codices**: *Skjöldr* (The Shield), *Verðrhringr* (The Cycle), *Galdraritar* (The Grimoire), and *Skuldalið* (The Shield-Band). Together, they establish an executable constitution governing software across its lifecycle.
+RDOM replaces unwritten tribal lore with **The Four Operational Contracts**:
+
+1. **Repository Law (`AGENTS.md`):** The local constitution at the root of every repository, platform, and product (**DP-18**, **DP-20**).
+2. **The Cadence & Docket Ledger:** The live Ehwaz wave graph ($G = (V, E)$), Linear docket, and `doom momentum` state (**DP-1**, **DP-2**, **DP-4**, **DP-22**).
+3. **The Architecture Record (ADRs & Runbooks):** Immutable Architecture Decision Records (such as ADR-0007 and ADR-011), wire schemas, and tested operational runbooks (**DP-9**, **DP-13**, **DP-16**, **DP-17**).
+4. **Fleet Custody & Role Routing (`dispatch` Matrix):** The strict role-routing table, `.bare/` worktree custody standard, and PR merge gate (**DP-7**, **DP-11**, **DP-19**, **DP-23**, **DP-24**).
 
 ---
 
-### The Formal Cosmology of The Four Codices
+### The Architecture of the Four Operational Contracts
 
-The Four Codices govern four orthogonal dimensions of systems engineering: spatial boundary, temporal cadence, operational procedure, and evidentiary verification:
+Each contract governs one orthogonal axis of the engineering floor so an engineer or agent slice can orient in seconds without reading twenty files:
 
 ```
-                  +-----------------------------------+
-                  |       THE FOUR CODICES            |
-                  +-----------------------------------+
-                    /          |             |        \
-                   /           |             |         \
-                  v            v             v          v
-           +------------+ +------------+ +------------+ +------------+
-           |  SKJÖLDR   | |VERÐRHRINGR | |GALDRARITAR | | SKULDALIÐ  |
-           | The Shield | | The Cycle  | |The Grimoire| | Shield-Band|
-           +------------+ +------------+ +------------+ +------------+
-           Boundaries,    OKRs, Cadence  Daily Runbooks Peer Review,
-           Contracts,     & Topological  & Engineering  Witnessing,
-           Architecture   Wave Windows   Standards      Defect Gates
+              +---------------------------------------------------+
+              |          THE FOUR OPERATIONAL CONTRACTS           |
+              +---------------------------------------------------+
+                /                 |                 |             \
+               /                  |                 |              \
+              v                   v                 v               v
+    +------------------+ +------------------+ +------------------+ +------------------+
+    | 1. REPOSITORY    | | 2. CADENCE &     | | 3. ARCHITECTURE  | | 4. FLEET CUSTODY |
+    |    LAW           | |    DOCKET LEDGER | |    RECORD        | |    & ROUTING     |
+    |    (AGENTS.md)   | |    (Ehwaz & RLOM)| |    (ADRs/Runbook)| |    (Dispatch/PR) |
+    +------------------+ +------------------+ +------------------+ +------------------+
+    Local Authority,     Topological Waves,   ADR-0007 / ADR-011,  Dispatch Matrix,
+    Build/Test Recipes,  Critical Chain,      Wire Schemas,        .bare Worktrees,
+    EAT Priming Packet   Court Cards, Doom    Live Runbooks        Supervisor Merge
 ```
-
-Each codex enforces invariance within an isolated domain:
-
-1. **Spatial Invariance (*Skjöldr*)**: Defines system boundaries, service topology, and data contracts.
-2. **Temporal Invariance (*Verðrhringr*)**: Defines execution sequencing, topological waves, and capacity buffers.
-3. **Operational Invariance (*Galdraritar*)**: Defines operational runbooks, daily standards, and shared runtime substrates.
-4. **Evidentiary Invariance (*Skuldalið*)**: Defines witnessing rubrics, defect gates, and physical proof required for promotion.
 
 ```mermaid
 flowchart TD
-    subgraph Codices["The Four Codices (Repository Ground Truth)"]
+    subgraph Contracts["The Four Operational Contracts (Version-Controlled Ground Truth)"]
         direction TB
-        subgraph S1["Skjöldr (The Shield)"]
-            S_ADR["Architectural Decision Records"]
-            S_Schema["Interface Schemas & Wire Contracts"]
-            S_Bound["Poka-Yoke Boundary Rules (DP-9)"]
-            S_DRY["Planning-Time DRY Registry (DP-13)"]
+        subgraph C1["1. Repository Law (AGENTS.md)"]
+            L_Root["Root AGENTS.md Authority (DP-18)"]
+            L_EAT["EAT Priming Manifest (<800 Tokens, DP-20)"]
+            L_Cmd["Exact Build, Test & Lint Commands"]
+            L_Rail["Forge & Release Rail Declaration (Rail A/B/C)"]
         end
 
-        subgraph S2["Verðrhringr (The Cycle)"]
-            V_OKR["Engineering OKR Scorecards"]
-            V_DAG["Topological Wave DAG (DP-2)"]
-            V_Crit["Critical Chain Buffer (DP-4)"]
-            V_Cap["Execution Wave Windows"]
+        subgraph C2["2. The Cadence & Docket Ledger"]
+            D_DAG["Ehwaz Wave Graph: G=(V,E) (DP-1, DP-2)"]
+            D_Crit["Critical Chain & Wave Gates (DP-4, DP-7)"]
+            D_Score["4D Scorecard Targets (Faster/Bigger/Cheaper/Effective)"]
+            D_Doom["Doom Slice Checkpoints & Court Cards (DP-22)"]
         end
 
-        subgraph S3["Galdraritar (The Grimoire)"]
-            G_SOP["Operational Runbooks & SOPs"]
-            G_Scaff["Working Reality Scaffolds (DP-16)"]
-            G_Sub["Shared Substrate Protocols (DP-17)"]
+        subgraph C3["3. The Architecture Record (ADRs & Runbooks)"]
+            A_ADR["Immutable ADRs (ADR-0007, ADR-011)"]
+            A_Schema["Poka-Yoke Wire & DB Schemas (DP-9)"]
+            A_DRY["Hoist-vs-Defer Substrate Registry (DP-13, DP-14)"]
+            A_Run["Executable Operational Runbooks (DP-16)"]
         end
 
-        subgraph S4["Skuldalið (The Shield-Band)"]
-            K_PR["The PR Boundary Engine (DP-23)"]
-            K_Green["Verified Green Gates (DP-7)"]
-            K_Triad["Triad of Proof Witness (DP-11)"]
+        subgraph C4["4. Fleet Custody & Role Routing"]
+            F_Disp["Dispatch Responsibility Matrix"]
+            F_Bare["Checkout Custody: .bare + 1 Worktree/PR (DP-19)"]
+            F_Triad["Triad of Proof Verification (DP-11)"]
+            F_Gate["Supervisor-Only PR Merge Gate (DP-23)"]
         end
     end
 
-    subgraph Actors["Execution Fleet"]
-        Eng["Human Systems Engineers"]
-        Swarm["Autonomous Agent Swarms"]
+    subgraph Fleet["Human + Agent Execution Fleet"]
+        Sup["Human Supervisor / Architect"]
+        Slice["Bounded Doom Worker Slices"]
     end
 
-    subgraph CI["Mechanical Enforcement Engine"]
-        Linter["AST & Schema Linters"]
-        Runner["Isolated CI Test Runners"]
-    end
-
-    S1 -. "Boundaries & Schemas" .-> Actors
-    S2 -. "Wave Precedence & Tasks" .-> Actors
-    S3 -. "Runbooks & Substrates" .-> Actors
-    S4 -. "Verification Rubrics" .-> Actors
-
-    Actors -- "Proposes Changes via Worktree" --> CI
-    CI -- "Validates against" --> Codices
-    CI -- "Proof Passed" --> Promotion["Trunk Integration & Release Custody"]
+    C1 -->|"eat prime <repo>"| Slice
+    C2 -->|"Open Wave Dispatch"| Slice
+    C3 -->|"Schemas & Invariants"| Slice
+    C4 -->|"Role & Worktree Lease"| Slice
+    Slice -->|"PR + Triad of Proof"| Sup
+    Sup -->|"First-Hand Merge & RROM Ship"| Promotion["Harbor (:bN@sha256) & Prod Rails"]
 ```
 
-#### 1. Skjöldr (The Shield — Boundaries & Architecture)
+#### 1. Contract I: Repository Law (`AGENTS.md`)
 
-*Skjöldr* establishes the architectural perimeter, defining topology, interfaces, and irreversible decisions:
+Per the **Locality Principle** (`locality-principle.md`, **DP-18**), every repository, platform, product, and project carries an authoritative `AGENTS.md` at its root. Global machine rules (`~/.config/agents/AGENTS.md`) hold cross-cutting estate laws - never push directly to `main`, never hardcode secrets, use Process Compose instead of deprecated PM2, use Hammerspoon for shortcuts, and check `~/.claude/context/repo-management.md` for Forgejo vs. GitHub remotes. Repository-root `AGENTS.md` holds everything specific to that codebase, travels with the code in pull requests, and feeds the `<800`-token `eat prime <repo>` packet (**DP-20**):
 
-- **Architecture Decision Records (ADRs)**: Non-trivial choices (datastores, transports, auth boundaries) are recorded as immutable ADRs in version control, documenting context, decision, consequences, and alternatives. Merged ADRs cannot be edited; they are superseded by subsequent ratified records.
-- **Interface & Schema Contracts**: Public APIs, internal RPC interfaces, database migrations, and inter-service payloads live inside *Skjöldr* as formal schemas (Protobuf, OpenAPI, SQL DDL).
-- **Poka-Yoke Interface Guarantees (DP-9)**: Interfaces defined in *Skjöldr* make invalid states structurally unrepresentable. APIs reject stringly-typed inputs and ambient nulls, using explicit algebraic error types to enforce exhaustive handling at compile time.
-- **Planning-Time DRY Boundaries (DP-13)**: *Skjöldr* catalogs shared capabilities. Before plans are ratified, dependency graphs are scanned for duplication; multi-service requirements are hoisted into upstream shared libraries before code is cut.
+- **Purpose & Architectural Role:** What the service or tool does, what upstream substrates it consumes (`Bifrost`, `OpenBao`, `Postgres`), and who calls it.
+- **Canonical Custody & Forge Remote:** The exact filesystem coordinate (`~/src/platforms/<platform>/<repo>/.bare`), whether the repository is Forgejo-primary (`hrafngud.ravenmask.net`) with GitHub as a passive mirror or GitHub-primary, and which RROM release rails it executes (Rail A `norns-gitops`, Rail B `nate/tools` Homebrew tap, Rail C `Idunn`, or dual-surface Rail A + B).
+- **Exact Verification Commands:** Copy-pasteable commands to run the linter, unit suite, and live integration harness without piping through `tail` or masking exit codes (**DP-7**, **DP-10**).
+- **Active Local Constraints:** Known footguns in that specific codebase (for example, warning that macOS ships `openrsync` without `--chmod`, or noting required environment variables and `PYTHONPATH` roots).
 
-#### 2. Verðrhringr (The Cycle — Cadence & OKRs)
+When a pull request changes how a repo builds, tests, or deploys, updating `AGENTS.md` in that same PR is mandatory. A stale `AGENTS.md` is a broken build gate.
 
-*Verðrhringr* governs time, sequencing, and objective delivery, replacing arbitrary two-week sprints with a dependency wavefront modeled as a directed acyclic graph $G = (V, E)$:
+#### 2. Contract II: The Cadence & Docket Ledger
 
-- **Topological Wave Partitioning (DP-2)**: Work is organized into discrete waves ($W_0, W_1, \dots, W_N$). A wave contains only tasks whose inbound dependencies have fully resolved and verified. Concurrency is permitted exclusively within the active wave; cross-wave execution is forbidden.
-- **The Critical Chain Floor (DP-4)**: *Verðrhringr* identifies the longest dependent path through the project DAG before execution begins. This critical chain sets the physical floor on delivery duration, concentrating worker allocation while non-critical paths are managed with capacity buffers.
-- **Topological Wave Windows**: Rather than arbitrary calendar sprints, *Verðrhringr* enforces wave windows that remain open until every deed satisfies its exit criteria. Advancement occurs on topological proof, never calendar deadlines.
-- **Engineering OKR Framework**: Active waves map directly to quarterly engineering OKR scorecards across four cardinal vectors: *Faster* (latency, throughput), *Bigger* (scale, volume), *Cheaper* (compute cost, footprint), and *Effective* (defect density, reliability).
+The second contract governs time, dependency order, and in-flight state across the floor:
 
-#### 3. Galdraritar (The Grimoire — Daily Practice & Runbooks)
+- **The Ehwaz Implementation Plan (`G = (V, E)`):** Every multi-slice effort has a written Ehwaz plan opening with the full dependency DAG (**DP-1**), the named Critical Chain (**DP-4**), the Hoist-vs-Defer scan table (**DP-13**, **DP-14**), and the partition into Wave $W_0, W_1, \dots, W_m$ (**DP-2**). Only the currently open wave carries bite-sized TDD detail (**DP-6**).
+- **The RLOM Issue & Docket Spine:** Every task in the open wave binds to a Linear Deliverable (`RAV-<id>`) in the 9-state workflow canon. When a worker slice hits an architectural question or a gate boundary, it raises a **Doomcourt Card** on the docket rather than guessing. And per our 2026-10-01 lesson (`act-on-card-answers-the-turn-they-arrive.md`, when 12 answered court cards sat unacted on for 16 hours), the supervisor acts on card answers the very turn they arrive.
+- **Session Momentum & Checkpoints (`doom` & `/quicksave`):** In-flight slice reality is tracked by `doom` (`doom momentum --quiet`, `doom checkpoint <slice> --message "<state + next action>"`) and `/quicksave` snapshots in `~/var/quicksaves/` (**DP-22**). Before any session resumes or prunes a branch, it reconciles the ledger against all worktrees (`git worktree list`) and live running services.
 
-*Galdraritar* is the repository of operational recipes, standard operating procedures, and developer playbooks required to build, operate, and repair systems. If a command must be executed more than once, it must be codified in *Galdraritar*. Ambient execution folklore is treated as a defect:
+#### 3. Contract III: The Architecture Record (ADRs & Runbooks)
 
-- **Scaffolding from Working Reality (DP-16)**: Frameworks, SDKs, and shared utilities are never built in a vacuum; scaffolding and runbooks must be extracted directly from working, verified implementations.
-- **Shared Substrate Invariance (DP-17)**: Platform-wide concerns—distributed tracing, structured logging, metrics, IPC protocols, cancellation tokens—belong to Layer 0 substrates, barring snowflake conventions.
-- **Runbook Schema**: Every runbook follows an invariant schema: Trigger Condition, Pre-Flight Verification, Surgical Actions with expected outputs, Post-Flight Attestation, and Rollback Protocol.
+The third contract prevents agents and engineers from silently replacing production architecture or executing stale operational commands:
 
-#### 4. Skuldalið (The Shield-Band — Witnessing & Defect Gates)
+- **Architecture Decision Records (`docs/adr/` & Outline):** Non-trivial architectural choices are governed by numbered ADRs. Two estate ADRs anchor every repository:
+  - **ADR-0007 (*Builds Are the Unit; Releases Are Names*, ratified 2026-09-21):** Merges to `main` compile once into Harbor (`:b<N>@sha256:...`); releases never rebuild from source.
+  - **ADR-011 (*Cutover Governance*, born of the Bifröst cutover crisis on 2026-07-18):** Never replace a deployed service's architecture, repo, datastore, or transport without a ratified ADR, a data-migration plan, explicit human cutover approval, and loud decommission of what it replaces. A cutover is not a routine deploy.
+- **Wire & Database Schemas (`Poka-Yoke`, DP-9):** Cross-service contracts live in versioned schemas (Protobuf, OpenAPI, Zod, SQL migrations with an explicit `schema_migrations` tracker). As learned from Heimdall, deploy workflows that pull new container images while skipping SQL migrations ship silently broken; migrations are part of the contract.
+- **Operational Runbooks (`docs/runbooks/` & `~/.claude/docs/runbooks.md`):** Step-by-step recipes verified against live infrastructure (**DP-16**). When we discovered that OPNsense Unbound DNSBL reloads break `A` record queries via CNAME spillover unless `configctl template reload OPNsense/Unbound/core` runs *before* `configctl unbound dnsbl` and `configctl unbound restart` (`unbound-dnsbl-reload.md`), that exact command sequence went straight into the runbook contract so no future operator ever repeats the outage.
 
-*Skuldalið* defines mutual accountability and verification. It governs quality gates, automated testing policies, code review standards, and custody transfers before production deployment:
+#### 4. Contract IV: Fleet Custody & Role Routing (`dispatch` Matrix)
 
-- **The Pull Request Boundary (DP-23)**: Direct pushes to trunk branches (`main`, `develop`) are physically barred; all changes cross the PR boundary through isolated git worktrees.
-- **Verified Green Precedes Promotion (DP-7)**: A wave or PR never advances on verbal assurances or passing mocks, advancing strictly when all exit criteria pass verification against live systems on hermetic CI runners.
-- **The Triad of Proof (DP-11)**: Merging requires complete evidence: (1) *Functional Silicon* with deterministic automated tests passing against live dependencies; (2) *Living Documentation* with synchronized updates to *Skjöldr* and *Galdraritar*; and (3) *The Executable Showcase Deed* proving live execution via recorded session transcripts or test replays.
-- **Mechanical Review & Semantic Witnessing**: Peer review focuses on architectural conformance rather than formatting; linters handle style, while reviewers enforce ADRs, wave boundaries, and operational standards.
+The fourth contract governs *who* is permitted to do *what*, and *where* their bytes live on disk:
+
+- **The `dispatch` Responsibility Matrix:** `skills/dispatch` is the sole role-routing authority for substantive work across the fleet - implementation (`bounded-implementer`), diagnosis, independent verification, sensitive-data handling, continuity work, shipping (`delivery-closer`), or architectural review. Canonical names in that matrix are logical role contracts:
+  - Resolve the logical responsibility first, then resolve an enabled native binding in the current harness roster for the current session.
+  - If no logical owner fits, stop immediately with `ROUTE_UNDECIDED: <missing decision>`.
+  - If the logical owner is decided but its native binding is unavailable in the session roster, stop immediately with `ROUTE_UNAVAILABLE: <logical role> -> <harness>: <missing binding>`.
+  - Never infer a binding from a domain-specialist name, and never transfer missing worker bindings back onto the Supervisor to code inline.
+  - **The Supervisor Merge Exception:** Merge execution is the strict exception in the other direction. Merging an approved PR is the Supervisor's own non-delegable responsibility (**DP-23**), because only the session that received Nate's explicit approval first-hand (*"merge it"*, *"approved, ship"*, *"LGTM merge"*) can verify that approval. Routing post-merge shipment to `delivery-closer` never routes the merge itself.
+- **The Checkout Custody Standard (`.bare/` + Worktrees, DP-19, DP-24):** Canonical git history lives once inside `<repo>/.bare/` with `remote.origin.fetch = +refs/heads/*:refs/remotes/origin/*`. Every active PR works in its own disposable worktree directory. Deletion of any worktree is gated by custody proof confirming zero uncommitted diffs and full upstream merge.
 
 ---
 
-### Mechanical Enforcement & Living Documentation
+### Repository Layout & Mechanical Enforcement
 
-In RDOM, the Four Codices reside directly in version control alongside production code, functioning as executable laws of physics:
+Every conforming repository in the Ravenhelm estate exposes these contracts at predictable paths so both `eat prime` and CI linters can validate them without guessing:
 
 ```
-repo-root/
-├── docs/
-│   ├── adr/               # Skjöldr: Architecture Decision Records
-│   ├── cadence/           # Verðrhringr: OKRs, Wave DAGs, Buffers
-│   └── runbooks/          # Galdraritar: Operational SOPs & Playbooks
-├── .agents/               # Agent Execution Context & Substrate Priming
-├── .github/workflows/     # Skuldalið: Automated Defect Gates
-└── AGENTS.md              # Authoritative Machine-Readable Root Contract
+~/src/platforms/<platform>/<repo>/
+├── .bare/                          # Contract IV: Canonical Git History Hub (with fetch refspec)
+├── main/                           # Reference worktree tracking main (read-only / clean)
+├── feat-rav-2104-auth-hoist/       # Contract IV: Disposable 1-per-PR Worker Worktree (DP-19)
+│   ├── AGENTS.md                   # Contract I: Authoritative Local Repository Law (DP-18)
+│   ├── .forgejo/workflows/
+│   │   ├── ci.yml                  # Contract IV: Six Sigma Gate (with paths-ignore for docs)
+│   │   ├── build.yml               # Contract III: ADR-0007 Build-Once -> Harbor :b<N>
+│   │   └── release.yml             # Contract III: Digest Retag & Rail A / B / C Promotion
+│   ├── docs/
+│   │   ├── adr/                    # Contract III: Numbered Architecture Decision Records
+│   │   ├── plans/                  # Contract II: Ehwaz Wave DAGs & Hoist-vs-Defer Tables
+│   │   └── runbooks/               # Contract III: Verified Operational Procedures
+│   └── scripts/
+│       ├── check-release-tag.sh            # Contract IV: Tag & Changelog Gate
+│       └── check-release-source-parity.sh  # Contract IV: Anti-Fiction Parity Gate
 ```
-
-#### Directory Standards & Repository Topology
-
-Every repository conforms to an invariant structure:
-- `docs/adr/` (*Skjöldr*): Sequentially numbered ADRs. Any PR modifying interfaces, dependencies, or persistence models must include a new or amended ADR.
-- `docs/cadence/` (*Verðrhringr*): Machine-readable YAML/JSON definitions of the active wave graph, milestone allocations, and OKR scorecards.
-- `docs/runbooks/` (*Galdraritar*): Operational runbooks written in Markdown with tagged executable code blocks for automated testing.
-- `.github/workflows/` or `.forgejo/workflows/` (*Skuldalið*): CI pipelines, branch protection rules, and verification gates blocking illegal merges.
-- Root `AGENTS.md`: Canonical machine-readable contract providing instant discovery of codices, tools, and commands for agents without directory crawling.
-
-#### The Codices as Executable Physics
-
-Automated tooling treats the Codices as active constraints:
-- **Schema & AST Linters**: Validate code changes against schemas in *Skjöldr*. Introducing undeclared dependencies or circular crate relationships fails CI immediately.
-- **Topological Wave Checkers**: Inspect task identifiers on PRs. Modifying Wave $W_2$ code while Wave $W_1$ remains unverified triggers immediate rejection under Principle **DP-7**.
-- **Automated Runbook Testing**: Ephemeral runners execute code blocks inside *Galdraritar* runbooks against containerized test environments during CI, preventing documentation drift.
-
-#### The Rules of Codex Mutation
-
-Codices cannot be modified through ad-hoc commits. Mutation follows strict state transitions:
-- **Ratifying an ADR (*Skjöldr*)**: Begins as `Proposed` via PR. Merging transitions it to `Ratified`. Revisions require a new ADR in the `Supersedes` state; history is never rewritten.
-- **Updating a Runbook (*Galdraritar*)**: Amendments require execution proof showing the revised procedure ran successfully against a test environment.
-- **Altering a Defect Gate (*Skuldalið*)**: Defect gates can be raised, but never lowered to accommodate failing builds. Emergency bypasses require a signed, time-bounded *Andon Cord bypass* logged in release records.
 
 ---
 
-### Concrete Anti-Patterns & Defect Escapes
+### Concrete Failure Modes When a Contract Is Missing or Bypassed
 
-When teams abandon the Codices, predictable failure modes emerge:
+Every clause in the Four Operational Contracts exists because an earlier, looser version broke on our bench:
 
-#### Anti-Pattern 1: The Ghost Protocol (The Skjöldr Escape)
+#### 1. The Detached-Clone Phantom (`Contract I & IV` Failure)
 
-In *The Ghost Protocol*, engineers agree in chat to alter an inter-service contract—passing an undocumented HTTP header rather than modifying the schema payload. No ADR is created; *Skjöldr* remains unupdated. Weeks later, an agent hardens the ingress proxy by stripping unrecorded headers, blinding downstream pipelines.
+- **The Corpse of v1:** Leaving legacy non-bare clones in `~/var/apps/` alongside canonical `.bare/` hubs in `~/src/` without checking `AGENTS.md` custody coordinates.
+- **What Happened:** An agent auditing `~/var/apps/import-backup` (detached, 2 commits behind `main`) misread `CONTRACT_VERSION = 2` as unmerged local work when PR #22 had already landed it on trunk. Earlier, on 2026-08-14, 215 of 217 repos failed custody conformance, and on 2026-08-24, 26 `.bare` repos had missing or hollow fetch refspecs because `git clone --bare` does not configure `remote.origin.fetch` by default.
+- **The Bench Fix:** Enforce `git-estate` custody checks, configure `+refs/heads/*:refs/remotes/origin/*` on every `.bare` hub, and read `AGENTS.md` via `eat prime` before touching any checkout.
 
-*The Remedy*: Enforce the **Axiom of Structural Legality**. Any interface change absent from *Skjöldr* is illegitimate. Linters and security scanners must treat unrecorded headers and undocumented endpoints as critical defect escapes.
+#### 2. The 16-Hour Court Stall & Title-Only Parking (`Contract II` Failure)
 
-#### Anti-Pattern 2: The Blind Sprint (The Verðrhringr Escape)
+- **The Corpse of v1:** Treating the docket and active tmux slices as passive background queues rather than a live cadence ledger.
+- **What Happened:** On 2026-10-01, 12 court card answers sat unacted on for 16 hours because the supervisor waited instead of dispatching on the turn the rulings arrived. And on 2026-09-07, during the owl camera MJPEG investigation, a supervisor parked a live worker slice based solely on its window title without reading its uncommitted `git diff` - which already contained the `PIXFORMAT_JPEG` hardware fix for the `EV-VSYNC-OVF` camera wedge.
+- **The Bench Fix:** Act on court card rulings the turn they arrive, and never park, close, or judge a worker slice without inspecting its live pane and uncommitted worktree diff (**DP-12**, **DP-24**).
 
-In *The Blind Sprint*, an organization tracks flat backlogs in two-week cycles. Task B (ingestion) is scheduled concurrently with Task A (schema design). Blocked by missing schemas, Task B's engineer invents an in-memory mock to preserve velocity. At sprint end, components fail to integrate, requiring weeks of refactoring.
+#### 3. The Unapproved Cutover & Stale Inode Bind Mount (`Contract III` Failure)
 
-*The Remedy*: Reconcile all work against *Verðrhringr's* topological wave DAG (**DP-2**). No task may be dispatched until parent dependencies on the critical chain pass verified green (**DP-4**, **DP-7**). Concurrency is strictly bounded by topological waves.
+- **The Corpse of v1:** Swapping service internals inside a normal PR without an ADR, or editing single-file bind mounts on Docker hosts without a runbook.
+- **What Happened:** The Bifröst cutover incident (2026-07-18) replaced a live production stack without an ADR or data migration plan, prompting ADR-011. On `odin`, editing a configuration file bound into a Docker container as a single-file mount swapped the host file's inode while leaving the container mounted to the dead inode, causing **287,838 of 287,879 Alertmanager webhooks to fail silently for four weeks**.
+- **The Bench Fix:** Enforce ADR-011 on every architectural replacement, and codify directory mounts and container recreate rules in repository runbooks (**DP-16**, **DP-21**).
 
-#### Anti-Pattern 3: The Stale Runbook Disaster (The Galdraritar Escape)
+#### 4. Role Improvisation & Delegated Merges (`Contract IV` Failure)
 
-During an outage, an on-call engineer consults a wiki runbook referencing standalone database commands written three years earlier. Months prior, the database had been migrated to a consensus cluster. Executing obsolete instructions creates a split-brain condition, turning a routine failover into a sixteen-hour restore from cold backups.
-
-*The Remedy*: Treat runbooks as compiled software. All operational procedures in *Galdraritar* must be version-controlled alongside code and validated through automated sandbox dry-runs (**DP-16**). Failing runbooks break the build.
-
-#### Anti-Pattern 4: The Rubber-Stamp Shield-Band (The Skuldalið Escape)
-
-A PR modifying 1,400 lines of payment logic is submitted stating *"tests pass locally."* No showcase walkthrough is attached; tests pass against mocks omitting database constraints. Swamped with deadlines, a peer clicks "Approve." In production, the first transaction triggers an unhandled constraint crash.
-
-*The Remedy*: Enforce the physical gates of *Skuldalið*. Pull requests must be mechanically barred from merging without the complete Triad of Proof (**DP-11**): verified green tests on real runners (**DP-7**), updated documentation in *Skjöldr* and *Galdraritar*, and a recorded showcase deed.
+- **The Corpse of v1:** Allowing a supervisor to code inline when a worker binding is missing, or letting a subagent merge a pull request because the human approved an earlier plan.
+- **What Happened:** Unbounded inline coding by the supervisor burned top-tier model context and destroyed separation of powers between author and verifier. Meanwhile, treating plan approval as merge approval allowed unreviewed diffs to hit `main`.
+- **The Bench Fix:** Obey the `dispatch` responsibility matrix strictly (`ROUTE_UNDECIDED` / `ROUTE_UNAVAILABLE`), run advisory review through **Snotra**, and keep PR merge execution strictly in the hands of the human supervisor session that received explicit approval for that PR (**DP-23**).
 
 ---
 
 ### Upstream & Downstream Integration
 
-The Four Codices form the core execution nexus of the **Sovereign Triad**, bridging strategic demand from the **Ravenhelm Linear Operating Method (RLOM)** to release custody in the **Ravenhelm Release Operations Methodology (RROM)**:
+The Four Operational Contracts wire RDOM directly into RLOM upstream and RROM downstream:
 
 ```
-       UPSTREAM (RLOM)                   THE FOUR CODICES (RDOM)                 DOWNSTREAM (RROM)
-   +-----------------------+           +-------------------------+           +-----------------------+
-   | Demand & Acceptance   |           |  Skjöldr   Verðrhringr  |           | Immutable Artifact    |
-   | Wyrd Rune -> Deeds    | ========> |                         | ========> | Compilation & Multi-  |
-   | Definition of Ready   |           | Galdraritar  Skuldalið  |           | Rail Promotion        |
-   +-----------------------+           +-------------------------+           +-----------------------+
-   Demand mapped to:                   Executed via:                         Gated by:
-   - Skjöldr Boundaries                - Topological Wave DAGs               - Skuldalið Proof Triad
-   - Verðrhringr Cadence               - Real-System Runbooks                - Galdraritar Telemetry
+       UPSTREAM (Book I: RLOM)          THE FOUR CONTRACTS (Book II: RDOM)       DOWNSTREAM (Book III: RROM)
+   +----------------------------+     +-----------------------------------+     +----------------------------+
+   | Strategic Invariants       |     | 1. Repository Law (AGENTS.md)     |     | ADR-0007 Single OCI Build  |
+   | Quarterly Contracts        | ==> | 2. Cadence & Docket Ledger        | ==> | (:b<N>@sha256:...)         |
+   | Ready Issues (RAV-<id>)    |     | 3. Architecture Record (ADRs)     |     | Rail A (Norns) / B (Tap)   |
+   +----------------------------+     | 4. Fleet Custody & Dispatch       |     | Action-Hash Elevation      |
+                                      +-----------------------------------+     +----------------------------+
 ```
 
-- **Upstream Integration (RLOM $\to$ Skjöldr & Verðrhringr)**: When an RLOM Project reaches the Definition of Ready (DoR), functional scope is evaluated against *Skjöldr*; if service boundaries or APIs mutate, draft ADRs must accompany the initiative before ratification. Deeds in the RLOM work graph are ingested by *Verðrhringr*, which converts dependencies into the topological wave DAG ($G = (V, E)$), identifies the critical chain floor (**DP-4**), and establishes wave windows (**DP-2**).
-- **Downstream Integration (Skuldalið & Galdraritar $\to$ RROM)**: When an engineering wave completes, *Skuldalið* validates the Triad of Proof (**DP-11**). Merging across the PR boundary (**DP-23**) transfers custody to RROM, which compiles immutable artifacts (*"Builds are the unit; releases are names"*). RROM uses operational runbooks in *Galdraritar* to drive GitOps reconciliation (Argo CD) and package distribution (Homebrew taps), verifying health before stamping completion back to RLOM.
+- **Upstream (RLOM $\to$ RDOM):** RLOM issues (`RAV-<id>`) feed Contract II (The Cadence & Docket Ledger). If an incoming RLOM initiative alters service topology, datastores, or transports, Contract III blocks Wave 0 until the governing ADR is drafted and ratified under ADR-011.
+- **Downstream (RDOM $\to$ RROM):** Contract I (`AGENTS.md`) declares which RROM release rails the repository uses. Contract IV enforces the PR boundary (**DP-23**) and Triad of Proof (**DP-11**). Once the supervisor squash-merges the PR, Contract III's ADR-0007 workflow (`build.yml` $\to$ `release.yml`) takes custody and ships the immutable digest to production.
 
----
-
-### Augmentation Surface — Codex Invariant Auditing & Semantic Enforcement
-
-When scaling software delivery with autonomous AI coding agents, human cognitive bandwidth becomes the primary constraint. Manually inspecting code for codex compliance creates an intolerable bottleneck. The Four Codices provide machine-parsable boundaries necessary to delegate execution to autonomous agent swarms safely.
-
-> **Augmentation Surface — Continuous Semantic Governance**
+> **Augmentation Surface - Machine-Enforced Contracts**
 >
-> **Where an agent layer transforms this practice:**
+> Where an agent layer transforms this practice:
 >
-> 1. **Autonomous Architectural Auditing (*Skjöldr*)**: Semantic agents evaluate incoming PRs against ADRs and schemas, flagging undeclared contracts, Poka-Yoke violations (**DP-9**), or duplicate utilities (**DP-13**) within seconds.
-> 2. **Topological Wave Scheduling (*Verðrhringr*)**: An orchestration agent tracks Wave $W_k$ gates (**DP-7**), provisioning isolated worktrees for Wave $W_{k+1}$ primed via surgical digests (`eat prime`, `eat read`) to eliminate context waste.
-> 3. **Runbook Verification in Ephemeral Sandboxes (*Galdraritar*)**: Synthetic agents execute operational runbooks in isolated container sandboxes on every PR, ensuring commands and flags never drift from live reality (**DP-16**, **DP-17**).
-> 4. **Witness Verification & Triad Validation (*Skuldalið*)**: A gatekeeper agent verifies the Triad of Proof (**DP-11**)—live tests, living docs, and executable showcase—before human review.
+> 1. **Instant Orientation (`eat prime`):** The EAT substrate compiles Contract I (`AGENTS.md`), subsystem topology, and Contract III (active ADRs) into a deterministic `<800`-token digest (**DP-20**), eliminating blind directory crawls.
+> 2. **Automated Advisory Review (`Snotra`):** On every Forgejo PR, **Snotra** audits the diff against root `AGENTS.md`, checks for unacknowledged duplication (**DP-15**), and flags missing tests or runbook drift before the human supervisor reviews.
+> 3. **Custody & Dispatch Guards (`Doomcourt` & `git-estate`):** `git-estate` verifies `.bare/` refspec and worktree custody across all 217 repositories (**DP-19**), while `Doomcourt` enforces the `dispatch` role matrix and surfaces court cards immediately.
 >
-> **What the human architect keeps:**
->
-> - **Sovereign Architectural Ratification**: Human architects retain sole authority to ratify ADRs in *Skjöldr* and govern system topology.
-> - **Strategic Cadence Commitments**: Humans determine business priorities, allocate capital, and accept project commitments in *Verðrhringr*.
-> - **Operational Exception Authority**: Only humans possess authority to invoke emergency bypasses or declare disaster recovery in *Galdraritar*.
-> - **Production Release Cutover**: Production cutovers, schema migrations, and irreversible infrastructure mutations remain strictly gated by human authorization.
-
----
+> What the human architect keeps: Authoring and ratifying ADRs (Contract III), answering court escalation cards (Contract II), approving exceptions to the Hoist-vs-Defer rule, and executing every Pull Request squash-merge first-hand (Contract IV).
 
 <!-- RUBRIC_CHECK:
   structural: pass
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 2475
-  principle-citations: DP-2, DP-4, DP-7, DP-9, DP-11, DP-13, DP-16, DP-17, DP-23
+  word-count: 2634
+  principle-citations: DP-1, DP-2, DP-4, DP-6, DP-7, DP-9, DP-10, DP-11, DP-12, DP-13, DP-14, DP-15, DP-16, DP-17, DP-18, DP-19, DP-20, DP-21, DP-22, DP-23, DP-24
   flagged-principle-gaps: none
 -->

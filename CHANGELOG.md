@@ -8,7 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Added
 
-- Fully expanded all 18 core chapters and Appendix A to masterclass density (70,473 total words).
+- Rewrote and expanded all 18 core chapters and Appendix A as Book II of *The Ravenhelm Operations Methodology* (*The Sovereign Engineering Trilogy: RLOM · RDOM · RROM*) grounded in real production receipts (64,107 total words).
+- Standardized operational terminology across all chapters: The Topological Work Hierarchy (Chapter 04), The Four Operational Contracts (Chapter 05), The Four-Dimensional Engineering Scorecard (Chapter 06), and Ceremonies of Truth: Quarterly Invariant Review, Monthly Architecture Review, and the Daily Fleet Sweep (Chapter 07).
 - Built publication-grade PDF editions in both light (`RDOM-v1.0.0.pdf`) and dark (`RDOM-v1.0.0-dark.pdf`) modes using Typst and Pandoc.
 - Added automated compilation script `scripts/build-pdf.py` conforming to Ravenhelm digest typography (Source Serif 4 + IBM Plex Mono).
 
@@ -18,11 +19,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 - Initial repository setup and complete 18-chapter document skeleton.
 - Ratified the 24 Numbered Principles (`DP-1`..`DP-24`).
-- Incorporated the Valknut Hierarchy of Deeds (Wyrd Rune to Daily Deed).
-- Incorporated the Four Codices (Shield, Cycle, Grimoire, Shield-Band).
-- Incorporated the Faster, Bigger, Cheaper, Effective Engineering OKR framework.
+- Incorporated the Topological Work Hierarchy (Strategic Invariant to Atomic Commit).
+- Incorporated the Four Operational Contracts (Repository Law, Cadence Ledger, Architecture Record, and Fleet Custody).
+- Incorporated the Four-Dimensional Engineering Scorecard (Faster, Bigger, Cheaper, Effective).
 - Incorporated the Ehwaz Doctrine (ᛖ) for topological wave scheduling and Critical Chain planning.
 - Incorporated Six Sigma TDD wave boundaries and JIT progressive elaboration.
 - Incorporated DRY planning-time hoisting and anti-snowflake protocols.
-- Incorporated Workspace Custody (.bare worktrees) and EAT zero-waste context engine.
+- Incorporated Workspace Custody (`.bare/` worktrees) and the EAT zero-waste context substrate.
 - Added Appendix A: Presales, Solution Architecture & DemoOps Integration.

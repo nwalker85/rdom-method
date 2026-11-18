@@ -1,178 +1,182 @@
 <!-- LICENSE: © 2026 Ravenhelm LLC. Licensed material. -->
 <!-- All rights reserved except as granted in LICENSE. Inquiries: nate@ravenhelm.co -->
 
-## Chapter 13 — Six Sigma Wave Boundary Gates (No Exit on a Promise)
+## Chapter 13 - Six Sigma Wave Boundary Gates (No Exit on a Promise)
 
-It is 4:45 PM on a Friday afternoon. The engineering organization is midway through a high-stakes, multi-service core modernization initiative: overhauling customer identity, tokenized billing, and distributed session authorization across the entire platform. In the project management dashboard, Wave 1—which encompasses foundational database schema migrations, cryptographic token signing formats, and the core ledger database abstraction—sits at "95% complete."
+On 2026-09-09, ten features merged to `main` across the estate in a single day. Seventy-three unit and integration tests ran across those ten pull requests; all seventy-three flashed green in CI. By midnight, zero of those ten features had a single caller in production. `wire.py` sat on disk as forty-six kilobytes of clean, tested, unreachable dead weight. `vodozemac-bridge` compiled cleanly and passed its test harness while nothing in the daemon process tree ever spawned it. `ensure_receiver()` passed every unit assertion while `doom new --launch` bypassed the call site entirely on live slice creation. Every one had green tests. None of them ran.
 
-Two integration test cases fail intermittently under concurrency, and the primary SQL migration script requires an unmerged patch to correct foreign key cascading behavior on PostgreSQL. The deadline for the phase is today. During the afternoon sync, the engineering lead delivers the fatal compromise: "Wave 1 is functionally complete. The schemas are stable enough for downstream work, and the remaining test failures are minor environmental noise. We will issue a promissory note for those test fixes, merge the core branch under an exemption flag, and open Wave 2 immediately so backend, frontend, and worker teams aren't blocked over the weekend."
+That same week, the verification harness itself was caught lying in four distinct mechanical modes during wave-gate sweeps (documented in the 2026-09-09 and 2026-09-29 post-mortems on checks that cannot fail):
 
-On Monday morning, eighteen engineers and fourteen autonomous coding agents spin up across Wave 2. They build billing ledger workers, checkout API handlers, mobile identity screens, and asynchronous webhook dispatchers. Because Wave 1 had not reached deterministic verification, every single Wave 2 worker builds against speculative assumptions: they write hand-crafted JSON mocks for the half-broken token validator, stub out the database ledger with in-memory dictionaries, and bypass the cascading foreign key constraint in local unit tests. For two weeks, commit velocity surges. Executive dashboards display forty-two completed tasks, burndown charts plunge toward zero, and the illusion of progress is absolute.
+1. **The 3-Argument `git merge-tree` Blindfold**: A pre-merge conflict gate invoked legacy three-argument `git merge-tree <base> <branchA> <branchB> | grep -c '^<<<<<<<'` and reported `0 conflicts` on a branch carrying **2 real content conflicts** in `docs/features/README.md` and `engine/src/doom/broadcast.py`. Three-argument `git merge-tree` outputs a custom diff format that never emits standard `<<<<<<<` conflict markers; `grep -c` counted zero markers, and the gate certified a broken merge as clean. Only two-argument `git merge-tree --write-tree <branchA> <branchB>` combined with inspecting the exit code `$?` actually tests mergeability.
+2. **The `tail -5` Exit-Code Mask**: A worker slice executed `python3 -m unittest discover -s tests 2>&1 | tail -5` inside a shell without `set -o pipefail`. Forty-one tests threw exceptions inside the suite; `tail -5` printed the final five lines of traceback to stdout and exited with status `0`. The gate script read `$? == 0` and stamped the wave green.
+3. **The 154 Phantom `ModuleNotFoundError` Ghosts**: During a catch-up merge verification pass in an isolated worktree, the test runner exploded with **154 `ModuleNotFoundError: No module named 'ravenhelm_observability'` errors**. The supervisor nearly aborted the wave and ordered a full revert before inspecting the environment: the worktree lacked `PYTHONPATH` bindings to the local workspace package. The code under test was clean; the uncalibrated harness was manufacturing 154 ghosts out of missing path plumbing.
+4. **The Empty-String Checksum Tautology (`RAV-2079`, 2026-09-29)**: A backup restore verification script computed `LOCAL_SHA=$(sha256sum "$RESTORED_FILE" | awk '{print $1}')` and `BACKUP_SHA=$(sha256sum "$MANIFEST_FILE" | awk '{print $1}')` on a macOS workstation where GNU `sha256sum` was not installed (`shasum -a 256` was the native binary). Both subshells failed silently to stderr and evaluated to empty strings; `[ "$LOCAL_SHA" = "$BACKUP_SHA" ]` evaluated `[ "" = "" ]`, returned exit status `0`, and printed `matches backup ()` on a corrupted restore.
 
-Three weeks later, reality exacts its toll. When Wave 2 branches converge in the staging integration environment, the entire system collapses. The PostgreSQL migration script locks production catalog tables and deadlocks within milliseconds. The cryptographic token format, which had a subtle endianness serialization defect masked by the unit test mocks, causes the API gateway to reject every authentication packet emitted by the mobile client. Because the cascading foreign key constraint was never verified on live disk, concurrent billing records corrupt the ledger table with orphaned records.
+When a human floor manager ran 300 agents on XMPP across 15 to 20 concurrent telecom contracts, a worker who claimed a trunk line was tested without dialing it got caught the moment Rochester call volume spiked and fifty operators pasted screenshots into the main room. The social layer policed the lie because embarrassment had teeth. An autonomous coding agent has no nervous system and feels no shame when `tail -5` swallows a failure or `[ "" = "" ]` prints `matches backup ()`. It records the exit code `0`, transitions the Linear issue to `In Review`, and waits for the next prompt. If the wave boundary gate accepts an uncalibrated check, a promissory note, or an unreachable module, the factory floor does not merely ship a bug; it dispatches the next topological wave of ten concurrent worker slices to build directly on top of a corpse.
 
-Every single Wave 2 deliverable is poisoned. The engineering organization enters a four-week emergency stabilization crunch: eighteen engineers cancel all feature work, fourteen agent swarms are halted, sixty-two pull requests are force-reverted, and the database schema is rewritten from scratch. The quarterly business roadmap is incinerated.
+The Ravenhelm Development Operations Methodology (RDOM) enforces zero tolerance for promissory notes and uncalibrated checks. Under **The Ehwaz Doctrine (ᛖ)** (ratified 2026-09-16), dependency waves move forward only when rider and mount move in verified lockstep. RDOM institutes **Six Sigma Wave Boundary Gates** governed by the **Axiom of Quality** (**DP-7**): *Wave $W_{k+1}$ never opens on a promise; only on verified green*. A wave boundary is not a calendar checkpoint; it is a physical airlock. Concurrency is earned through topological proof; quality is gated by calibrated, falsifiable receipts. If a single invariant, control check, reachability probe, or documentation contract in Wave $W_k$ fails, the airlock stays bolted, the Andon cord is pulled (**DP-12**), and no human or autonomous Bounded Implementer may provision a worktree for Wave $W_{k+1}$.
 
-This catastrophe is the inevitable consequence of **Promissory Note Engineering**—the pervasive, toxic practice of advancing past a development milestone on the promise that defects, broken contracts, missing documentation, or skipped tests will be resolved in a future sprint. In manufacturing, advancing a car chassis down the assembly line with loose suspension bolts because "the suspension team will tighten them in final detailing" is recognized as corporate negligence. In software engineering, it is routinely tolerated under the guise of agile velocity.
+---
 
-The Ravenhelm Development Operations Methodology (RDOM) enforces absolute zero tolerance for Promissory Note Engineering. Grounded in Six Sigma manufacturing rigor, RDOM introduces **Six Sigma Wave Boundary Gates** governed by the **Axiom of Quality** (**DP-7**): *Wave $W_{k+1}$ never opens on a promise; only on verified green*. A wave boundary is not an administrative checkpoint; it is an impenetrable, hermetically sealed airlock. Concurrency is earned through topological proof; quality is gated by verified evidence. If a single invariant, automated test, documentation contract, or showcase deed in Wave $W_k$ fails, the entire wave is blocked, the Andon Cord is pulled (**DP-12**), and no worker—human or autonomous agent—is permitted to provision a worktree or write a single line of code for Wave $W_{k+1}$.
+### The Corpse of v1: The Naive Exit-Code Gate
+
+The first version of the wave boundary gate we built was an uncalibrated exit-code collector. It iterated over the open wave's branches, ran the repository's default test command, checked that the shell returned `0`, and unlocked the next wave in `Doomcourt`.
+
+It died on 2026-09-09 under three compounding failure modes:
+
+1. **Checks That Could Not Fail**: Any shell check that returns `0` when the underlying tool is missing, when the grep pattern cannot match the output format, or when a pipe masks the upstream return code is worse than having no check at all. It manufactures false institutional confidence.
+2. **Uncalibrated Harnesses**: When a test runner fails 154 times because `PYTHONPATH` or an ephemeral container socket is missing in a fresh `.bare` worktree, agents misdiagnose environmental starvation as code regression and begin ripping apart working modules to appease a broken harness.
+3. **Green Tests on Dead Code (The Ten Ghosts)**: A unit test suite that imports `wire.py` directly inside `tests/test_wire.py` proves only that `wire.py` agrees with `test_wire.py`. If the production daemon entrypoint (`main.py` or `cli.py`) never imports or calls `wire.py`, the test suite is a closed loop in a vacuum. Reachability is not correctness, and unit green is not production reachability.
+
+What replaced v1 is a falsifiable Six Sigma airlock built on a single shop-floor demand: *ask of every green check what it reports when it cannot answer, and ask of every checker what it prints on an empty result set*.
 
 ---
 
 ### The Theoretical & Mechanical Foundation
 
-To understand why promissory notes destroy software organizations, one must examine the mathematics of defect amplification in distributed systems and multi-agent fleets.
+To understand why promissory notes and uncalibrated gates destroy multi-agent fleets, inspect the math of defect amplification across topological waves.
 
 #### The Axiom of Quality & Defect Escape Amplification
 
-In industrial quality engineering, the cost of remediating a defect scales non-linearly with the number of processing boundaries it traverses before detection. In software engineering, where components are coupled across microservice boundaries, asynchronous event queues, and multi-agent worktrees, this scaling is exponential.
+In physical manufacturing, the cost of fixing a bad casting scales with the number of assembly stations it passes before somebody puts a caliper on it. In software estates coupled across microservice boundaries, database schemas, and concurrent git worktrees, that scaling is exponential.
 
 We formulate the **Defect Escape Amplification Model** as:
 
 $$C_{\text{escape}}(d) = k \cdot b^d$$
 
 Where:
-- $d \in \mathbb{N}_0$ represents the *topological escape distance*, defined as the number of wave boundaries or architectural layers crossed between the point of defect introduction (Wave $W_k$) and the point of defect detection (Wave $W_{k+d}$).
-- $b$ is the *estate amplification factor*, representing the average branching factor of dependencies rooted at the defective component. In modern modular architectures and multi-agent fleets, $b$ typically ranges from $5$ to $12$.
-- $k$ is the baseline remediation cost of diagnosing and resolving the defect within its originating worktree before merge.
-- $C_{\text{escape}}(d)$ is the total systemic cost of remediation, measured in engineering hours, reverted code, invalid worktrees, and business disruption.
+- $d \in \mathbb{N}_0$ is the *topological escape distance*: the number of wave boundaries crossed between defect introduction in Wave $W_k$ and detection in Wave $W_{k+d}$.
+- $b$ is the *estate branching factor*: the average number of downstream tasks in the dependency graph $G = (V, E)$ rooted at the defective contract (typically $5$ to $12$ in modular estates).
+- $k$ is the baseline cost of fixing the defect inside its originating worktree before merge.
+- $C_{\text{escape}}(d)$ is the total remediation cost in wasted compute tokens, invalidated worktrees, reverted pull requests, and human supervisor hours.
 
-When $d = 0$ (the defect is detected and trapped within the originating wave gate of Wave $W_k$), the remediation cost is simply $C_{\text{escape}}(0) = k$. The developer or agent modifies the local implementation, verifies the test on live disk, and achieves green.
+When $d = 0$, the defect is trapped inside the originating worktree of Wave $W_k$. The Bounded Implementer fixes the local slice, proves the test against live silicon, and pays $C_{\text{escape}}(0) = k$.
 
-When $d = 1$ (the defect escapes into Wave $W_{k+1}$), $b$ independent downstream tasks have now built against the defective contract. Remediating the defect no longer requires touching a single worktree; it requires modifying the upstream contract, rewriting $b$ downstream implementations, re-running $b$ verification pipelines, and reconciling diverged state. When $d \ge 2$, $C_{\text{escape}}$ enters the catastrophic regime: entire subsystems must be scrapped, migrations rolled back, and multi-week stabilization wars declared.
+When $d = 1$, the defect crosses the boundary into Wave $W_{k+1}$. Now $b$ independent worker slices branch from `origin/main` and build against the broken schema or unreachable function. When the lie surfaces, you do not patch one worktree; you halt $b$ active slices, surgical-rebase $b$ diverging branches, and re-run $b$ verification pipelines. When $d \ge 2$, $C_{\text{escape}}$ hits the hundred-fold regime where database migrations must be rolled back and entire waves scrapped.
 
 ```text
 Defect Cost Escalation Across Wave Boundaries:
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ Wave W_0 Boundary (d = 0): Local Defect Trapped in Worktree                 │
-│ Cost: 1x ($k) — 1 engineer-hour, zero downstream impact.                    │
+│ Wave W_0 Boundary (d = 0): Defect Trapped in Originating Worktree           │
+│ Cost: 1x ($k) - 1 slice turn, zero downstream contamination.                │
 └─────────────────────────────────────────────────────────────────────────────┘
-                                      │ (Escapes via Promissory Note)
+                                      │ (Escapes via Uncalibrated Check)
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ Wave W_1 Boundary (d = 1): 8 Downstream Slices Build on Broken Contract     │
-│ Cost: 10x ($k · b) — 8 PRs invalidated, interface refactored, 1 day lost.    │
+│ Cost: 10x ($k · b) - 8 PRs invalidated, interface refactored, wave halted.  │
 └─────────────────────────────────────────────────────────────────────────────┘
-                                      │ (Escapes via Mock Theater)
+                                      │ (Escapes via Mock Theater / Dead Code)
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ Wave W_2 Boundary (d = 2): Platform-Wide Integration & Live Staging         │
-│ Cost: 100x ($k · b^2) — System deadlocks, DB corruption, 2 weeks lost.      │
+│ Wave W_2 Boundary (d = 2): Cross-Service Integration & Staging Collapse     │
+│ Cost: 100x ($k · b^2) - Deadlocks, 10 unreachable features, emergency undo. │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │ (Escapes to Production)
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ Production Runtime (d = 3+): Customer Outage & Data Loss                    │
-│ Cost: 1,000x+ ($k · b^3) — Emergency hotfixes, data restoration, reputation. │
+│ Production Runtime (d = 3+): Live Outage & Corrupted State                  │
+│ Cost: 1,000x+ ($k · b^3) - Digest rollback, data recovery, lost trust.      │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-The presence of autonomous AI coding agents alters this dynamic in an alarming way. Autonomous agents generate code at machine speed. If an upstream schema or API contract contains an unverified assumption or a silent defect, twenty parallel agent swarms will consume, replicate, and adapt to that defect within four hours. The amplification factor $b$ accelerates by an order of magnitude. Without impenetrable wave boundary gates, autonomous agent velocity does not accelerate feature delivery; it accelerates the rate of estate poisoning.
+Autonomous coding agents amplify $b$ by an order of magnitude. Ten parallel Sonnet worker slices dispatched by `Doomcourt` will consume, wrap, and solidify an upstream defect across eight repositories in thirty minutes. Without a Six Sigma boundary gate, agent speed does not ship features faster; it manufactures scrap at machine tempo.
 
-#### Six Sigma Rigor & Defect Per Million Opportunities (DPMO)
+#### Six Sigma Rigor & The Three Laws of Falsifiable Gates
 
-Six Sigma methodology, pioneered at Motorola and perfected across global manufacturing, proved that inspection at the end of the factory line cannot produce high reliability. High reliability requires verifying process capability at every intermediate workstation to achieve a defect rate of fewer than $3.4$ Defects Per Million Opportunities (DPMO).
+Six Sigma quality control targets fewer than $3.4$ Defects Per Million Opportunities (DPMO). In RDOM, an **Opportunity ($O$)** is any discrete contract assertion, compilation boundary, schema migration step, mergeability check, or live reachability probe evaluated at wave exit.
 
-In the RDOM execution model, an **Opportunity ($O$)** is defined as any discrete contract assertion, schema invariant, compilation check, type boundary, lint rule, unit test, integration assertion, or documentation cross-reference evaluated during wave completion. A typical modern software wave containing four concurrent deeds presents between $10^3$ and $10^5$ verification opportunities across its test suites and static analysis passes.
+To prevent the four 2026-09-09 harness lies from ever passing as "green," RDOM subjects every wave gate check to **The Three Laws of Falsifiable Verification**:
 
-RDOM adapts Six Sigma quality control to software wave boundaries through three non-negotiable principles:
-
-1. **Zero Tolerance for Defects at Boundaries ($D = 0$)**: While software development involves exploration and failure within an isolated worktree during the Red phase of TDD (**DP-8**), the wave boundary gate enforces absolute mathematical zero defect tolerance: $D = 0$ for all code seeking merge to trunk.
-2. **Defect Prevention over Defect Triage**: Conventional teams triage bugs in backlogs, prioritizing which defects to fix and which to defer. RDOM eliminates defect backlogs entirely at wave boundaries. There is no triage for an unverified test or broken contract; the code is simply rejected at the gate.
-3. **Poka-Yoke Automated Verification**: Process gates cannot rely on human vigilance, checklists, or memory. Every boundary gate must be an automated, deterministic mechanical barrier (**Poka-Yoke**, **DP-9**) that physically denies merge execution if verification fails.
+1. **The Pre-Fix Failure Law (Red Before Green - DP-8)**: A test that has never been witnessed failing proves nothing. Every defect fix or feature assertion must record a verified failure trace against the baseline commit before the implementation diff turns it green.
+2. **The Control-Check Law (Testing the Failure Path)**: Every automated gate script must verify its own sensor before asserting on the target. A checksum verifier must assert `[ -n "$LOCAL_SHA" ]` and test against a known-bad byte mutation before comparing `$LOCAL_SHA = $BACKUP_SHA`. A conflict detector must run 2-argument `git merge-tree --write-tree` and assert on `$?`, never grep for text markers that the command does not emit.
+3. **The Live Reachability Law (Entrypoint to Silicon - DP-10)**: A feature is not verified when its unit test passes in isolation. It is verified only when an execution trace starting at the real production entrypoint (the CLI binary, HTTP router, daemon supervisor, or MCP gateway) reaches the new symbol and mutates or returns live state.
 
 #### The Mathematical Formulation of the Gate Invariant
 
-Let a software deliverable be represented by a Dependency Directed Acyclic Graph $G = (V, E)$ (**DP-1**), partitioned into an ordered sequence of $K$ topological waves $W_0, W_1, \dots, W_K$ (**DP-2**). Each wave $W_k \subset V$ consists of $m$ mutually independent deeds:
+Let a software deliverable be represented by a Dependency Directed Acyclic Graph $G = (V, E)$ (**DP-1**), partitioned into an ordered sequence of $K$ topological waves $W_0, W_1, \dots, W_K$ (**DP-2**). Each wave $W_k \subset V$ consists of $m$ mutually independent tasks:
 
 $$W_k = \{v_1, v_2, \dots, v_m\}$$
 
-For each deed $v_i \in W_k$, we define the **Deed Verification Function** $g(v_i) \in \{0, 1\}$, which evaluates to $1$ (Pass) if and only if deed $v_i$ satisfies the complete five-phase gatekeeper protocol.
+For each task $v_i \in W_k$, we define the **Task Verification Function** $g(v_i) \in \{0, 1\}$, which evaluates to $1$ if and only if $v_i$ passes all five phases of the Gatekeeper Protocol:
 
-The **Wave Boundary Gate Function** $G(W_k) \in \{0, 1\}$ evaluates the collective integrity of the wave:
+$$g(v_i) = \phi_{\text{static}}(v_i) \cdot \phi_{\text{live}}(v_i) \cdot \phi_{\text{reach}}(v_i) \cdot \phi_{\text{blast}}(v_i) \cdot \phi_{\text{triad}}(v_i)$$
+
+The **Wave Boundary Gate Function** $G(W_k) \in \{0, 1\}$ is the multiplicative product across every task in the wave:
 
 $$G(W_k) = \prod_{i=1}^m g(v_i)$$
 
-The fundamental governing invariant of RDOM wave progression is the **Wave Boundary Gate Invariant**:
-
-> **Invariant (Wave Boundary Gate Invariant — DP-7)**: The execution environment physically bars the provisioning, initialization, or worktree dispatch of any task in Wave $W_{k+1}$ until the Wave Boundary Gate for Wave $W_k$ evaluates to absolute deterministic unity:
+> **Invariant (Wave Boundary Gate Invariant - DP-7)**: The orchestration engine (`Doomcourt`) physically bars the provisioning, branch creation, or worktree dispatch of any task in Wave $W_{k+1}$ until the Wave Boundary Gate for Wave $W_k$ evaluates to unity:
 >
 > $$\operatorname{Provision}(W_{k+1}) = \begin{cases} \text{Permitted} & \iff G(W_k) = 1 \\ \text{Blocked (Andon Triggered)} & \iff G(W_k) = 0 \end{cases}$$
 
-If $G(W_k) = 0$—even if nine hundred and ninety-nine tests pass and exactly one test fails, or if all code passes but documentation is out of sync—the entire wave boundary halts. No promissory notes are issued; no waivers are granted.
+If nine tasks evaluate to $1$ and one task fails its live reachability probe ($\phi_{\text{reach}} = 0$), the product is zero. The gate stays shut.
 
 #### The Triad of Proof (DP-11)
 
-Passing code is necessary, but wholly insufficient, to satisfy a wave boundary gate. In conventional engineering, a developer considers their task complete when `git status` shows clean and the local test runner exits with code 0. In RDOM, completion is defined by the **Triad of Proof** (**DP-11**):
+In conventional workflows, an engineer or agent marks a ticket done when `git status` is clean and `pytest` exits `0`. That is how the Ten Ghosts of 2026-09-09 happened. In RDOM, task completion requires the **Triad of Proof** (**DP-11**):
 
 ```text
-                            THE TRIAD OF PROOF
-                                 (DP-11)
-                                    ▲
-                                   / \
-                                  /   \
-                                 /     \
-                                /       \
-                               /         \
-                              /           \
-                             /             \
-                            /               \
-    1. FUNCTIONAL SILICON  ◄─────────────────►  2. LIVING DOCUMENTATION
-       (Live System Rule,                       (AGENTS.md, Runbooks,
-        0 Lint/Type Errors,                      OpenAPI/Proto Contracts,
-        Deterministic Tests)                     Architecture Records)
-                             \             /
-                              \           /
-                               \         /
-                                \       /
-                                 \     /
-                                  \   /
-                                   \ /
-                                    ▼
-                         3. WITNESSED SHOWCASE
-                            (Executable Deed,
-                             Reproducible Sandbox,
-                             Empirical Basis for UAT)
+                             THE TRIAD OF PROOF
+                                  (DP-11)
+                                     ▲
+                                    / \
+                                   /   \
+                                  /     \
+                                 /       \
+                                /         \
+                               /           \
+                              /             \
+                             /               \
+     1. FUNCTIONAL SILICON  ◄─────────────────►  2. LIVING DOCUMENTATION
+        (Live System Rule,                       (AGENTS.md, Runbooks,
+         Entrypoint Reachable,                    OpenAPI/Proto Contracts,
+         Falsifiable Tests)                       Architecture Records)
+                              \             /
+                               \           /
+                                \         /
+                                 \       /
+                                  \     /
+                                   \   /
+                                    \ /
+                                     ▼
+                       3. WITNESSED SHOWCASE RECEIPT
+                          (Executable Walkthrough,
+                           Non-Empty Control Proof,
+                           Empirical Basis for UAT)
 ```
 
-The Triad of Proof demands three concurrent, immutable artifacts before any deed $v_i$ or wave $W_k$ can achieve $g(v) = 1$:
-
-1. **Functional Silicon (Automated Verification against Live Systems — DP-10)**:
-   - 100% deterministic pass across all unit, component, integration, and contract test layers.
-   - Zero linter warnings evaluated against the merge-base diff.
-   - Zero type-checker errors under strict compiler flags.
-   - All integration tests executed against live running environments (live PostgreSQL, live Redis, live messaging containers)—zero unverified mocks.
+1. **Functional Silicon (Calibrated Live Verification - DP-10)**:
+   - 100% deterministic pass across unit, integration, and contract tests running with `set -euo pipefail`.
+   - Proven runtime reachability from the production entrypoint (`main`, CLI verb, or router table) into the modified symbol.
+   - Zero linter warnings or type-checker errors evaluated against the explicit merge-base diff.
+   - Integration tests executed against live running engines (PostgreSQL, Redis, NATS, ClickHouse) with zero internal domain mocks.
 2. **Living Documentation (Authoritative Operational Surface)**:
-   - Repository `AGENTS.md` and `.agents/` context libraries updated to reflect all newly introduced symbols, schemas, and runtime behaviors.
-   - Architecture Decision Records (ADRs) ratified and committed for any structural or invariant change.
-   - Public API specifications (OpenAPI, Protobuf, GraphQL) and operational runbooks committed in the identical pull request as the code.
-3. **Witnessed Showcase Deed (Empirical Basis for UAT)**:
-   - An executable, self-contained walkthrough script, integration scenario, or recorded interactive demonstration proving the feature operates correctly in a live environment.
-   - The showcase deed provides the empirical factual foundation submitted upstream to the Ravenhelm Lifecycle Operations Methodology (RLOM) for User Acceptance Testing (UAT).
-
-If any pillar of the Triad of Proof is missing, $g(v) = 0$. Code without living documentation is an operational landmine; code without a witnessed showcase deed is an unverified assertion.
+   - Repository Law (`AGENTS.md`) and `.agents/` working context updated in the same commit to reflect new commands, schemas, or boundaries.
+   - Architecture Decision Records (ADRs) and public interface specs (OpenAPI, Protobuf, CUE) synchronized with the AST diff.
+3. **Witnessed Showcase Receipt (Empirical Basis for UAT)**:
+   - An executable walkthrough trace, CLI session transcript, or curl/gRPC receipt proving the capability works end-to-end from the caller's hand.
+   - Submitted upstream to the Linear work graph so the human supervisor validates empirical behavior, not a checkbox.
 
 #### The Wave Boundary Gate Evaluation Pipeline
-
-The following architectural state machine governs the lifecycle of every wave boundary transition, showing the evaluation sequence, the Poka-Yoke automated checks, the Andon Cord circuit breaker (**DP-12**), and the defect quarantine mechanism:
 
 ```mermaid
 flowchart TD
     subgraph WAVE_K["Topological Wave W_k Execution"]
-        T1["Deed v_1 Worktree"]
-        T2["Deed v_2 Worktree"]
-        T3["Deed v_m Worktree"]
+        T1["Task v_1 Worktree"]
+        T2["Task v_2 Worktree"]
+        T3["Task v_m Worktree"]
     end
 
     WAVE_K --> COLLECT["Wave Boundary Gate Collector (DP-7)"]
 
-    subgraph GATE["5-Phase Gatekeeper Pipeline"]
+    subgraph GATE["5-Phase Falsifiable Gatekeeper Pipeline"]
         direction TB
-        G1["Phase 1: AST Contract & Static Conformance\n(Types, Format, Merge-Base Diff, DDL Migrations)"]
-        G2["Phase 2: Deterministic Integration & Live System Rule\n(Live Containers, 0 Flakiness, Contract Validation)"]
-        G3["Phase 3: Blast Radius Cleanliness & Worktree Audit\n(B_actual ⊆ B_declared, 0 Stray Files, Git Hygiene)"]
-        G4["Phase 4: Living Documentation & Proof Sync\n(AGENTS.md, ADRs, OpenAPI/Proto, Runbooks)"]
-        G5["Phase 5: Fast-Forward Squash Merge\n(Linear Mainline, Cryptographic Proof Receipt)"]
+        G1["Phase 1: Harness Calibration & Static Conformance\n(Non-empty env proof, 2-arg merge-tree, merge-base diff, DDL up/down)"]
+        G2["Phase 2: Live Silicon & Entrypoint Reachability (DP-10)\n(set -euo pipefail, live containers, caller-to-symbol graph proof)"]
+        G3["Phase 3: Blast Radius & Custody Audit (DP-3, DP-19)\n(B_actual ⊆ B_declared, 0 untracked files, 0 secret leaks)"]
+        G4["Phase 4: Living Documentation & Showcase Receipt (DP-11)\n(AGENTS.md sync, OpenAPI/Proto parity, witnessed CLI/HTTP receipt)"]
+        G5["Phase 5: Supervisor Squash Merge & Disposal (DP-23, DP-24)\n(Human merge sovereignty, linear main history, custody prune)"]
 
         G1 --> G2 --> G3 --> G4 --> G5
     end
@@ -185,14 +189,14 @@ flowchart TD
     G4 -- Fail --> ANDON
 
     subgraph CIRCUIT_BREAKER["Defect Quarantine & Swarm Remediation"]
-        ANDON --> QUARANTINE["Quarantine Failing Worktree"]
+        ANDON --> QUARANTINE["Quarantine Failing Worktree (WIP Commit)"]
         QUARANTINE --> HALT["Block Wave W_{k+1} Worktree Provisioning"]
-        HALT --> SWARM["Swarm Investigation: 5 Whys & Root Cause Fix"]
+        HALT --> SWARM["Root-Cause Fix: Calibrate Sensor or Repair Silicon"]
         SWARM --> REEXEC["Re-Execute Gate Pipeline from Phase 1"]
         REEXEC --> G1
     end
 
-    G5 -- Success: G(W_k) = 1 --> TRUNK["Atomic Mainline Update"]
+    G5 -- "Success: G(W_k) = 1" --> TRUNK["Atomic Mainline Update"]
     TRUNK --> DISPOSE["Clean Worktree Disposal (DP-24)"]
     DISPOSE --> PROVISION["Open Airlock: Provision Wave W_{k+1} Worktrees"]
 ```
@@ -201,169 +205,173 @@ flowchart TD
 
 ### Operational Mechanics & Step-by-Step Protocols
 
-To eliminate subjectivity and human bias, the evaluation of wave boundary gates is governed by the **5-Phase Gatekeeper Protocol**. Every phase must execute deterministically in automated CI/CD runner capacity.
-
-#### The 5-Phase Gatekeeper Protocol
-
-The gatekeeper protocol processes all pull requests submitted within wave $W_k$. Each phase represents a strict pass/fail criterion. A failure at any phase aborts pipeline execution immediately.
+To strip guesswork from wave transitions, every pull request in Wave $W_k$ must clear the **5-Phase Falsifiable Gatekeeper Protocol**.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                       THE 5-PHASE GATEKEEPER PROTOCOL                       │
+│                   THE 5-PHASE FALSIFIABLE GATEKEEPER PROTOCOL               │
 ├─────────┬──────────────────────┬────────────────────────────────────────────┤
-│ Phase   │ Gate Domain          │ Verification Mechanism & Pass Criteria     │
+│ Phase   │ Gate Domain          │ Falsifiable Pass Criteria                  │
 ├─────────┼──────────────────────┼────────────────────────────────────────────┤
-│ Phase 1 │ AST & Static Contract│ Zero compiler errors, zero type errors.    │
-│         │ Conformance          │ Merge-base diff whitespace & style check.  │
-│         │                      │ Schema migration dry-run (Up & Down).      │
+│ Phase 1 │ Harness Calibration  │ Sensor self-test (non-empty binary/env).   │
+│         │ & Mergeability       │ 2-arg `git merge-tree --write-tree` == 0.  │
+│         │                      │ Merge-base diff check; DDL up/down/up.     │
 ├─────────┼──────────────────────┼────────────────────────────────────────────┤
-│ Phase 2 │ Deterministic Live   │ 100% test pass against live containers.     │
-│         │ Integration (DP-10)  │ Zero unverified mocks across boundaries.   │
-│         │                      │ Zero flakiness tolerance (N=3 stress run). │
+│ Phase 2 │ Live Silicon &       │ `set -euo pipefail` (zero pipe masking).   │
+│         │ Reachability (DP-10) │ Caller entrypoint reaches new code live.   │
+│         │                      │ 100% pass against real containers (N=3).   │
 ├─────────┼──────────────────────┼────────────────────────────────────────────┤
 │ Phase 3 │ Blast Radius &       │ Actual mutated paths ⊆ Declared B(v).      │
 │         │ Worktree Custody     │ Zero untracked files, zero secret leaks.   │
-│         │                      │ Worktree custody invariant verified.       │
+│         │                      │ `.bare` worktree custody verified.         │
 ├─────────┼──────────────────────┼────────────────────────────────────────────┤
 │ Phase 4 │ Living Documentation │ AGENTS.md updated to match AST diff.       │
-│         │ & Proof Sync (DP-11) │ OpenAPI / Protobuf specs in sync.          │
-│         │                      │ Runbooks updated; Showcase Deed attached.  │
+│         │ & Triad Sync (DP-11) │ OpenAPI / Protobuf specs in sync.          │
+│         │                      │ Witnessed Showcase Receipt attached.       │
 ├─────────┼──────────────────────┼────────────────────────────────────────────┤
-│ Phase 5 │ Fast-Forward Merge & │ Atomic squash merge to mainline.           │
+│ Phase 5 │ Supervisor Merge &   │ Human-approved squash merge to `main`.     │
 │         │ Disposal (DP-23/24)  │ Linear git history preserved.              │
-│         │                      │ Worktree safely pruned after verification. │
+│         │                      │ Worktree pruned after custody proof.       │
 └─────────┴──────────────────────┴────────────────────────────────────────────┘
 ```
 
-##### Phase 1: AST Contract & Static Conformance
+#### Phase 1: Harness Calibration, Mergeability & Static Conformance
 
-Phase 1 verifies that all code submitted within the wave adheres to absolute static invariants before executing a single line of application logic:
+Before running a single test, Phase 1 proves that the test environment itself is neither blind nor broken:
 
-1. **Strict Type-Checking**: The language compiler and static type analyzer (e.g., `tsc --strict`, `cargo check`, `mypy --strict`, `go vet`) run with zero error tolerance. Any suppression of type invariants (such as `any` in TypeScript, `@ts-ignore`, or unhandled `unsafe` in Rust) without an explicit architectural exemption fails the gate.
-2. **Merge-Base Diff Conformance**: Linting, formatting, and syntax hygiene are evaluated exclusively against the merge-base diff to prevent false positives while guaranteeing clean ingress.
-3. **Database Schema Migration Dry-Run**: If the wave touches database schemas, the gatekeeper spins up an isolated database container, applies all pending migrations in sequence (`migrate up`), executes a complete schema rollback (`migrate down`), and re-applies them. If a migration is non-reversible, locks tables indefinitely, or fails to create required indexes, Phase 1 fails immediately.
+1. **Sensor Calibration & Non-Empty Environment Proof**: Never allow a script to compare two unverified variables (`[ "$A" = "$B" ]`) or assume `PYTHONPATH` is populated. Every verification script opens by asserting that required binaries exist, environment paths resolve, and baseline imports succeed:
 
-##### Phase 2: Deterministic Integration & The Live System Rule (DP-10)
+   ```bash
+   #!/usr/bin/env bash
+   set -euo pipefail
 
-Phase 2 enforces the **Live System Rule** (**DP-10**): *Hypotheses, contracts, and implementations are verified against live running kernels, containers, and network state—never against stale documentation or hand-crafted mocks*.
+   # 1. Calibrate environment before running suite (prevents the 154 ModuleNotFoundError trap)
+   python3 -c "import ravenhelm_observability" || {
+       echo "HARNESS_ERROR: PYTHONPATH missing workspace packages in worktree" >&2
+       exit 2
+   }
 
-1. **Live Containerized Infrastructure**: Unit tests may execute against memory, but all integration and contract tests must execute against real, containerized dependencies managed via deterministic test fixtures (e.g., ephemeral PostgreSQL instances, Redis clusters, or NATS brokers).
-2. **Eradication of Mock Theater**: Mocks are strictly prohibited for internal domain boundaries and primary data stores. Hand-rolled mock objects that simulate database transactions, cache semantics, or internal microservices hide race conditions, connection pooling leaks, and schema mismatches. Mocks are permitted *only* at the outermost edge of the estate for third-party external vendors (e.g., Stripe, Twilio) where sandboxes cannot be containerized locally.
-3. **Flakiness Stress Testing ($N = 3$)**: A test that passes intermittently is not a test; it is an unhandled race condition or an unisolated state leak. Phase 2 executes the complete integration suite three consecutive times ($N = 3$) in randomized execution order. If any test case fails in any run, the test is classified as a critical defect ($g(v) = 0$). The flakiness exemption is physically barred.
+   # 2. Prove checksum binary exists and outputs non-empty 64-hex-char digest (prevents RAV-2079 "" == "")
+   calc_sha256() {
+       local d
+       d=$(shasum -a 256 "$1" | awk '{print $1}')
+       if [[ ! "$d" =~ ^[0-9a-f]{64}$ ]]; then
+           echo "SENSOR_ERROR: invalid sha256 digest '$d' for $1" >&2
+           exit 2
+       fi
+       printf '%s' "$d"
+   }
+   ```
 
-##### Phase 3: Blast Radius Cleanliness & Worktree Audit (DP-3, DP-19)
+2. **Two-Argument `git merge-tree --write-tree` Verification**: Never use 3-argument `git merge-tree` or grep for conflict markers. Prove clean mergeability against `origin/main` using Git's modern tree-level merge check and read the exit code directly:
 
-Phase 3 verifies workspace hygiene and spatial confinement:
+   ```bash
+   # MANDATORY: 2-arg write-tree exits non-zero on any conflict and lists conflicting paths
+   git fetch origin main
+   if ! TREE_OID=$(git merge-tree --write-tree origin/main HEAD 2>&1); then
+       echo "MERGE_GATE_FAILED: Real merge conflict detected against origin/main:" >&2
+       echo "${TREE_OID}" >&2
+       exit 1
+   fi
+   ```
 
-1. **Blast Radius Conformance**: The gatekeeper extracts the actual file mutation footprint $\mathcal{F}_{\text{actual}}$ from git diff:
+3. **Merge-Base Diff Conformance**: Bare `git diff --check` with no revision compares the working tree against the index; on a clean checkout in CI, they are identical, so `git diff --check` exits `0` on broken whitespace every time. Always diff against the explicit merge-base:
 
-   $$\mathcal{F}_{\text{actual}} = \operatorname{Diff}(\operatorname{merge-base}, \text{HEAD})$$
+   ```bash
+   MERGE_BASE=$(git merge-base origin/main HEAD)
+   test -n "${MERGE_BASE}"
+   git diff --check "${MERGE_BASE}"...HEAD
+   ```
 
-   It compares this set against the spatial blast radius $\mathcal{B}(v)$ declared in the task plan (**DP-3**). If $\mathcal{F}_{\text{actual}} \not\subseteq \mathcal{B}(v)$—meaning the engineer or agent modified files outside their assigned architectural boundary—the pull request is rejected. This prevents scope creep, accidental edits to shared configurations, and cross-wave collisions.
-2. **Zero Stray Artifacts**: The worktree must contain zero untracked files, temporary debug artifacts, or environment overrides (`.env.local`).
-3. **Secret Leak Detection**: High-entropy scanning algorithms verify that no API keys, private certificates, or internal tokens are committed into version control.
+#### Phase 2: Live Silicon & Entrypoint Reachability (DP-10)
 
-##### Phase 4: Living Documentation & Proof Sync (DP-11)
+Phase 2 enforces **The Live System Rule** (**DP-10**) and closes the gap that produced the Ten Ghosts of 2026-09-09:
 
-Phase 4 enforces the second and third pillars of the Triad of Proof:
+1. **Zero Pipe Masking (`set -euo pipefail`)**: No test runner may ever be piped through `tail`, `head`, or `grep` without `set -o pipefail` active. Better yet, write test output to a log artifact and inspect the runner's direct exit status:
 
-1. **`AGENTS.md` & Working Library Sync**: If the pull request introduced new CLI commands, database tables, environment flags, or service interfaces, the gatekeeper verifies that the corresponding repository `AGENTS.md` and `.agents/` working context have been updated in the same commit. Agent context must never drift from physical silicon.
-2. **API Specification Synchronization**: If an endpoint signature changed, the corresponding OpenAPI specification, Protobuf definition, or GraphQL schema must show an identical diff. Code and contracts must travel together.
-3. **Witnessed Showcase Deed Attachment**: The pull request must attach the execution receipt or walkthrough artifact proving that the showcase deed executed successfully against live containers. For UI changes, this includes deterministic end-to-end browser walkthrough traces; for backend services, it includes deterministic CLI/HTTP transaction logs.
+   ```bash
+   # FORBIDDEN: python3 -m unittest discover -s tests 2>&1 | tail -5
+   # MANDATORY: Direct execution capturing log + unmasked exit code
+   LOG_FILE=$(mktemp -t wave-gate-test.XXXXXX)
+   if ! python3 -m unittest discover -s tests >"${LOG_FILE}" 2>&1; then
+       tail -n 40 "${LOG_FILE}" >&2
+       rm -f "${LOG_FILE}"
+       exit 1
+   fi
+   grep -E "^Ran [1-9][0-9]* tests" "${LOG_FILE}" >/dev/null || {
+       echo "SENSOR_ERROR: Test runner exited 0 but ran 0 tests!" >&2
+       exit 1
+   }
+   ```
 
-##### Phase 5: Fast-Forward Squash Merge & Ephemeral Worktree Disposal (DP-23, DP-24)
+   Notice the second guard: `grep -E "^Ran [1-9][0-9]* tests"`. An empty test discovery directory exits `0` after running `0 tests`. A checker that does not assert a non-zero test count will pass on an empty directory.
 
-Once Phases 1 through 4 evaluate to green:
+2. **Caller-to-Symbol Reachability Proof**: For every newly introduced module, handler, or CLI flag in the pull request, the gate requires an explicit reachability assertion proving that the production entrypoint imports and invokes the symbol. If `wire.py` or `ensure_receiver()` is added, at least one integration test must invoke the top-level CLI (`doom new --launch`) or HTTP daemon router and assert that the code path inside `ensure_receiver()` executed. Dead code with green unit tests fails Phase 2.
+3. **Live Containerized Infrastructure ($N = 3$)**: All integration tests execute against real containerized engines (PostgreSQL, Redis, NATS) across $N = 3$ randomized passes. Any intermittent failure trips the gate ($g(v_i) = 0$).
 
-1. **Atomic Squash Merge to Mainline**: Per **DP-23**, direct pushes to trunk are physically barred. The gatekeeper executes a fast-forward squash merge to `main`, constructing a single, atomic commit message containing the task metadata, the verification trace SHA, and the RLOM issue identifier. Mainline history remains strictly linear and bisectable.
-2. **Cryptographic Proof Receipt**: The gatekeeper generates a cryptographic proof receipt signing off on the wave boundary transition, logging the commit SHA, test execution metrics, and timestamp.
-3. **Clean Worktree Disposal**: Per **DP-24**, the ephemeral git worktree allocated for the deed is safely deleted. Deletion is executed only after verifying that all commits are fully integrated into trunk and no uncommitted edits linger on disk.
+#### Phase 3: Blast Radius Cleanliness & Worktree Audit (DP-3, DP-19)
 
-#### CI Workflow Hygiene: Real Gates vs. The Illusion of Green
+Phase 3 verifies spatial confinement inside the worktree:
 
-In production estates, CI pipelines often degrade into "hollow pipelines"—configurations that appear to run checks but provide zero physical protection due to subtle configuration bugs. Drawing from hard-won production battle scars (such as those analyzed during Project Factory RAV-2037), RDOM enforces three strict CI workflow hygiene rules:
+1. **Blast Radius Conformance**: Extract the actual mutated file set $\mathcal{F}_{\text{actual}} = \operatorname{Diff}(\operatorname{merge-base}, \text{HEAD})$ and verify $\mathcal{F}_{\text{actual}} \subseteq \mathcal{B}(v_i)$ (**DP-3**). If a Bounded Implementer assigned to `crates/auth/` touched `crates/billing/`, the gate rejects the branch immediately.
+2. **Zero Stray Artifacts & Secret Scan**: `git status --porcelain` must be empty, and high-entropy secret scanners verify no credentials or `.env` files entered the index.
 
-##### 1. Merge-Base Diffs, Not No-Ref Diffs
+#### Phase 4: Living Documentation & Showcase Receipt Sync (DP-11)
 
-A whitespace, lint, or format check written as a bare `git diff --check` with no revision argument compares the working tree to the index after checkout. In a CI runner that just executed `git checkout <branch>`, the working tree and the index are identical. The command exits with code 0, silently passing on the very commit that introduced broken formatting or trailing syntax errors.
+Phase 4 verifies the remaining two pillars of the Triad of Proof:
 
-CI lint gates must explicitly diff against the pull request merge base:
+1. **`AGENTS.md` & Spec Parity**: If CLI flags, environment variables, routes, or architecture boundaries changed, `AGENTS.md` and the OpenAPI/Protobuf/CUE definitions must carry matching diffs in the same pull request.
+2. **Witnessed Showcase Receipt**: The pull request description or Linear validation comment must include the concrete command and output transcript recorded against the live runtime.
 
-```bash
-# MANDATORY: Diff strictly against the merge base of the PR target branch
-MERGE_BASE=$(git merge-base origin/main HEAD)
-git diff --check "${MERGE_BASE}"...HEAD
-```
+#### Phase 5: Supervisor Squash Merge & Ephemeral Worktree Disposal (DP-23, DP-24)
 
-##### 2. Action Pinning by Immutable Commit SHA
+Once Phases 1 through 4 are verified green:
 
-Third-party CI Actions must be pinned to full, immutable 40-character commit SHAs, never floating semantic tags (such as `@v4` or `@latest`):
-
-```yaml
-# FORBIDDEN: Floating semantic tag allows unreviewed upstream mutations
-- uses: actions/checkout@v4
-
-# MANDATORY: Pinned to immutable 40-character commit SHA
-- uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-```
-
-Floating tags allow external upstream maintainers to silently alter CI behavior, break runner compatibility, or inject supply-chain compromises without a single change to your repository.
-
-##### 3. Real Runner Scheduler Onboarding
-
-A repository's CI pipeline only protects the estate if it is actively onboarded to automated, monitored runner capacity. CI workflows that sit queued indefinitely waiting for capacity, or that run on unmonitored ad-hoc local machines, provide zero assurance. Onboarding to monitored runner scheduler capacity with enforced timeout limits is an explicit prerequisite before any repository branch protection rule is ratified.
-
-#### The Defect Quarantine & Andon Cord Trigger (DP-5, DP-12)
-
-When an invariant fails at any phase of the 5-Phase Gatekeeper Protocol:
-
-1. **Immediate Execution Halt**: The Andon Cord is tripped automatically (**DP-12**). The wave gate enters state `GATE_FAILED`.
-2. **Zero Downstream Spillover**: Worktree provisioning for Wave $W_{k+1}$ remains physically locked. No downstream engineer or agent may begin work on tasks dependent on Wave $W_k$.
-3. **Defect Quarantine**: The failing worktree is isolated. Its branch is locked to prevent speculative commits, and its execution trace is published to the shared team board.
-4. **Focused Swarming**: Workers within Wave $W_k$ who have already achieved green on their respective deeds do not begin speculative out-of-wave work. They form a focused swarming pod to diagnose the root cause of the failure using the **5 Whys Methodology**.
-5. **Circuit Breaker Enforcement (DP-5)**: If the failure was caused by an ambiguous or flawed upstream specification, workers are barred from branching outward or patching around the defect with local stubs. The upstream contract must be repaired and re-verified at its origin.
+1. **Human Merge Sovereignty (DP-23)**: Agents never merge their own pull requests, and no automated rule auto-closes a Linear issue merely because one PR merged. Once the human supervisor reviews the Triad of Proof and explicitly approves that pull request, the branch squash-merges to `main`.
+2. **Clean Worktree Disposal (DP-24)**: With the commit SHA verified on `origin/main` and the working tree clean, the disposable worktree is unmounted (`git worktree remove`) and pruned. Only when every task $v_i \in W_k$ completes Phase 5 does `Doomcourt` open Wave $W_{k+1}$.
 
 ---
 
 ### Concrete Anti-Patterns & Defect Escapes
 
-Organizations that drift away from Six Sigma rigor routinely invent justifications for bypassing wave boundary gates. These four anti-patterns represent the primary failure modes of modern delivery pipelines:
+#### 1. The Check That Cannot Fail (The Empty-Set Green)
 
-#### 1. "The 95% Done Illusion" (The Promissory Note)
+- **The Pathology**: Writing a verification command whose failure mode outputs the exact same signal (`0` count or empty string) as its success mode. Examples from the bench: `git merge-tree <base> <a > <b> | grep -c '^<<<<<<<'` returning `0`; `[ "$SHA_A" = "$SHA_B" ]` comparing two empty strings when `sha256sum` is missing; `pytest tests/nonexistent_dir` exiting `0` when zero tests are collected; `git diff --check` with no ref comparing a clean checkout against its own index.
+- **The Destruction**: The gate flashes green for months while merge conflicts, corrupted backups (`RAV-2079`), and formatting violations slip straight into `main`.
+- **The RDOM Remedy**: Apply the **Control-Check Law**. Every gate script must assert non-empty inputs (`[[ "$SHA" =~ ^[0-9a-f]{64}$ ]]`), assert non-zero test counts, and be verified against a synthetic failure input before being trusted on the line.
 
-- **The Manifestation**: A wave boundary arrives on the calendar, but one complex task is "almost finished—just needs a few minor edge-case fixes and integration tests." The team promotes the wave anyway, declaring the task 95% done and promising to fix it in parallel with the next wave.
-- **The Destruction**: In a dependency graph, a component is either deterministic or non-deterministic; there is no such state as "95% correct." Downstream tasks that build against the 5% unverified gap inevitably construct their architecture on quicksand. When the missing edge case is finally addressed, it requires altering the core interface, breaking every downstream task that relied on the early release.
+#### 2. The Ten Ghosts (Green Unit Tests on Unreachable Code)
 
-#### 2. "Mock Theater" (The Hallucinated Estate)
+- **The Pathology**: A worker slice writes a 46 KB module (`wire.py`) and 73 unit tests that import that module directly, hits 100% test pass rate, merges to `main`, and marks the Linear issue `Done` without ever wiring the module into the daemon entrypoint or CLI router (`2026-09-09`).
+- **The Destruction**: Downstream waves assume the capability is active in production. Weeks later, an operator discovers the feature is a hollow ghost: tested in isolation, dead in the binary.
+- **The RDOM Remedy**: Enforce the **Live Reachability Law**. Unit tests do not satisfy a wave gate. Every deliverable must prove an unbroken call path from the live entrypoint binary or router down to the new symbol.
 
-- **The Manifestation**: Developers or autonomous agents achieve 100% green test suites by aggressively mocking out databases, message queues, HTTP clients, and file systems. Every test runs in milliseconds and passes flawlessly in CI.
-- **The Destruction**: The test suite verifies only that the code conforms to the developer's *hallucinated mental model* of the external system, not how the live external system actually behaves. When deployed to staging containers, the code fails instantly: SQL queries fail against PostgreSQL syntax quirks, connection pools exhaust under real socket latency, and serialized JSON keys mismatch. Mock theater replaces empirical verification with comforting fiction.
+#### 3. The `tail -5` Pipe Blindfold
 
-#### 3. "The Flaky Test Exemption" (Environmental Noise Rationalization)
+- **The Pathology**: An agent or engineer pipes a verbose build or test command into `tail`, `head`, or `tee` (`python3 -m unittest ... | tail -5`) to save context tokens, masking the non-zero exit code of the left-hand command.
+- **The Destruction**: A catastrophically failing test suite returns `tail`'s exit code `0`. The agent reports "all tests passing" based on the exit code without reading the traceback lines right above the prompt.
+- **The RDOM Remedy**: Forbid piped test invocations in `AGENTS.md`. Always run under `set -euo pipefail`, redirect full output to a scratch file, check the runner's direct exit status, and only then read the tail on failure.
 
-- **The Manifestation**: A test fails in CI during wave gate evaluation. An engineer glances at the logs, mutters that the test is "just that flaky Redis timing issue," and triggers a manual re-run of the pipeline. On the third re-run, the test passes by statistical chance, and the PR is merged.
-- **The Destruction**: Normalizing intermittent failure destroys the integrity of the entire engineering process. A flaky test is not environmental noise; it is deterministic proof of an unhandled race condition, a shared mutable state leak, or an unbuffered socket deadlock. Granting exemptions to flaky tests guarantees that critical race conditions escape into production.
+#### 4. The Uncalibrated Worktree Stampede
 
-#### 4. "Documentation as an Afterthought" (The Tribal Lore Debt)
-
-- **The Manifestation**: Code is written, tested, and merged, while the pull request author states in the description: "Will update `AGENTS.md`, OpenAPI specs, and runbooks in a fast-follow documentation ticket next sprint."
-- **The Destruction**: The documentation ticket is never prioritized. Within two weeks, the codebase and the documentation diverge. Downstream autonomous agents, which rely on `AGENTS.md` and OpenAPI definitions for context priming, consume obsolete interfaces, hallucinate dead parameters, and fail to generate valid code. The engineering organization drowns in tribal lore and unwritten conventions.
+- **The Pathology**: Spinning up a fresh `.bare` worktree and running tests before verifying `PYTHONPATH`, virtual environment bindings, or container sockets, producing 154 `ModuleNotFoundError` failures that look like a massive code regression.
+- **The Destruction**: A coding agent attempts to "fix" the 154 errors by rewriting import paths across the repository, destroying working code to solve an environment variable gap.
+- **The RDOM Remedy**: Phase 1 Harness Calibration separates `HARNESS_ERROR` (exit code `2`) from `TEST_FAILURE` (exit code `1`). When `HARNESS_ERROR` fires, the agent is barred from editing source files until the environment binding is fixed.
 
 ---
 
 ### Upstream & Downstream Integration (The Sovereign Triad)
 
-The Wave Boundary Gate is the mechanical linchpin that binds the Sovereign Triad together, serving as the physical bridge between upstream demand, active wave execution, and downstream release.
+The Six Sigma Wave Boundary Gate is the physical airlock connecting the Work Graph (**RLOM**), the Factory Floor (**RDOM**), and the Custody Gate (**RROM**).
 
 ```text
-               THE SOVEREIGN TRIAD INTEGRATION
+                THE SOVEREIGN TRIAD INTEGRATION
 ┌─────────────────────────────────────────────────────────────┐
-│ UPSTREAM: RLOM (Ravenhelm Lifecycle Operations Methodology) │
-│ - Linear / Valknut Active Work Graph                        │
-│ - Demand Ingress & Topological Precedence                   │
-│ - Issue Status CANNOT transition to "Done" without          │
-│   Wave Gate Cryptographic Proof Receipt.                    │
-│ - Showcase Deed serves as empirical basis for UAT.          │
+│ UPSTREAM: RLOM (Ravenhelm Linear Operating Methodology)     │
+│ - Active Linear Work Graph & Topological Hierarchy          │
+│ - Issue status moves to `Validation` (never straight to     │
+│   `Done` on PR merge; Merged != Built != Running).          │
+│ - Witnessed Showcase Receipt anchors human UAT sign-off.    │
 └─────────────────────────────────────────────────────────────┘
                               │
                      Wave Boundary Gate (DP-7)
@@ -372,56 +380,44 @@ The Wave Boundary Gate is the mechanical linchpin that binds the Sovereign Triad
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ DOWNSTREAM: RROM (Ravenhelm Release Operations Methodology) │
-│ - Immutable Release Doctrine: "Builds are the unit,         │
-│   releases are names."                                      │
-│ - Mainline trunk is GUARANTEED perpetually releasable.      │
-│ - Automated Harbor OCI digest generation (:b<N>).           │
-│ - GitOps synchronization via Argo CD / Homebrew tap.        │
+│ - ADR-0007: "Builds are the unit; releases are names."      │
+│ - Every merge to `main` triggers `.forgejo/workflows/       │
+│   build.yml` -> immutable Harbor OCI image (`:b<N>`).       │
+│ - Deployed via `norns-gitops` (Argo CD) & `nate/tools` tap, │
+│   and proven running in production before RLOM `Done`.      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### Upstream Integration: RLOM (Demand & Acceptance)
+#### Upstream Integration: RLOM (Why `Merged != Done`)
 
-In the Ravenhelm Lifecycle Operations Methodology (RLOM), project intent is declared within the active work graph (managed in tools such as Linear under the Valknut doctrine). The Wave Boundary Gate enforces the boundary between active development and business acceptance:
+In the Ravenhelm Linear Operating Methodology (RLOM), merging a pull request never automatically closes the parent Linear issue (avoiding the GitHub auto-close trap where merging PR 1 of 3 prematurely marks the entire deliverable `Done`). Passing the RDOM Wave Boundary Gate transitions the work item into RLOM's `Validation` state, attaching the **Triad of Proof** receipt so the operator can verify live production reachability before certifying `Done`.
 
-1. **Gate Receipts as Transition Preconditions**: An RLOM issue or Daily Deed cannot transition to the `Done` state based on a developer's verbal declaration or a closed pull request. The issue transition is triggered strictly by the publication of the **Wave Boundary Gate Proof Receipt**.
-2. **Empirical Basis for UAT**: The Showcase Deed (the third pillar of the Triad of Proof) provides the factual, empirical demonstration required for User Acceptance Testing (UAT). Business stakeholders and product owners review an immutable, executed walkthrough rather than abstract ticket descriptions.
+#### Downstream Integration: RROM (Builds Are the Unit; Releases Are Names)
 
-#### Downstream Integration: RROM (Release & Deployment)
-
-In the Ravenhelm Release Operations Methodology (RROM), software delivery is governed by the **Release Doctrine**: *Builds are the unit; releases are names*. Releases never trigger ad-hoc compilations; they promote pre-built, immutable artifacts.
-
-1. **Perpetually Releasable Mainline**: Because Wave Boundary Gates enforce 100% deterministic green passes against live systems before any merge, the mainline trunk (`main`) is guaranteed to be perpetually releasable. Trunk is never allowed to enter a broken or half-integrated state.
-2. **Automated Immutable Builds**: The fast-forward merge at Phase 5 automatically triggers the build pipeline, compiling the software once and publishing an immutable OCI container image tagged by its build counter (e.g., Harbor `:b42`) or packaging a Homebrew formula.
-3. **Continuous Deployment via GitOps**: Argo CD synchronizes the immutable digest to production Kubernetes clusters, or workstation tooling deploys through private taps. Because quality was gated at the wave boundary, production deployment is a routine non-event.
+In the Ravenhelm Release Operations Methodology (RROM, ADR-0007), releases never rebuild code. Because the RDOM Wave Boundary Gate guarantees that every squash-merge to `main` has cleared static conformance, live container integration, and entrypoint reachability, every commit on `main` is immediately compiled once into an immutable Harbor OCI artifact tagged `:b<N>` and rolled out via `norns-gitops` or the `nate/tools` Homebrew tap.
 
 ---
 
-> **Augmentation Surface — Automated Gatekeeper Verification**
+> **Augmentation Surface - Autonomous Gatekeepers & Human Sovereignty**
 >
 > **Where an agent layer transforms this practice**:
-> In a human-dominated organization, running the 5-Phase Gatekeeper Protocol manually creates cognitive fatigue and delays. Engineers cut corners, skip the third iteration of test suites, and forget to update `AGENTS.md`.
->
-> An autonomous agent layer transforms wave boundary gating into an instantaneous, frictionless mechanical reality. Dedicated **Gatekeeper Agents** operate as autonomous airlock controllers:
-> - They automatically detect pull request ingress and compute exact merge-base AST diffs.
-> - They spin up ephemeral Docker testcontainers on dedicated runner capacity, executing live database migrations and randomized multi-pass integration batteries.
-> - They audit spatial blast radii against declared task boundaries, flagging scope creep instantly.
-> - They execute automated showcase walkthrough scripts, capturing execution logs and deterministic video/terminal recordings.
-> - They cryptographically sign the wave completion certificate, attach it to the upstream RLOM issue, and prune ephemeral worktrees without human intervention.
+> An independent verification subagent (such as `Snotra` and dedicated gatekeeper lanes in `Doomcourt`) runs the 5-Phase Gatekeeper Protocol without fatigue:
+> - Executes 2-argument `git merge-tree --write-tree` across all open branches in the wave to detect cross-slice collisions before merge.
+> - Verifies harness calibration (`PYTHONPATH`, container sockets, non-empty tool digests) so coding slices never chase environmental ghosts.
+> - Traces call graphs from production entrypoints (`cli.py`, `main.rs`, `routes.ts`) to every new symbol in the diff, catching unreachable dead code before a human ever reviews the PR.
 >
 > **What the human architect keeps**:
-> The human architect retains sovereign authority over the invariants themselves:
-> - Ratifying Architecture Decision Records (ADRs) that introduce or alter fundamental platform boundaries.
-> - Calibrating the gatekeeper policies, flakiness thresholds, and blast radius rules.
-> - Reviewing the Witnessed Showcase Deed during RLOM User Acceptance Testing to confirm that business intent matches physical execution.
-> - Exercising the sovereign right to pull the Andon Cord when a strategic or architectural flaw escapes automated tooling.
+> Tools deliver evidence; a human clicks the accept/reject button:
+> - Exercising non-delegable merge sovereignty (**DP-23**) on every pull request after inspecting the falsifiable receipt.
+> - Auditing the gate checks themselves to ask the standing question: *"What does this check print when the tool fails or the result set is empty?"*
+> - Certifying live production reachability before moving the Linear issue from `Validation` to `Done`.
 
 <!-- RUBRIC_CHECK:
   structural: pass
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 4938
-  principle-citations: DP-1, DP-2, DP-3, DP-5, DP-7, DP-8, DP-9, DP-10, DP-11, DP-12, DP-19, DP-23, DP-24
+  word-count: 4495
+  principle-citations: DP-1, DP-2, DP-3, DP-7, DP-8, DP-10, DP-11, DP-12, DP-19, DP-23, DP-24
   flagged-principle-gaps: none
 -->

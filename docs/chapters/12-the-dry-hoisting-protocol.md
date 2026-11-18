@@ -1,395 +1,232 @@
 <!-- LICENSE: © 2026 Ravenhelm LLC. Licensed material. -->
 <!-- All rights reserved except as granted in LICENSE. Inquiries: nate@ravenhelm.co -->
 
-## Chapter 12 — The DRY Hoisting Protocol: Anti-Snowflake Planning
+## Chapter 12: The DRY Hoisting Protocol - Anti-Snowflake Planning
 
-At 2:45 AM on a Sunday morning, the distributed transaction pipeline of a high-throughput financial exchange deadlocked under peak Asian session volume. Three independent services—the OAuth Token Exchange, the Real-Time Settlement Ingester, and the Webhook Dispatch Engine—were concurrently rejecting incoming payload bursts with cryptic socket timeouts and TLS handshake resets. On call, three senior engineers from three separate domain teams opened their respective repositories to troubleshoot.
+On September 21, 2026, while reviewing the multi-wave `RootFifth` implementation plan, the operator stopped the dispatch before Wave 0 opened. Across the dependency graph, multiple parallel application slices were each scheduled to wire up their own namespace and authorization routing file (`routes.ts`), while other branches proposed building shared `WebMCP` and `flutter-web` application scaffolds from scratch. Two defects in **Vitki** had already diagnosed the exact failure mode of hand-rolled `routes.ts` namespace and authz wiring, yet the draft plan was about to dispatch parallel worker slices to write three more bespoke copies of `routes.ts` in separate repositories.
 
-What they uncovered was a masterclass in modern architectural decay: the "Three-Engine Trap." Six weeks earlier, during an aggressive quarterly push, management had partitioned the initiative across three parallel teams and a fleet of autonomous AI agent workers. In isolation, every worker completed their sprint tickets early. The burndown charts glowed green. But because the three teams and their agent swarms worked in uncoordinated code repositories without plan-level dependency modeling, each independently implemented their own operational utilities:
+The operator laid down the missing leg of **The Ehwaz Doctrine (ᛖ)** verbatim: *"basically im just making sure that the plan gets refactored to try to not build snowflakes. if we are building something, build the version that everything downstream can use. like extracting out repetitive code snippets and creating a class or a library."*
 
-1. The OAuth Token Exchange authored a custom HTTP client using an unpooled connection model with aggressive 500-millisecond timeouts.
-2. The Real-Time Settlement Ingester authored an asynchronous HTTP engine using a connection pool of 2,048 sockets, silently starving the operating system's ephemeral port range.
-3. The Webhook Dispatch Engine authored a third HTTP client using an exponential backoff loop with zero jitter, creating a thundering-herd resonance cascade that hammered internal microservices whenever latency spiked.
+Every software organization claims to believe in DRY (*Don't Repeat Yourself*), and almost every software organization practices DRY at the wrong point in time. In conventional workflows, DRY is treated as a post-hoc code-review critique. Three engineers or three autonomous coding slices work in parallel worktrees for two days, each writing their own custom HTTP retry wrapper, their own `routes.ts` authz middleware, or their own database pool initializer. When the three pull requests hit the review queue on Thursday afternoon, a reviewer notices the duplication. By then, the trap has already snapped shut. Rejecting two passing pull requests and forcing a cross-repo extraction breaks the release schedule, so the lead compromises: *"Merge all three for now and open a tech-debt issue to unify them next cycle."* That issue sinks to the bottom of the backlog, and the estate is now permanently saddled with three diverging snowflakes.
 
-Furthermore, each team had invented its own distinct JSON error schema, its own database connection wrapper, and its own cryptographic token verification routine. In local mock tests, every service passed with 100% code coverage. In live staging, under low concurrency, the divergences hid beneath the noise floor. But in production, the three divergent snowflakes collided: the settlement engine exhausted the socket table, the token service failed its handshake, and the webhook dispatch engine slammed the deadlocked cluster with synchronized retries.
+When you run a parallel fleet of AI worker slices, post-hoc DRY is dead on arrival. An autonomous worker slice knows only the files inside its worktree and the symbols inside its `<800`-token `eat prime` manifest. If the plan instructs three Wave 1 slices to build endpoints requiring namespace authorization and no shared authz scaffold exists in Wave 0, those three slices will deterministically manufacture three incompatible snowflakes in fifteen minutes.
 
-Every software organization pays lip service to DRY ("Don't Repeat Yourself"). Yet in industry practice, DRY is treated as an aesthetic virtue—a stylistic guideline left to the discretion of tired engineers during code review. A pull request is submitted with 1,500 lines of business logic and an ad-hoc retry loop. A reviewer notes the duplication. The author responds that unifying the client is "out of scope for this ticket," and promises to file a tech debt card. That card enters the backlog graveyard, never to be seen again.
-
-In high-concurrency human-agent software manufacturing, post-hoc DRY is dead on arrival. Once code is written across parallel branches, the cognitive and political cost of harmonizing divergent implementations scales quadratically. The **Ravenhelm Development Operations Methodology (RDOM)** rejects the fiction of post-hoc code cleanup. It elevates DRY from an incidental code-review recommendation into an inviolable architectural gating discipline: **Planning-Time DRY Hoisting** (DP-13, DP-14, DP-15, DP-16). Duplication is not a formatting flaw; it is an architectural defect that must be eradicated in the dependency DAG *before* a single line of feature code is permitted to enter the execution wavefront.
+The **Ravenhelm Development Operations Methodology (RDOM)** moves DRY out of code review and into **plan compilation**. Under **The Ehwaz Doctrine**, **Planning-Time DRY Hoisting** (**DP-13**, **DP-14**, **DP-15**, **DP-16**) refactors the dependency graph $G = (V, E)$ *before* Wave 0 opens. This is not a fourth methodology bolted onto CPM, Lean, and Six Sigma. Six Sigma is variation reduction; three snowflake implementations of one capability is variation in the artifact rather than the process. Planning-Time DRY is the Six Sigma leg pointed directly at what gets built.
 
 ---
 
 ### The Theoretical & Mechanical Foundation
 
-To eliminate accidental duplication across concurrent engineering streams, RDOM establishes a formal topological model for capability elevation.
+Refactoring a plan to prevent snowflakes immediately collides with another foundational law of software engineering: **extract scaffolds from working code; never imagine them** (**DP-16**). If you hoist an abstraction into Wave 0 before any consumer has ever been built, and you have to *guess* what the interface should look like, you will build a speculative framework that fits none of the downstream consumers.
 
-#### The Mathematical Formulation of Hoisting
+How do you honor both rules without contradiction? On September 21, 2026 (`ehwaz-doctrine.md`), the Ehwaz Doctrine resolved this tension with a strict binary discriminator: **The Hoist-vs-Defer Test**.
 
-Software execution under RDOM is governed by a Dependency Directed Acyclic Graph $G = (V, E)$, partitioned into topological waves $W_0, W_1, \dots, W_N$ (DP-1, DP-2). Let $T_1, T_2, \dots, T_m \in W_k$ denote the set of atomic Daily Deeds scheduled for concurrent execution within topological wave $W_k$ (DP-3).
+#### The Mathematical Formulation of Plan-Level Duplication
 
-Each deed $T_i$ requires a set of technical capabilities and operational primitives, denoted by its requirement set $\mathcal{R}(T_i)$:
+Let $G = (V, E)$ be a candidate Dependency DAG partitioned into topological waves $W_0, W_1, \dots, W_K$ (**DP-1**, **DP-2**). Each task $v \in V$ requires a set of capabilities $\mathcal{R}(v) = \{c_1, c_2, \dots, c_m\}$ (routing scaffolds, authz verifiers, telemetry decorators, schema definitions, or UI harnesses).
 
-$$\mathcal{R}(T_i) = \{c_{i,1}, c_{i,2}, \dots, c_{i,p}\}$$
+Across the entire graph $G$, a repeated capability $\mathcal{C}$ exists whenever two or more tasks share a common requirement:
 
-Where $c_{i,j}$ represents an explicit technical requirement: a database connection pool, a structured telemetry middleware, an HTTP client with retry logic, an authorization token parser, or a schema definition.
+$$\exists \, u, v \in V \ (u \neq v) \quad \text{such that} \quad \mathcal{C} \in \mathcal{R}(u) \cap \mathcal{R}(v)$$
 
-When two or more parallel tasks in the same wave share underlying technical requirements, we define their common substructure as:
+If the plan leaves $\mathcal{C}$ inside both $u$ and $v$, parallel workers will produce distinct implementations $I_u(\mathcal{C})$ and $I_v(\mathcal{C})$ with positive semantic divergence:
 
-$$\operatorname{Common}(T_a, T_b) = \mathcal{R}(T_a) \cap \mathcal{R}(T_b) \quad \text{for } a \neq b$$
+$$\delta\left(I_u(\mathcal{C}), I_v(\mathcal{C})\right) > 0$$
 
-In conventional development methodologies, $\operatorname{Common}(T_a, T_b)$ is ignored during planning. As a consequence, workers independently materialize implementations $I_a(c)$ and $I_b(c)$ for each shared requirement $c \in \operatorname{Common}(T_a, T_b)$. Because these implementations are created in parallel isolation, their semantic divergence $\delta(I_a, I_b)$ is strictly positive:
+In Six Sigma terms, $\delta > 0$ across equivalent components is **structural artifact variance**. Every bug fixed in $I_u(\mathcal{C})$ remains unpatched in $I_v(\mathcal{C})$.
 
-$$\delta(I_a, I_b) = \| I_a(c) - I_b(c) \| > 0$$
+#### The Hoist-vs-Defer Test (DP-13, DP-14, DP-16)
 
-This divergence represents the birth of a **Snowflake**—a redundant, subtly incompatible component that fragments the codebase, multiplies the attack surface, and burdens the engineering organization with permanent maintenance overhead.
+When the planning-time DRY scan detects a repeated capability $\mathcal{C}$ across two or more tasks ($\kappa(\mathcal{C}) \ge 2$), the planner does not blindly hoist everything into Wave 0, nor does it ignore the repeat. Instead, it evaluates whether the interface of $\mathcal{C}$ is **Known** or **Guessed**:
 
-Under RDOM Principle **DP-13 (Planning-Time DRY Refactoring)**, this divergence is prevented through the Hoisting Transformation $\mathcal{H}$. During the DAG construction and refinement phase—conducted during the Ráð ceremony (Chapter 7)—the graph compiler scans the requirement sets across all nodes in wave $W_k$. Whenever a non-empty common substructure is identified:
+| Interface Epistemic State | Diagnostic Criterion | Mandatory Graph Mutation | RootFifth Plan Receipt (2026-09-21) |
+|:---|:---|:---|:---|
+| **1. Interface is KNOWN** | Encodes a decision already made, an estate standard already ratified, or a defect already diagnosed in production code. | **Hoist Upstream Now (DP-13)**: Create one upstream task $v_{\text{hoist}}$ in an earlier wave ($W_{k-1}$ or $W_0$), rewire all consumers $u, v$ to depend on $v_{\text{hoist}}$, and strip the duplicate work from their briefs. | **Project Factory Namespace/Authz Scaffold (`routes.ts`)**: Every app was writing its own `routes.ts`; two **Vitki** defects had already diagnosed and locked the exact interface. Hoisted upstream. |
+| **2. Interface is GUESSED** | No consumer has shipped one yet; extracting now would mean predicting what downstream callers will need in a vacuum. | **Defer & Schedule Extraction Explicitly (DP-14, DP-16)**: Let the first consumer $u$ in Wave $W_k$ build the capability inline against real constraints, and **insert an explicit extraction task $v_{\text{extract}}$ in Wave $W_{k+1}$** before consumer $v$ runs in Wave $W_{k+2}$. | **`WebMCP` and `flutter-web` Scaffolds**: No consumer had shipped one yet; imagining the scaffold upfront would build the wrong abstraction. First consumer builds inline; extraction task scheduled explicitly in a later wave. |
 
-$$\exists \, T_a, T_b \in W_k \quad \text{such that} \quad \mathcal{C} = \operatorname{Common}(T_a, T_b) \neq \emptyset$$
+Look closely at the invariant governing that table:
 
-The Hoisting Transformation $\mathcal{H}$ extracts the common capability $\mathcal{C}$ into an atomic, standalone substrate deed $D_{\mathcal{C}}$, elevates it to an earlier wave $W_{k-1}$ (or earlier), and mutates the dependency edges such that both $T_a$ and $T_b$ depend directly on the hoisted deliverable:
-
-$$G' = \mathcal{H}(G) \implies \begin{cases}
-V' = V \cup \{D_{\mathcal{C}}\} \\
-E' = E \cup \{(D_{\mathcal{C}}, T_a), (D_{\mathcal{C}}, T_b)\} \\
-\text{where } \operatorname{Wave}(D_{\mathcal{C}}) \le k - 1
-\end{cases}$$
-
-Through this topological transformation, parallel workers in Wave $W_k$ are physically barred from writing bespoke implementations. They consume a single, verified, immutable contract delivered by Wave $W_{k-1}$ that has already passed its Six Sigma gate (DP-7).
-
-#### The Hoisting Decision Boundary (DP-14: The Zero-Speculation Rule)
-
-While the cost of duplication is catastrophic, naive hoisting introduces an equally lethal failure mode: **The Speculative Framework Syndrome**. Eager architects, anticipating hypothetical future requirements, often extract massive "universal abstractions" that complicate the codebase, add indirection, and solve problems no consumer actually has.
-
-To maintain perfect equilibrium between anti-duplication and anti-speculation, RDOM enforces Principle **DP-14 (The Hoist-vs-Defer Rule)** through the **Two-Consumer Gate**:
-
-> **The Zero-Speculation Hoisting Invariant (DP-14)**:
-> An abstraction, shared library, crate, or schema may be hoisted into an upstream wave $W_{k-1}$ if and only if it satisfies the Two-Consumer Gate:
->
-> $$\kappa(\mathcal{C}) \ge 2$$
->
-> Where $\kappa(\mathcal{C})$ is the count of concrete, immediate, scheduled consumer deeds within the active planning graph $G$. Speculative elevation based on hypothetical future consumers ($\kappa_{\text{future}} > 0, \kappa_{\text{active}} < 2$) is strictly prohibited as inventory waste (*Muda*, DP-6).
-
-If $\kappa(\mathcal{C}) = 1$, the capability MUST remain private, inline, and unexported within the single consumer's repository or module. The first consumer implements the minimal viable solution for its own needs. Only when a second concrete consumer $T_b$ appears in a subsequent plan does the Hoisting Protocol activate, triggering an explicit refactoring deed to elevate the working implementation into a shared substrate.
-
-#### The Three Taxonomies of Hoisting
-
-Hoisted artifacts are not monolithic; they operate across three distinct architectural planes:
-
-1. **Interface Hoisting (Types, Protobufs, Schemas)**:
-   Elevates structural definitions across service or module boundaries. Includes Protocol Buffer schemas, OpenAPI specifications, shared TypeScript interfaces, and domain event types. Interface hoisting requires zero implementation code—only typed, machine-verifiable contracts.
-2. **Utility Hoisting (Algorithms, Middleware, Helpers)**:
-   Elevates stateless computational mechanics that are universally required across consumers. Includes exponential backoff with full jitter, cryptographic HMAC verification, structured logging decorators, and OpenTelemetry span injectors.
-3. **Architectural Substrate Hoisting (Layer 0 Primitives, DP-17)**:
-   Elevates foundational stateful runtime infrastructure. Includes database connection pooling, distributed lock managers, Redis cluster client wrappers, POSIX shared memory ring buffers, and IPC wire protocols.
-
-The following topological comparison contrasts the post-hoc duplicate proliferation pattern against the RDOM planning-time hoisting protocol.
+> **The Law of Named Duplicates (`ehwaz-doctrine.md`)**:
+> **No duplicate is ever left unnamed.** The fatal failure mode is not temporary inline implementation; it is *unacknowledged* duplication, which silently becomes permanent. Every repeat found during the planning scan must terminate in the DAG as either an **upstream hoisted task** (when the interface is known) or an **explicitly scheduled downstream extraction task** (when the interface would be guessed) - never neither.
 
 ```mermaid
 flowchart TD
-    subgraph BAD["The Snowflake Anti-Pattern (Uncoordinated Concurrency)"]
-        direction TB
-        B_W1["Wave 1: Parallel Dispatch"] --> B_S1["Slice A: Auth Service\n(Builds Snowflake HTTP Client A)"]
-        B_W1 --> B_S2["Slice B: Billing Ingestion\n(Builds Snowflake HTTP Client B)"]
-        B_W1 --> B_S3["Slice C: Webhook Engine\n(Builds Snowflake HTTP Client C)"]
-        B_S1 --> B_COLL["Downstream Convergence:\nSocket Exhaustion, Thundering Herds,\nIncompatible Schemas & Tech Debt"]
-        B_S2 --> B_COLL
-        B_S3 --> B_COLL
-    end
+    SCAN["Planning-Time DRY Scan Across DAG G = (V, E)\nRepeated Capability C Detected Across Tasks u and v (κ ≥ 2)"]
+    TEST{"The Hoist-vs-Defer Test:\nIs the Interface of C Known or Guessed?"}
 
-    subgraph GOOD["The RDOM DRY Hoisting Protocol (DP-13, DP-14, DP-15)"]
-        direction TB
-        G_R["Planning-Time AST / DAG Analysis:\nCommon HTTP Client Detected (κ = 3)"] --> G_W0["Wave 0: Hoisted Substrate Elevation\n(Shared HTTP Client Crate - Contract Tested)"]
-        G_W0 -->|Verified Green Gate: DP-7| G_W1["Wave 1: Parallel Consumer Dispatch"]
-        G_W1 --> G_T1["Slice A: Auth Service\n(Consumes Shared Crate)"]
-        G_W1 --> G_T2["Slice B: Billing Ingestion\n(Consumes Shared Crate)"]
-        G_W1 --> G_T3["Slice C: Webhook Engine\n(Consumes Shared Crate)"]
-        G_T1 --> G_CLEAN["Zero Collision Integration:\nUniform Metrics, Single Security Surface,\nPredictable Resource Consumption"]
-        G_T2 --> G_CLEAN
-        G_T3 --> G_CLEAN
-    end
+    SCAN --> TEST
+
+    TEST -- "KNOWN\n(Standard Ruled / Defect Diagnosed\ne.g. Vitki routes.ts Authz)" --> HOIST["Path A: Hoist Upstream (DP-13)\n1. Insert Task v_hoist into Wave W_{k-1}\n2. Add Edges (v_hoist -> u) and (v_hoist -> v)\n3. u and v Consume Verified Crate in Wave W_k"]
+
+    TEST -- "GUESSED\n(Zero Shipped Consumers Yet\ne.g. WebMCP / flutter-web)" --> DEFER["Path B: Defer & Schedule Extraction (DP-14, DP-16)\n1. First Consumer u Builds Inline in Wave W_k\n2. Insert Explicit Task v_extract in Wave W_{k+1}\n3. Second Consumer v Consumes Extracted Scaffold in Wave W_{k+2}"]
+
+    HOIST --> ZERO_SNOWFLAKES["Outcome: Zero Permanent Snowflakes\nEvery Repeat is Either Hoisted or Scheduled in the DAG"]
+    DEFER --> ZERO_SNOWFLAKES
 ```
+
+#### Topological Mechanics of Both Transformations
+
+Let us trace how both branches of the Hoist-vs-Defer Test mutate the dependency graph $G = (V, E)$:
+
+1. **Path A - Upstream Hoist Transformation ($\mathcal{H}_{\text{known}}$)**:
+   When tasks $u, v \in W_k$ both require a known capability $\mathcal{C}$ (such as the Vitki-proven `routes.ts` authz scaffold):
+
+   $$V' = V \cup \{v_{\text{hoist}}\}, \quad W(v_{\text{hoist}}) = k - 1$$
+   $$E' = E \cup \{(v_{\text{hoist}}, u), (v_{\text{hoist}}, v)\}$$
+
+   In Wave $W_{k-1}$, a single slice builds and tests $v_{\text{hoist}}$. Once $v_{\text{hoist}}$ passes the Six Sigma wave exit gate (**DP-7**), Wave $W_k$ opens and tasks $u$ and $v$ run in parallel as pure consumers of the verified scaffold.
+2. **Path B - Scheduled Extraction Transformation ($\mathcal{H}_{\text{guessed}}$)**:
+   When tasks $u$ and $v$ both need a capability $\mathcal{C}$ whose shape is not yet proven in production (such as `WebMCP` or `flutter-web`):
+
+   $$V' = V \cup \{v_{\text{extract}}\}$$
+   $$E' = E \cup \{(u, v_{\text{extract}}), (v_{\text{extract}}, v)\}$$
+   $$W(u) = k, \quad W(v_{\text{extract}}) = k + 1, \quad W(v) = k + 2$$
+
+   In Wave $W_k$, task $u$ builds the first real working instance inline without speculative ceremony. In Wave $W_{k+1}$, task $v_{\text{extract}}$ extracts the proven scaffold directly from $u$'s working code (**DP-16**) and rewires $u$ to use it. In Wave $W_{k+2}$, task $v$ consumes the newly extracted scaffold. You never guess an abstraction in a vacuum, and you never ship a second copy without extracting the first.
 
 ---
 
 ### Operational Mechanics & Step-by-Step Protocols
 
-Hoisting is not an informal design philosophy; it is an algorithmic sequence executed during the plan-authoring phase and verified at every wave boundary.
+Executing the DRY Hoisting Protocol requires running a mandatory graph scan before detailing the open wave, combined with machine-enforced consumption contracts across the repository estate.
 
-#### The 5-Step DRY Hoisting Protocol
+#### Protocol 1: The 5-Step Planning-Time DRY Scan
 
-When constructing an initiative DAG, architects and graph compilers must execute the following five-step protocol for every proposed wave:
+Per `ehwaz-doctrine.md`, every implementation plan of more than a handful of tasks undergoes this exact sequence before Wave 0 is detailed:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                      5-Step DRY Hoisting Protocol                       │
+│               5-Step Planning-Time DRY Hoisting Protocol                │
 ├─────────────────────────────────────────────────────────────────────────┤
-│  Step 1: Substructure Identification & Semantic Clustering             │
-│          Scan proposed task specifications and ASTs for commonality.    │
+│  Step 1: Draft Initial Dependency Graph & Wave Breakdown (W_0 .. W_K)   │
+│          Map all functional tasks and technological edges E.            │
 │                                  ▼                                      │
-│  Step 2: The Two-Consumer Gate (Zero Speculation Verification)          │
-│          Assert κ(C) ≥ 2 among concrete, active tasks in the graph.     │
+│  Step 2: Cross-Graph Capability Scan                                    │
+│          Inspect all tasks across all waves for repeated patterns,      │
+│          shared schemas, authz routers, CLI harnesses, or scaffolds.    │
 │                                  ▼                                      │
-│  Step 3: Elevation to Wave W_{k-1} (Deed Decomposition)                │
-│          Extract crate/module contract as an explicit foundation deed.  │
+│  Step 3: Apply the Hoist-vs-Defer Test to Every Repeat (κ ≥ 2)          │
+│          - Single consumer (κ = 1) -> Keep inline (No speculation).     │
+│          - Known interface (κ ≥ 2) -> Hoist task to Wave W_{k-1}.       │
+│          - Guessed interface (κ ≥ 2) -> First inline; schedule extract. │
 │                                  ▼                                      │
-│  Step 4: Downstream Consumer Retargeting                                │
-│          Refactor consumer deeds to bind strictly to the hoisted API.   │
+│  Step 4: Rewire DAG Edges & Recompute Wave Numbers                      │
+│          Update Consumes/Produces blocks and recompute Critical Chain.  │
 │                                  ▼                                      │
-│  Step 5: Verification & Immutability Lock (DP-7 Gating)                 │
-│          Seal the hoisted substrate with property and contract tests.   │
+│  Step 5: JIT Elaborate ONLY Wave 0 (Including Hoisted Foundations)      │
+│          Write bite-sized TDD steps for Wave 0 and dispatch slices.     │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-##### Step 1: Substructure Identification & Semantic Clustering
+#### Worked Case Study: The 2026-09-21 RootFifth Plan Refactoring
 
-During the planning of Wave $W_k$, the authoring system (whether human lead or compiler agent) analyzes the task briefs, interface boundaries, and data models of all candidate deeds.
+To see how Protocol 1 operates at the bench, examine the two concrete transformations from the September 21, 2026 `RootFifth` plan:
 
-In automated environments, this is performed by analyzing the Abstract Syntax Trees (AST) and Entity-Attribute-Tag (EAT) knowledge substrates (Chapter 17). The analyzer clusters proposed dependencies according to functional signatures:
-- Persistent storage access patterns (e.g., PostgreSQL connection pools, transaction coordinators).
-- External network communication (e.g., HTTP clients, gRPC stubs, retry loops).
-- Domain serialization models (e.g., user identity payloads, billing line items).
-- Security and cryptographic primitives (e.g., token signing, secret decoding).
+##### Case 1: Hoisting the Known Interface (`Project Factory` Namespace/Authz `routes.ts`)
 
-##### Step 2: The Two-Consumer Gate
+1. **The Observation**: Multiple service tasks in the plan needed to expose HTTP/MCP routes protected by Ravenhelm namespace isolation and role authorization. Left alone, each service slice would write its own `routes.ts` middleware.
+2. **The Epistemic Check**: Was the interface a guess? No. Two prior defects in **Vitki** had already exposed what goes wrong when a service rolls its own `routes.ts` authz handler and had locked the exact required middleware contract, error status codes, and claim checks.
+3. **The Hoist Mutation**: Rather than letting downstream slices copy-paste `routes.ts` from `Vitki` and drift, the planner hoisted the namespace/authz routing scaffold into an upstream **Project Factory** task. Every downstream application task was rewired to consume the Project Factory scaffold. Variation reduced to zero before a single downstream slice launched.
 
-For each clustered capability $\mathcal{C}$, evaluate the consumer count $\kappa(\mathcal{C})$.
-- If $\kappa(\mathcal{C}) == 1$: Reject hoisting. Mark the capability as `scope: internal` to the specific task. Do not create an external library or shared package.
-- If $\kappa(\mathcal{C}) \ge 2$: Approve hoisting. Proceed to Step 3.
-- If $\kappa(\mathcal{C}) == 0$: Halt immediately. This represents an ungrounded speculative proposal. Purge it from the plan.
+##### Case 2: Deferring & Scheduling the Guessed Interface (`WebMCP` & `flutter-web` Scaffolds)
 
-##### Step 3: Elevation to Wave $W_{k-1}$
+1. **The Observation**: Multiple planned tasks across the roadmap intended to expose `WebMCP` browser tool surfaces and `flutter-web` frontends. An eager architect might be tempted to insert a "Wave 0: Build Universal WebMCP and Flutter-Web Project Factory Template" task before building the first app.
+2. **The Epistemic Check**: Was the interface known? No. Zero production apps in the estate had shipped a `WebMCP` or `flutter-web` surface yet. Writing the reusable template in Wave 0 would mean guessing build flags, asset bundling paths, and state-bridge lifecycles without a single live consumer (**DP-16** violation).
+3. **The Defer-and-Schedule Mutation**: The planner forbade a speculative Wave 0 template. Instead, the first application task was scheduled to build its `WebMCP` / `flutter-web` wiring inline against real browser and compiler constraints. Immediately behind that first consumer in the DAG, the planner inserted an explicit extraction task: once Consumer 1 passes live verification (**DP-7**), harvest the proven wiring into the Project Factory template so Consumer 2 and Consumer 3 consume the battle-tested scaffold.
 
-Once approved, the capability is extracted into an explicit Daily Deed:
+#### Protocol 2: The Sovereign Consumption Contract (DP-15)
 
-$$D_{\mathcal{C}} = \langle \text{Name}, \text{Crate/Module Path}, \text{Public API Signature}, \text{Exit Tests} \rangle$$
+Hoisting a capability into a shared crate or Project Factory template only prevents snowflakes if downstream worker slices actually import it. Left unsupervised, an LLM coding agent tasked with adding an authenticated route or an OpenBao secret lookup will happily write forty lines of raw `reqwest` or `urllib` inline rather than searching the estate for the canonical client.
 
-The deed $D_{\mathcal{C}}$ is scheduled in Wave $W_{k-1}$ (or added to Wave $W_0$ if Wave 1 is the active wave). This deed is not an informal stub; it is a full, first-class deliverable requiring:
-- An isolated repository or monorepo package path (e.g., `packages/common-http` or `crates/estate-db-pool`).
-- A minimal, clean public interface exposing only what the $\kappa$ consumers explicitly demand.
-- A comprehensive suite of unit, property-based, and contract tests proving interface correctness.
+Principle **DP-15 (The Sovereign Consumption Rule)** closes this loophole:
 
-##### Step 4: Downstream Consumer Retargeting
+> **Principle DP-15**: A repository, service, or task slice may decline to use an established estate surface. **It may not do so silently.**
 
-With $D_{\mathcal{C}}$ placed in Wave $W_{k-1}$, the original task specifications $T_1, T_2, \dots, T_m \in W_k$ are rewritten. Their technical instructions are stripped of any mandate to create local utilities or database drivers. Instead, their specifications are updated to declare a strict dependency:
-
-```toml
-# Example: Consumer retargeting inside downstream slice manifest
-[dependencies]
-estate-telemetry-middleware = { path = "../../crates/estate-telemetry-middleware", version = "0.1.0" }
-estate-http-client = { path = "../../crates/estate-http-client", version = "0.1.0" }
-```
-
-The tasks in Wave $W_k$ now consume the hoisted artifact as an external black-box dependency.
-
-##### Step 5: Verification & Immutability Lock
-
-Wave $W_{k-1}$ executes. Before Wave $W_k$ is permitted to dispatch its workers, deed $D_{\mathcal{C}}$ must pass the Six Sigma Wave Boundary Gate (DP-7, Chapter 13):
-1. **Deterministic Build & Test**: The hoisted package must compile cleanly and pass 100% of its automated test suite against the live test runner environment.
-2. **Interface Stability (Poka-Yoke)**: The public API must enforce compile-time safety (DP-9), making invalid consumer states unrepresentable.
-3. **Artifact Publishing**: The artifact is built, tagged, and published to the local workspace registry or monorepo path, locking its SHA or semver tag. Once Wave $W_{k-1}$ closes, the hoisted artifact is immutable. Workers in Wave $W_k$ may not mutate the hoisted crate; if a defect is discovered, they must halt and sound the Andon Cord (DP-12).
-
-#### Refactoring as Hoisting (DP-16: Scaffolding from Working Reality)
-
-A critical corollary of the DRY Hoisting Protocol is Principle **DP-16 (Scaffolding from Working Reality)**.
-
-In classical engineering cultures, "refactoring" is treated as aimless, unstructured cleanup—engineers wander through codebases renaming variables, adjusting whitespace, or reorganizing folders according to personal aesthetic preference. This generates massive git churn, breaks active worktrees, and provides zero architectural defense.
-
-Under RDOM, **Refactoring is Hoisting**:
-
-> **Principle DP-16**:
-> Never build abstract frameworks, base classes, or shared platforms *ex nihilo*. Scaffolds, platform libraries, and shared SDKs are extracted exclusively from working, battle-tested implementations that have already proven their viability in production.
-
-When consumer $T_1$ builds an inline utility in Wave $W_1$, it does so against working reality. When consumer $T_2$ arrives in Wave $W_3$ requiring the same capability, the refactoring deed does not write a brand-new abstract library from scratch. Instead, the refactoring deed takes $T_1$'s proven, tested implementation, hoists it into a shared substrate crate, wraps it in contract tests, and retargets both $T_1$ and $T_2$ to consume the newly hoisted primitive. Refactoring is never aesthetic; it is the physical elevation of verified code into durable estate substrate.
-
-#### The Sovereign Consumption Contract & Estate Floor (DP-15)
-
-Hoisting common libraries is only half the battle; the other half is ensuring that parallel workers actually consume them instead of building redundant shadow implementations.
-
-In multi-agent environments, autonomous agents frequently demonstrate a bias toward local code generation. An agent tasked with fetching an HTTP resource will gladly generate a twenty-line Python `urllib` wrapper rather than navigate the repository to find the canonical, corporate-standard, rate-limited HTTP client.
-
-To prevent this silent proliferation of shadow code, RDOM establishes the **Consumption Contract** (DP-15):
-
-> **The Sovereign Consumption Rule (DP-15)**:
-> A repository, service, or task slice may decline to use an established estate surface. It may not do so silently.
-
-The estate maintains a dual-registry architecture:
+RDOM enforces consumption through two machine-readable contracts and an explicit exemption gate:
 
 1. **The Supply-Side Surface Catalog (`registry/library-surfaces.json`)**:
-   A machine-readable ledger of all approved, hoisted platform surfaces across the organization:
-
-   ```json
-   {
-     "surfaces": [
-       {
-         "id": "surface.estate.telemetry",
-         "crate": "estate-telemetry",
-         "layer": "substrate",
-         "capabilities": ["distributed-tracing", "prometheus-metrics", "structured-json-logging"],
-         "status": "canonical"
-       },
-       {
-         "id": "surface.estate.db.postgres",
-         "crate": "estate-pg-pool",
-         "layer": "substrate",
-         "capabilities": ["connection-pooling", "read-replica-routing", "deadlock-retry"],
-         "status": "canonical"
-       }
-     ]
-   }
-   ```
-
+   Enumerates the canonical, hoisted libraries and scaffolds across the estate (e.g., `Project Factory` authz routing, `OpenBao` AppRole client, `EAT` indexing bindings, standard telemetry emitters).
 2. **The Demand-Side Lane Floor (`registry/lane-consumption.json`)**:
-   Declares the mandatory baseline of surfaces that any repository operating within a specific architectural lane must consume:
-
-   ```json
-   {
-     "lanes": {
-       "backend-service": {
-         "mandatory_surfaces": [
-           "surface.estate.telemetry",
-           "surface.estate.db.postgres",
-           "surface.estate.auth-validator"
-         ]
-       },
-       "cli-tool": {
-         "mandatory_surfaces": [
-           "surface.estate.telemetry"
-         ]
-       }
-     }
-   }
-   ```
-
-##### The Explicit Exemption Invariant
-
-Under Principle DP-15, if a worker or team decides to bypass an established platform surface—for example, implementing a zero-dependency diagnostic binary that cannot afford the footprint of the standard database pool—they are forbidden from doing so silently.
-
-The worker must declare an explicit `consumes_exemption` block in their deed manifest or repository configuration:
+   Defines which canonical surfaces are mandatory for each class of repository (e.g., every K3s service on `Norns` must consume the canonical health/metrics surface and `Project Factory` authz scaffold; every CLI tool on Rail B must consume the standard version/provenance surface).
+3. **The Explicit `consumes_exemption` Declaration**:
+   If a specific binary genuinely cannot consume a mandatory surface (for example, an ultra-minimal init container or a standalone recovery script that cannot link the full workspace crate), the author must declare a signed `consumes_exemption` block in the repository manifest citing the approving ADR:
 
 ```json
 {
   "consumes_exemption": {
-    "surface_id": "surface.estate.db.postgres",
-    "rationale": "High-frequency embedded watchdog requires raw SQLite connection; libpq runtime dependency prohibited in target initramfs.",
-    "authorized_by": "Architectural Council (Ráð)",
-    "adr_reference": "ADR-0042",
-    "review_wave": "W_8"
+    "surface_id": "surface.ravenhelm.project-factory.authz-routes",
+    "reason": "Standalone air-gapped recovery CLI; zero HTTP server surface.",
+    "adr": "ADR-0019",
+    "approved_by": "nate"
   }
 }
 ```
 
-If an automated pull request linter or compiler agent detects that a repository is implementing capability matching an active estate surface without importing the canonical crate *and* without an authorized `consumes_exemption`, the build immediately fails with a fatal Poka-Yoke exit code (DP-9).
-
-#### The Hoisting Decision Matrix
-
-The following decision matrix guides architects during the Ráð ceremony in categorizing and processing candidate abstractions:
-
-| Evaluation Dimension | Interface Hoisting | Utility Hoisting | Substrate Hoisting (DP-17) | Inline Implementation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Consumer Count** ($\kappa$) | $\kappa \ge 2$ cross-boundary | $\kappa \ge 2$ internal callers | $\kappa \ge 2$ service engines | $\kappa = 1$ single caller |
-| **Artifact Type** | Schema / Types / Protobuf | Stateless Pure Functions | Stateful Infrastructure Crate | Private unexported module |
-| **Target Wave** | Wave $W_{k-1}$ | Wave $W_{k-1}$ | Wave $W_0$ or Foundation Wave | Current Wave $W_k$ |
-| **Statefulness** | Zero state (declarative) | Pure / Ephemeral state | Connection pools / Memory buffers | Scoped to caller lifecycle |
-| **Change Frequency** | Low (Strict SemVer) | Medium (Additive updates) | Extremely Low (Invariance gate) | High (Rapid iteration) |
-| **Verification Gate** | Schema compatibility check | Property-based unit tests | Integration & load stress tests | Caller integration tests |
+Any pull request that re-implements a capability listed in `library-surfaces.json` without importing the canonical package and without a valid `consumes_exemption` fails verification at the review gate (**DP-9**, **DP-23**).
 
 ---
 
 ### Concrete Anti-Patterns & Defect Escapes
 
-When teams fail to execute planning-time hoisting, organizational pathologies emerge with mathematical predictability. Below are the four most destructive anti-patterns and their structural remedies.
+The DRY Hoisting Protocol prevents four classic architectural defects.
 
-#### 1. The Speculative Framework Syndrome
+#### 1. Unacknowledged Duplication (The Silent Snowflake Factory)
 
-- **The Manifestation**: An architect reviews an upcoming project plan and notices that two services will need to query an S3-compatible object store. Rather than hoisting a minimal, two-method S3 wrapper (`put_object`, `get_object`), the architect embarks on a four-week crusade to build the "Universal Enterprise Storage Substrate"—a sprawling meta-framework supporting twelve storage backends, dynamic pluggable caching, distributed write-through locks, and an abstract virtual filesystem.
-- **The Defect Escape**: By the time this behemoth is delivered, it is riddled with subtle concurrency bugs, heavily bloated, and completely misaligned with what the downstream services actually require. Downstream teams bypass it entirely to meet their deadlines.
-- **The RDOM Poka-Yoke**: Enforce the **Zero-Speculation Rule (DP-14)**. Hoisting requires $\kappa \ge 2$ *concrete* requirements, not speculative futures. The hoisted deliverable must expose only the strict union of capabilities immediately demanded by the registered consumers ($\mathcal{C} = \mathcal{R}(T_a) \cap \mathcal{R}(T_b)$). Building support for unrequested capabilities is treated as defect generation and inventory waste (*Muda*, DP-6).
+- **The Corpse of v1**: Three parallel tasks in Wave 1 each implement their own `routes.ts` authz middleware because the plan author only looked at each task in isolation.
+- **The Mechanism of Failure**: Once three separate PRs are written and passing local tests, nobody wants to delay the release to delete two of them. All three merge. Six months later, an authz bypass bug found in **Vitki** has to be hunted down manually across a dozen drifted copies.
+- **The RDOM Poka-Yoke**: The mandatory pre-wave DRY scan (**DP-13**). Before Wave 0 opens, every repeated capability across the DAG is named and either hoisted upstream or linked to a scheduled extraction node.
 
-#### 2. Copy-Paste Parallelism
+#### 2. Speculative Framework Syndrome (Hoisting a Guess)
 
-- **The Manifestation**: Under pressure to deliver features rapidly, parallel human developers or AI agent slices duplicate utility logic across isolated worktrees. Developer A needs a function to parse ISO-8601 timestamps with microsecond precision; they copy it from Stack Overflow or prompt an LLM to generate it. Developer B, working on a parallel slice in the same wave, does the same.
-- **The Defect Escape**: Six months later, a timezone edge-case bug is discovered in Developer A's implementation. The fix is applied to Service A. Service B remains unpatched. Months later, during daylight saving time transition, Service B corrupts financial reconciliation records.
-- **The RDOM Poka-Yoke**: Static AST duplication scanning prior to wave closure. Any identical or near-isomorphic token sequences spanning distinct task slices trigger an automated Andon Cord (DP-12). The code cannot merge until the duplicate is either hoisted into an internal shared module or explicitly exempted via an ADR.
+- **The Corpse of v1**: Building a generic `WebMCP` or `flutter-web` framework in Wave 0 before a single application has ever compiled or run in a browser.
+- **The Mechanism of Failure**: Because the author is guessing what future consumers need, the speculative framework gets the lifecycle hooks wrong. When Consumer 1 finally runs in Wave 1, the framework blocks real work, forcing Consumer 1 to write ugly workarounds or bypass the framework entirely.
+- **The RDOM Poka-Yoke**: The **Hoist-vs-Defer Test** (**DP-14**, **DP-16**). If the interface is guessed (zero shipped consumers), hoisting into Wave 0 is forbidden. Let Consumer 1 build inline, prove the code on live silicon (**DP-10**), and run the scheduled extraction task in the next wave.
 
-#### 3. The "Snowflake Exception" Culture
+#### 3. Deferred Extraction Amnesia ("We'll Clean It Up Later")
 
-- **The Manifestation**: A domain team insists that their microservice is "unique" and cannot use the canonical estate database connection wrapper. They claim their queries require non-standard transaction isolation levels or specialized telemetry tags that the standard library does not accommodate.
-- **The Defect Escape**: The team implements their own bespoke database client. When the platform infrastructure migrates to a zero-trust network topology requiring mutual TLS (mTLS) certificate rotation every 60 minutes, the standard library handles the rotation seamlessly across 90 services. The snowflake service fails to rotate certificates, causing an unrecoverable cascading outage across the core payment network.
-- **The RDOM Poka-Yoke**: The **Consumption Contract (DP-15)**. No team may opt out of a canonical platform surface without an explicit, time-bounded `consumes_exemption` signed off by the Ráð council. If a canonical library lacks a necessary capability, the team is forbidden from building a shadow client; instead, they must submit a pull request against the canonical library in Wave $W_{k-1}$ to extend the shared substrate for the entire estate.
+- **The Corpse of v1**: Deciding wisely not to build a speculative framework before Consumer 1 ships, but failing to put the extraction task into the DAG before Consumer 2 starts.
+- **The Mechanism of Failure**: When Consumer 2 opens in Wave 2, the worker slice simply copies Consumer 1's inline directory and modifies it. Deferral without a scheduled extraction node in the DAG is just procrastination.
+- **The RDOM Poka-Yoke**: Whenever the Hoist-vs-Defer Test selects **Defer**, the planner must insert the extraction task $v_{\text{extract}}$ into the DAG immediately, with a hard dependency edge $(v_{\text{extract}}, v_2)$ blocking Consumer 2 until the extraction merges.
 
-#### 4. Late Extraction Drift
+#### 4. Silent Estate Surface Bypass
 
-- **The Manifestation**: During sprint planning, an engineering manager notices that three concurrent tasks require identical webhook signature verification logic. Rather than delaying the feature tasks to extract the library first, the manager declares: "We need to hit our sprint deadline. Everyone build it locally for now, and we'll create a tech debt ticket to consolidate it into a shared library next sprint."
-- **The Defect Escape**: "Next sprint" never arrives. The three implementations subtly diverge in their handling of URL encoding, header casing, and secret stripping. By the time consolidation is attempted six months later, changing the logic in any one service breaks downstream external webhook integrations. The organization is permanently stuck supporting three diverging engines.
-- **The RDOM Poka-Yoke**: Principle **DP-13 (Planning-Time DRY Refactoring)**. Hoisting must occur *before* the consumer wave opens. If a shared requirement is discovered mid-execution, the active wave is paused, the Andon Cord is pulled (DP-12), and the DAG is re-topologized to insert Wave $W_{k-1}$ extraction before feature work proceeds.
+- **The Corpse of v1**: A canonical crate exists in the estate, but a newly spawned worker slice is not told about it in its task brief and writes a bespoke local implementation instead.
+- **The Mechanism of Failure**: The codebase accumulates shadow implementations that ignore estate security invariants, retry budgets, and telemetry standards.
+- **The RDOM Poka-Yoke**: Every JIT-elaborated task brief explicitly names the hoisted packages in its `Consumes` block, `eat prime` surfaces existing estate modules in `<800` tokens (**DP-20**), and `Snotra` / CI linters enforce `lane-consumption.json` (**DP-15**).
 
 ---
 
 ### Upstream & Downstream Integration (The Sovereign Triad)
 
-The DRY Hoisting Protocol does not exist in an architectural vacuum; it functions as the central binding mechanism linking upstream business strategy to downstream continuous delivery across the Sovereign Triad:
+The DRY Hoisting Protocol links **RLOM** portfolio hygiene to **RROM** artifact distribution:
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          The Sovereign Triad                            │
-├─────────────────────────────────────────────────────────────────────────┤
-│  Upstream: RLOM (Ravenhelm Lifecycle Operations Methodology)            │
-│  - Strategic Demand Formulation & Feature Definition                    │
-│  - The Ráð Architectural Council (Hoisting Gatekeeper)                  │
-│                                  │                                      │
-│                                  ▼ (Plan-Time Hoisting - DP-13, DP-14)  │
-│  Midstream: RDOM (Ravenhelm Development Operations Methodology)         │
-│  - Topological Wave Partitioning (W_0, W_1, ..., W_N)                   │
-│  - Substrate Elevation & Consumer Retargeting (DP-15, DP-16)            │
-│  - Six Sigma Boundary Gates (DP-7 Verified Green)                       │
-│                                  │                                      │
-│                                  ▼ (Immutable Artifact Publication)     │
-│  Downstream: RROM (Ravenhelm Release Operations Methodology)            │
-│  - Estate Package Registry Distribution (Harbor OCI / Private Cargo)    │
-│  - Fleet-Wide Drift Detection & Zero-Downtime Ring Deploys              │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+1. **Upstream Integration (RLOM $\to$ RDOM)**:
+   - When a **Planning-Time Hoist** or **Scheduled Extraction** is added to an Ehwaz plan, a corresponding tracked issue (`RAV-<id>`) is created in Linear with explicit `blocks` edges to every downstream consumer issue.
+   - During the **Monthly Architecture & Wave Boundary Review** (Chapter 7), the architect audits the DAG specifically to verify that every $\kappa \ge 2$ repeat has passed the Hoist-vs-Defer Test.
+2. **Downstream Integration (RDOM $\to$ RROM)**:
+   - When a hoisted substrate crate or `Project Factory` template passes its wave exit gate and merges to `main`, RROM packages and publishes the immutable versioned artifact so all downstream repositories and worktrees pull the exact same verified dependency digest.
 
-#### Upstream RLOM Integration: The Ráð Gatekeeper
+### Augmentation Surface - Automated Graph DRY Scanning & Consumption Auditing
 
-Before any engineering initiative is authorized for wave dispatch, the work passes through the upstream **Ravenhelm Lifecycle Operations Methodology (RLOM)** governance gate. During the **Ráð** ceremony (the Architecture Review Council, Chapter 7), the initiative's proposed Dependency DAG is subjected to the Hoisting Analysis:
-
-1. **Demand-Side Clustering**: RLOM demand signals and functional specs are evaluated across all proposed work streams. If two distinct product capabilities require similar technical scaffolding (e.g., automated PDF report generation and customer invoice export), RLOM mandates that the shared rendering engine be hoisted into Wave 0.
-2. **Pre-Flight DAG Ratification**: The Ráð physically rejects any DAG where parallel nodes in Wave $W_k$ contain duplicate capability without an explicit dependency on an upstream hoisted deed in Wave $W_{k-1}$. The plan cannot be ratified until the graph topology is mathematically clean.
-
-#### Downstream RROM Integration: Immutable Registry Publication
-
-Once hoisted artifacts are verified green at their wave boundary, they hand off directly to **Ravenhelm Release Operations Methodology (RROM)** for estate-wide distribution:
-
-1. **Hermetic Packaging**: Hoisted crates and modules are compiled into immutable, content-addressed artifacts (e.g., OCI registry packages, internal Cargo crates, or npm tarballs). They are tagged with strict Semantic Versioning and cryptographic digests.
-2. **Registry Elevation**: Artifacts are published to the internal estate registry. Downstream consumer worktrees in Wave $W_k$ consume these artifacts via immutable package references, guaranteeing that all parallel agent and human slices build against the exact same bit-for-bit binary or library interface.
-3. **Automated Fleet Ingestion**: RROM continuous delivery pipelines monitor the Demand-Side Lane Floor (`registry/lane-consumption.json`). When a new canonical patch is published to an estate surface, RROM automatically dispatches automated dependency-bump PRs across all registered consumer repositories, ensuring zero estate drift over time.
-
----
-
-> **Augmentation Surface — AST Duplication Detection & Plan-Time Hoisting**
+> **Augmentation Surface - Anti-Snowflake Compilation**
 >
 > **Where an agent layer transforms this practice:**
-> In high-scale engineering organizations, detecting cross-cutting duplication across hundreds of proposed tasks exceeds human cognitive capacity. An autonomous agent layer transforms this practice through continuous static analysis and graph compilation:
->
-> 1. **Automated Substructure Extraction**: As feature deeds are authored in draft DAGs, background compiler agents parse the natural language specifications, proposed schema definitions, and codebase ASTs. Agents perform semantic clustering across all active branches, instantly identifying when two uncoordinated tickets are attempting to implement isomorphic utilities.
-> 2. **Proactive Hoisting Proposals**: When the agent detects $\kappa \ge 2$ convergence, it automatically generates the hoisted deed specification for Wave $W_{k-1}$, scaffolds the new crate repository structure, generates the typed interface contract, and drafts the consumer retargeting patches for Wave $W_k$.
-> 3. **Poka-Yoke Consumption Enforcement**: Agentic CI linters continuously scan PRs across all active worktrees. If a human engineer or coding subagent writes custom HTTP, database, or logging logic that duplicates an established estate surface, the linter blocks the PR, points to the exact canonical crate in `library-surfaces.json`, and generates an automated autofix PR.
+> 1. **Pre-Wave DAG Duplication Scan**: Before Wave 0 opens, an architecture agent scans the `Produces` and file-path targets across every task in the draft plan alongside the `EAT` knowledge graph (`eat find`, `eat connections`). It flags any capability being built in two or more places and checks whether an existing surface in `library-surfaces.json` or a diagnosed defect (like the **Vitki** `routes.ts` receipts) already defines the interface.
+> 2. **Automated Hoist / Extraction Graph Rewiring**: Based on the Hoist-vs-Defer classification, the planner agent rewrites the DAG table of contents - either inserting the upstream hoist node in Wave $W_{k-1}$ or inserting the explicit extraction node between Consumer 1 and Consumer 2.
+> 3. **Advisory & CI Consumption Gate (`Snotra`)**: During pull request review, `Snotra` inspects diffs for hand-rolled authz, HTTP, or database boilerplate that duplicates a canonical estate surface, blocking silent snowflake proliferation before merge (**DP-15**, **DP-23**).
 >
 > **What the human architect keeps:**
-> The human architect retains sovereign judgment over the **Hoisting Decision Boundary**:
->
-> - Determining whether observed commonality represents true domain equivalence or merely accidental syntactic similarity. (For example: deciding whether an internal billing token and an external auth token should share a single cryptographic parser or remain strictly isolated domain types).
-> - Authorizing or denying `consumes_exemption` requests, ensuring that performance-critical exceptions are grounded in genuine physics rather than developer convenience.
-> - Setting estate-wide platform standards during the Ráð ceremony, ensuring that hoisted abstractions serve long-term enterprise strategy rather than short-term convenience.
+> - **The Hoist-vs-Defer Ruling**: Deciding whether an interface is genuinely *known* (ready to hoist now) or *guessed* (must be built inline by Consumer 1 first and extracted in the next wave) is an architectural judgment call reserved for the human operator.
+> - **Exemption Authorization**: Only the human architect may approve a `consumes_exemption` allowing a repository to step outside the estate consumption floor.
+
+---
 
 <!-- RUBRIC_CHECK:
   structural: pass
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 4311
-  principle-citations: DP-1, DP-2, DP-3, DP-6, DP-7, DP-9, DP-12, DP-13, DP-14, DP-15, DP-16, DP-17
+  word-count: 3060
+  principle-citations: DP-1, DP-2, DP-6, DP-7, DP-9, DP-10, DP-13, DP-14, DP-15, DP-16, DP-20, DP-23
   flagged-principle-gaps: none
 -->

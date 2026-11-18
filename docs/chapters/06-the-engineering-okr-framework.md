@@ -1,267 +1,235 @@
 <!-- LICENSE: © 2026 Ravenhelm LLC. Licensed material. -->
 <!-- All rights reserved except as granted in LICENSE. Inquiries: nate@ravenhelm.co -->
 
-## Chapter 6 — The Engineering OKR Framework (Faster, Bigger, Cheaper, Effective)
+## Chapter 6 - The Four-Dimensional Engineering Scorecard: Faster, Bigger, Cheaper, Effective
 
-At quarter-end, engineering leadership presents thirty slides celebrating ninety-four percent completion of engineering Objectives and Key Results (OKRs). The deck highlights activity: "Migrated Auth to OAuth2," "Adopted GraphQL Gateway," and "Burned 1,200 Story Points." By conventional agile metrics, the organization enjoyed a banner quarter.
+On 2026-09-16, we opened a pull request that touched a single markdown documentation file. Forgejo Actions picked up the push, spun up a job container, and ran all 380 integration and unit tests in the repository for **9 minutes 23 seconds** before reporting green (`ci.yml` had been scaffolded without a `paths-ignore` filter for documentation edits). During the same stretch, Anthropic API rate limits and quota alarms began tripping across the workstation. The naive suspect was the number of coding slices we were spawning, so the instinct was to throttle worker count. Then we pulled the actual token ledger (`anthropic-quota-drain-is-fable-and-fleet-cache-reads.md`): the quota drain was not coming from bounded Sonnet workers writing code; it was coming from the Fable supervisor seat re-reading massive uncompacted context windows and worker slices running blind full-file `read_file` sweeps that burned 78% of their context window before writing a line of diff. And two days earlier, on 2026-09-14, spinning up 33 concurrent live slices on a single workstation had driven free system RAM down to **26 MB** with **5.4 GB of swap thrash**.
 
-Yet three floors down, production incidents surged forty percent. Outage resolution ballooned from forty minutes to six hours from undocumented circular dependencies. Cloud and token costs exceeded budget by sixty percent from redundant CI matrices and unconstrained directory sweeps. Lead time stretched from two weeks to eleven weeks. The organization ships activity at fever pitch, but its engine seizes under unmeasured friction, architectural decay, and compounding defects.
+Look at what would have happened if we had governed that floor with a conventional single-scalar engineering metric:
 
-This is the bankruptcy of modern engineering OKRs. Organizations cargo-cult business frameworks by tracking arbitrary activity rather than mechanical system performance. Goals like "Ship Feature X" or "Migrate 5 Microservices" measure neither throughput, unit economics, structural quality, nor velocity. They incentivize declaring victory when code merges into staging, ignoring operational waste, inflated token consumption, and broken topological integrity.
+- If you optimize purely for **ticket count or PR volume**, thirty autonomous slices will happily churn out fifty tiny, fragmented pull requests an hour while each one triggers a 9-minute-23-second test matrix that starves the `eikthyrnir` runner pool.
+- If you optimize purely for **concurrency**, you launch 33 slices on one machine, exhaust physical RAM into 5.4 GB of swap, and watch every slice grind to a halt.
+- If you optimize purely for **speed** by turning off verification prompts or skipping integration checks, agents ship module-level `NameError` exceptions (`RAV-1962`) or merge 46 KB of dead protocol code with 73 passing unit tests and zero callers (`2026-09-09`).
+- If you optimize purely for **cost** by starving workers of tools rather than fixing context priming, slices guess at interfaces and double your rework bill.
 
-When autonomous AI coding agents enter an organization lacking mechanical OKR governance, this drift accelerates. Unconstrained agent swarms generate tens of thousands of lines of code within minutes, opening superficial pull requests to satisfy vanity quotas. Without a balanced, mathematically grounded framework, leadership remains blind to disaster until the live running system collapses under unverified debt.
+You cannot steer a high-concurrency human-and-agent factory floor with a one-dimensional speedometer. Story points are fiction, raw commit counts are inventory waste (*Muda*), and slide-deck OKRs that cannot be computed from git, runner, and token telemetry are corporate theater.
 
-The **Ravenhelm Development Operations Methodology (RDOM)** rejects decorative, activity-based goal setting. It grounds execution in the **Valknut OKR Framework**: a mathematically rigorous operating model balancing four mutually reinforcing dimensions: **Faster, Bigger, Cheaper, Effective**.
+RDOM governs execution through **The Four-Dimensional Engineering Scorecard**: a homeostatic control system that locks four opposing physical forces - **Faster, Bigger, Cheaper, Effective** - into equilibrium across every **13-Week Engineering Cadence**.
 
 ---
 
-### The Valknut OKR Matrix & Mechanical Foundations
+### The Four-Dimensional Control Matrix & Homeostatic Tension
 
-Borrowed from queueing theory, control systems, and lean manufacturing, the Valknut OKR Framework establishes that an engineering system cannot be governed by a single scalar metric. Optimizing for speed alone triggers a defect explosion; optimizing solely for cost reduction starves throughput; scaling agent fleets without topological boundaries drowns in merge collisions.
-
-The Valknut framework balances four opposing physical forces into homeostatic equilibrium:
+Borrowed from control theory, queueing physics, and Toyota production engineering, the Four-Dimensional Engineering Scorecard treats the factory floor as a coupled system. Pushing any one dimension past its structural envelope immediately registers as a violation in the other three:
 
 ```mermaid
 flowchart TD
-    subgraph VALKNUT["The Valknut Engineering OKR Matrix"]
+    subgraph SCORECARD["The Four-Dimensional Engineering Scorecard"]
         direction TB
         
-        subgraph TopRow["Throughput & Velocity Axis"]
-            F["FASTER (Velocity & Flow)\n• Cycle Time to Merge (Tc)\n• Wave Completion Latency (Lw)\n• Zero-Blocker Cadence (DP-13, DP-14)"]
-            B["BIGGER (Scale & Concurrency)\n• Worktree Parallelism (DP-3, DP-19)\n• Fleet Concurrency (Cfleet)\n• Validated Deed Volume (|D|)"]
+        subgraph TopAxis["Throughput & Capacity Axis"]
+            F["FASTER (Lead Time & Critical Chain)\n• PR Cycle Time to Merge (Tc)\n• Wave Completion Latency (Lw)\n• CI Path Filtering (9m23s -> <15s)"]
+            B["BIGGER (Concurrency & Wave Width)\n• Active Disjoint Worktrees (DP-3, DP-19)\n• Bounded Fleet Concurrency (Cfleet)\n• Verified Deliverables Shipped (|D|)"]
         end
         
-        subgraph BottomRow["Economics & Integrity Axis"]
-            C["CHEAPER (Unit Economics & Anti-Muda)\n• Token Efficiency Ratio (ηtoken)\n• CI Compute per Deed (Cci)\n• Zero Scrap Ratio (DP-20)"]
-            E["EFFECTIVE (Defect Prevention & Quality)\n• Zero Wave Escapes (DP-7)\n• Zero Collision Incidents (DP-3)\n• 100% Witnessed Deeds (DP-11)"]
+        subgraph BottomAxis["Economics & Zero-Defect Axis"]
+            C["CHEAPER (Token, Runner & RAM Discipline)\n• EAT Priming <800 Tokens (DP-20)\n• Supervisor vs Worker Tier Routing\n• Runner & Memory Budget Headroom"]
+            E["EFFECTIVE (Zero-Escape & Reachability)\n• Zero Wave Gate Escapes (DP-7)\n• 100% Caller Reachability (DP-10)\n• Complete Triad of Proof (DP-11)"]
         end
         
-        F <== "Tension: Speed without Quality\ncauses Defect Explosion" ==> E
-        B <== "Tension: Scale without Boundaries\ncauses Merge Collision Storms" ==> E
-        C <== "Tension: Cost-Cutting without Flow\ncauses Throughput Starvation" ==> F
-        C <== "Tension: Concurrency without Efficiency\ncauses Runaway Token Inflation" ==> B
+        F <== "Tension: Speed without Reachability\nships 10 Dead Features (2026-09-09)" ==> E
+        B <== "Tension: 33 Unbounded Slices\ndrains RAM to 26 MB & 5.4 GB Swap" ==> C
+        C <== "Tension: Unfiltered CI (9m23s on MD)\nchokes Runner Pool & stalls Wave Flow" ==> F
+        B <== "Tension: Parallel Workers on Shared DB\ntramples pytest-xdist Tables (DP-3)" ==> E
     end
 ```
 
-Every quarterly engineering commitment—formalized in RDOM as a **Saga's Vow**—must establish explicit targets across all four quadrants.
+Every **Quarterly Engineering Contract** (ratified on a 13-week cadence at the **Quarterly Invariant Review**) sets explicit, machine-measured bounds across all four quadrants.
 
-#### 1. Faster (Velocity & Topological Flow)
+#### 1. Faster (Lead Time, Critical Chain & Queue Discipline)
 
-The *Faster* quadrant measures velocity converting declared intent into verified, running production code. Discarding subjective story points, RDOM measures flow strictly through physical clock time across the dependency graph ($G = (V, E)$).
+The *Faster* quadrant measures the wall-clock time required to turn a `Ready` RLOM Deliverable (`RAV-<id>`) into a running production digest in RROM. We never measure velocity in story points; we measure seconds, minutes, and hours along the Ehwaz dependency graph ($G = (V, E)$).
 
-- **Cycle Time to Merge ($T_c$):** Physical duration from cutting a worktree branch to verified pull request merge.
-- **Wave Completion Latency ($L_w$):** Calendar duration required for a topological wave ($W_k$) to advance from foundation dispatch to Six Sigma verification, bounded by the Critical Chain floor (DP-4).
-- **Lead Time to Production ($T_{\text{lead}}$):** Physical duration from issue intake in RLOM to verified deployment on live cluster infrastructure.
-- **Zero-Blocker Cadence:** Elimination of idle wait states via Planning-Time DRY Hoisting (DP-13) and the Hoist-vs-Defer Rule (DP-14), resolving shared dependencies before execution.
+- **PR Cycle Time to Merge ($T_c$):** Elapsed wall-clock time from worktree branch creation (`git worktree add`) to squash-merge on `main` and immediate RROM deploy (`merge-then-deploy`).
+- **Wave Completion Latency ($L_w$):** Calendar time required for all tasks in open wave $W_k$ to clear their Six Sigma exit gates, bounded below by Goldratt's **Critical Chain Floor** (**DP-4**).
+- **Court Card Turnaround Latency ($T_{\text{card}}$):** Elapsed time between a worker slice raising an architectural escalation card and the supervisor acting on the answer. After 12 answered cards sat unacted on for 16 hours on 2026-10-01 (`act-on-card-answers-the-turn-they-arrive.md`), $T_{\text{card}}$ is governed by a strict rule: act on card answers the very turn they arrive.
+- **CI Feedback Latency ($T_{\text{ci}}$):** Eliminating waste in the verification loop itself - such as adding `paths-ignore` for markdown edits so a documentation fix never burns 9 minutes 23 seconds running 380 backend tests.
 
-#### 2. Bigger (Scale, Throughput & Fleet Capacity)
+#### 2. Bigger (Wave Width, Fleet Concurrency & Disjoint Surface)
 
-The *Bigger* quadrant measures organizational capacity to scale execution without quadratic communication overhead ($O(n^2)$), scaling execution through topological partitioning.
+The *Bigger* quadrant measures the horizontal width of the factory floor: how many independent Deliverables (`RAV-<id>`) the organization can execute in parallel without merge collisions, database trampling, or workstation memory exhaustion.
 
-- **Agent Fleet Concurrency ($C_{\text{fleet}}$):** Count of autonomous agent slices and paired engineers operating simultaneously without cross-dependency blocking.
-- **Worktree Parallelism ($P_w$):** Count of dedicated, isolated git worktrees actively executing changes against canonical `.bare/` repositories (DP-19).
-- **Validated Deed Volume ($|\mathcal{D}|$):** Count of completed Daily Deeds delivered within an operational cycle, where every deed satisfies the Triad of Proof (DP-11).
-- **Surface Coverage:** Breadth of platform subsystems, crates, and services evolving concurrently under Ehwaz wave scheduling (DP-2, DP-3).
+- **Wave Width ($|W_k|$):** The number of causally independent tasks in open wave $W_k$ unlocked by planning-time DRY hoisting (**DP-2**, **DP-13**). Hoisting shared schemas and scaffolds (`routes.ts`) into Wave $W_0$ widens Wave $W_1$ so ten consumers can run in parallel.
+- **Bounded Fleet Concurrency ($C_{\text{fleet}}$):** The number of simultaneous Doom worker slices executing across isolated `.bare/` worktrees (**DP-19**), strictly capped by physical host memory and runner container budgets (`forgejo-runner-scheduler`) so the machine never repeats the 33-slice / 26 MB free RAM swap cliff.
+- **Verified Deliverable Throughput ($|\mathcal{D}_{\text{done}}|$):** The count of `RAV-<id>` issues transitioned through `Validation` to `Done` with a complete Triad of Proof (**DP-11**) and a live RROM deployment receipt.
 
-#### 3. Cheaper (Unit Economics & Waste Eradication)
+#### 3. Cheaper (Token Efficiency, EAT Priming & Runner Economics)
 
-The *Cheaper* quadrant measures resource stewardship and the eradication of manufacturing waste (*Muda*), targeting token consumption, cloud compute, and scrap code.
+The *Cheaper* quadrant eradicates manufacturing waste (*Muda*) across three physical budgets: LLM context tokens, CI runner minutes, and workstation RAM/CPU.
 
-- **Token Efficiency Ratio ($\eta_{\text{token}}$):** Ratio of verified deeds merged into trunk relative to total LLM context tokens consumed. Penalizes directory sweeps and rewards AST context priming via the Entity-Attribute-Tag substrate (`eat prime`, `eat read`) (DP-20).
-- **CI Compute Efficiency ($C_{\text{ci}}$):** Compute cost and execution time to validate a pull request pipeline, enforcing deterministic artifact caching and eliminating rebuilds.
-- **Manufacturing Scrap Reduction ($S_{\text{scrap}}$):** Proportion of code lines, speculative branches, or unmerged PRs discarded due to upstream drift. Minimized via Just-In-Time (JIT) elaboration (DP-6).
+- **Orientation Token Budget (`eat prime` $<800$ Tokens, DP-20):** Replacing recursive `list_dir` and whole-file `read_file` dumps (which consumed up to 78% of a slice's context window and triggered lossy compaction) with deterministic `<800`-token `eat prime` topological manifests and `<10ms` `eat read` AST byte slices.
+- **Role-Tier Quota Discipline:** Keeping Fable in the high-leverage supervisor and architectural judgment seat while routing bounded implementation slices to Sonnet workers (`who-is-nate.md`), and auditing prompt cache-read amplification so supervisor polling never drains estate API quota (`anthropic-quota-drain-is-fable-and-fleet-cache-reads.md`).
+- **Planning-Time Anti-Snowflake Savings (DP-13, DP-14):** Hoisting known shared interfaces once in Wave $W_0$ rather than paying three worker slices to invent, test, and later rip out three duplicate implementations.
+- **JIT Detailing Savings (DP-6):** Refusing to write line-by-line TDD plans three waves ahead of their producers, eliminating speculative plan rewrites when upstream types evolve.
 
-#### 4. Effective (Defect Prevention & Sovereign Quality)
+#### 4. Effective (Zero-Escape Gates, Caller Reachability & Coverage Truth)
 
-The *Effective* quadrant measures structural integrity and adherence to engineering contracts. Speed and scale are worthless if the system manufactures broken silicon.
+The *Effective* quadrant is the governor on the engine. Speed, concurrency, and low token cost mean nothing if the factory ships dead code or fake green checks.
 
-- **Zero Wave Boundary Escapes ($E_{\text{wave}}$):** Prohibition against letting broken interfaces, unverified stubs, or failing tests cross from Wave $W_k$ into Wave $W_{k+1}$ (DP-7).
-- **Zero Collision Incidents ($I_{\text{coll}}$):** Total absence of merge conflicts or semantic race conditions across concurrent worktrees, guaranteed by wave construction (DP-3).
-- **Witnessed Deed Completeness ($\mu_{\text{witness}}$):** Invariant that one hundred percent of merged PRs possess the Triad of Proof: passing automated tests against live environments, updated runbooks/ADRs, and an executable showcase deed (DP-11).
-- **Andon Cord Resolution Latency ($T_{\text{andon}}$):** Elapsed time to diagnose and remediate root causes when a worker halts the wavefront (DP-12).
-
----
-
-### Mathematical Formulations & Exact Metrics
-
-To prevent political distortion, Valknut metrics are harvested directly from machine telemetry: Git commit logs, forge pull request events, CI runner records, and EAT token proxies.
-
-#### 1. Faster Formulations
-
-Let $\mathcal{D}$ represent Daily Deeds completed in an evaluation window. For deed $d \in \mathcal{D}$, let $t_{\text{open}}(d)$ be the timestamp when its worktree branch opens as a pull request, and $t_{\text{merge}}(d)$ be the merge timestamp.
-
-The **Mean Cycle Time** ($\bar{T}_c$) is:
-
-$$\bar{T}_c = \frac{1}{|\mathcal{D}|} \sum_{d \in \mathcal{D}} \left( t_{\text{merge}}(d) - t_{\text{open}}(d) \right)$$
-
-For wave $W_k$, **Wave Completion Latency** ($L_w(W_k)$) is bounded by the Critical Chain floor (DP-4):
-
-$$L_w(W_k) = \max_{v \in W_k} \left( t_{\text{verified}}(v) \right) - \min_{v \in W_k} \left( t_{\text{dispatched}}(v) \right) \ge \sum_{v \in \text{CriticalChain}(W_k)} \text{Duration}(v)$$
-
-#### 2. Bigger Formulations
-
-Let worktree slot $i$ have active execution indicator $\mathbb{I}_i(t) \in \{0, 1\}$ within an isolated `.bare/` projection (DP-19).
-
-The **Instantaneous Fleet Concurrency** ($C_{\text{fleet}}(t)$) and **Mean Worktree Parallelism** ($\bar{P}_w$) across duration $T$ are:
-
-$$C_{\text{fleet}}(t) = \sum_{i=1}^{N_{\text{slots}}} \mathbb{I}_i(t), \quad \bar{P}_w = \frac{1}{T} \int_{0}^{T} C_{\text{fleet}}(t) \, dt$$
-
-Subject to the Axiom of Concurrency, cross-wave execution is forbidden (DP-2, DP-3):
-
-$$\forall u \in W_j, v \in W_k \quad (j \ne k) \implies \mathbb{I}_u(t) \cdot \mathbb{I}_v(t) = 0$$
-
-#### 3. Cheaper Formulations
-
-Let $\text{Tokens}_{\text{total}}(d)$ be the tokens consumed for deed $d$. The **Token Efficiency Ratio** ($\eta_{\text{token}}$) is:
-
-$$\eta_{\text{token}} = \frac{|\mathcal{D}|}{\sum_{d \in \mathcal{D}} \text{Tokens}_{\text{total}}(d)} \times 10^6 \quad \left[ \frac{\text{Verified Deeds}}{\text{Megatoken}} \right]$$
-
-To quantify context waste, the **Context Scrap Ratio** ($R_{\text{scrap}}$) compares primed source bytes ($B_{\text{primed}}$) with bytes utilized in the AST ($B_{\text{ast\_utilized}}$):
-
-$$R_{\text{scrap}} = 1 - \frac{B_{\text{ast\_utilized}}}{B_{\text{primed}}}$$
-
-Raw directory dumps yield $R_{\text{scrap}} > 0.95$, whereas EAT AST priming (DP-20) enforces $R_{\text{scrap}} < 0.15$.
-
-#### 4. Effective Formulations
-
-The **Wave Boundary Defect Escape Rate** ($E_{\text{wave}}$) for wave $W_k$ is:
-
-$$E_{\text{wave}}(W_k) = \frac{\text{Defects detected in } W_{j > k} \text{ originating in } W_k}{|W_k|}$$
-
-RDOM establishes the Six Sigma invariant: $E_{\text{wave}} \equiv 0$ (DP-7).
-
-The **Witnessed Deed Completeness** ($\mu_{\text{witness}}$) asserts full compliance with the Triad of Proof (DP-11, DP-23):
-
-$$\mu_{\text{witness}} = \frac{1}{|\mathcal{D}|} \sum_{d \in \mathcal{D}} \left( \mathbb{I}_{\text{test}}(d) \times \mathbb{I}_{\text{doc}}(d) \times \mathbb{I}_{\text{showcase}}(d)\right) \equiv 1.0$$
-
-The **Collision Incident Rate** ($R_{\text{coll}}$) measures pull request conflicts:
-
-$$R_{\text{coll}} = \frac{\text{Pull Requests with merge conflicts}}{|\mathcal{D}|} \equiv 0$$
-
-Topological wave partitioning eliminates collisions by construction (DP-3).
+- **Zero Wave Boundary Escapes ($E_{\text{wave}} \equiv 0$, DP-7):** No broken contract, masked exit code (`unittest | tail -5`), or unverified mock crosses from Wave $W_k$ into Wave $W_{k+1}$.
+- **Zero Write-Surface or DB Collisions ($I_{\text{coll}} \equiv 0$, DP-3):** Verified upfront via `git merge-tree --write-tree` and per-worker isolated database schemas (preventing `pytest-xdist` workers from trampling the shared default database).
+- **100% Caller Reachability & Source-to-Artifact Parity (DP-10, DP-11):** Every merged feature must have real callers reachable from the production entrypoint (killing the 2026-09-09 failure where 10 features merged with 73 passing tests and zero callers) and pass `check-release-source-parity.sh` (killing the 2026-10-09 `DIS 1.8` fiction release).
+- **Falsifiable Coverage Audits:** Measuring what a system fails to cover, not merely that a cron job exited `0` - born of `hrafngud` dumping 1 database out of 8 for seven months (`postgres-dump-covers-one-database-of-eight.md`) and `RAV-2079` comparing `"" == ""` on a broken restore.
 
 ---
 
-### Operational Protocols & Quarterly Cadence
+### Mathematical Formulations & Telemetry Equations
 
-Valknut OKRs operate as a living control system integrated into organizational ceremonies: the quarterly Althing, the monthly Ráð, and the daily Morning Muster.
+Every metric on the Four-Dimensional Engineering Scorecard is computed directly from Forgejo/GitHub webhook events, git commit trailers, `forgejo-runner-scheduler` metrics, and model gateway logs.
 
-#### 1. The Saga's Vow: Binding Targets Across All Four Quadrants
+#### 1. Faster Equations
 
-At quarter start, engineering leadership and architects convene at the **Althing** to ratify the quarterly **Saga's Vow**. Unlike standard roadmaps listing feature requests, a Saga's Vow couples functional milestones with Valknut performance invariants:
+Let $\mathcal{D}$ be the set of Deliverables (`RAV-<id>`) completed in the measurement window. For each deliverable $d \in \mathcal{D}$, let $t_{\text{branch}}(d)$ be the first commit timestamp on its worktree branch, $t_{\text{merge}}(d)$ be its squash-merge timestamp on `main`, and $t_{\text{live}}(d)$ be the timestamp when its RROM `:b<N>` digest passes live validation.
+
+The **Mean PR Cycle Time** ($\bar{T}_c$) and **End-to-End Lead Time** ($\bar{T}_{\text{lead}}$) are:
+
+$$\bar{T}_c = \frac{1}{|\mathcal{D}|} \sum_{d \in \mathcal{D}} \left( t_{\text{merge}}(d) - t_{\text{branch}}(d) \right), \quad \bar{T}_{\text{lead}} = \frac{1}{|\mathcal{D}|} \sum_{d \in \mathcal{D}} \left( t_{\text{live}}(d) - t_{\text{branch}}(d) \right)$$
+
+For topological wave $W_k$, **Wave Completion Latency** ($L_w(W_k)$) is bounded below by the Critical Chain (**DP-4**):
+
+$$L_w(W_k) = \max_{v \in W_k} t_{\text{live}}(v) - \min_{v \in W_k} t_{\text{branch}}(v) \ge \sum_{v \in \text{CriticalChain}(W_k)} \text{Duration}(v)$$
+
+#### 2. Bigger Equations
+
+Let $N_{\text{max\_safe}}$ be the host and runner concurrency ceiling (determined by physical RAM headroom and `eikthyrnir` container budgets), and let $\mathbb{I}_i(t) \in \{0, 1\}$ indicate whether worktree slot $i$ is actively executing at time $t$.
+
+**Instantaneous Fleet Concurrency** ($C_{\text{fleet}}(t)$) must satisfy the hard physical envelope:
+
+$$C_{\text{fleet}}(t) = \sum_{i=1}^{N_{\text{worktrees}}} \mathbb{I}_i(t) \le N_{\text{max\_safe}}$$
+
+Subject to the Ehwaz wave barrier (**DP-2**, **DP-3**), where no task $v \in W_{k}$ may execute while any upstream dependency $u \in W_{j < k}$ where $(u, v) \in E$ remains unverified:
+
+$$\forall (u, v) \in E, \quad \text{status}(u) \ne \text{VerifiedGreen} \implies \mathbb{I}_v(t) = 0$$
+
+#### 3. Cheaper Equations
+
+Let $\text{Tokens}_{\text{in}}(d)$, $\text{Tokens}_{\text{cache\_read}}(d)$, and $\text{Tokens}_{\text{out}}(d)$ be the token counts consumed across the lifecycle of deliverable $d$. The **Deliverable Token Efficiency** ($\eta_{\text{token}}$) is:
+
+$$\eta_{\text{token}} = \frac{|\mathcal{D}|}{\sum_{d \in \mathcal{D}} \left( \text{Tokens}_{\text{in}}(d) + \text{Tokens}_{\text{cache\_read}}(d) + \text{Tokens}_{\text{out}}(d) \right)} \times 10^6 \quad \left[ \frac{\text{Verified Deliverables}}{\text{Megatoken}} \right]$$
+
+The **Context Scrap Ratio** ($R_{\text{scrap}}$) measures the fraction of bytes pulled into the context window ($B_{\text{read}}$) that were never referenced by the AST call graph of the final diff ($B_{\text{ast\_touched}}$):
+
+$$R_{\text{scrap}} = 1 - \frac{B_{\text{ast\_touched}}}{B_{\text{read}}}$$
+
+Blind directory sweeps (`list_dir` + whole-file `read_file`) produce $R_{\text{scrap}} > 0.90$; surgical `eat prime` + `eat read` (**DP-20**) holds $R_{\text{scrap}} < 0.15$.
+
+#### 4. Effective Equations
+
+The **Wave Boundary Escape Rate** ($E_{\text{wave}}$) for wave $W_k$ counts defects discovered in downstream waves $W_{j > k}$ or production that originated in $W_k$:
+
+$$E_{\text{wave}}(W_k) = \frac{\text{Defects detected in } W_{j > k} \cup \text{Prod originating in } W_k}{|W_k|} \equiv 0$$
+
+The **Effective Reachability & Proof Index** ($\mu_{\text{effective}}$) requires every merged deliverable $d \in \mathcal{D}$ to pass four binary gates: live-system test pass ($\mathbb{I}_{\text{test}}$), caller reachability from a production entrypoint ($\mathbb{I}_{\text{reachable}}$), updated docs/runbooks ($\mathbb{I}_{\text{doc}}$), and an executable showcase receipt ($\mathbb{I}_{\text{showcase}}$):
+
+$$\mu_{\text{effective}} = \frac{1}{|\mathcal{D}|} \sum_{d \in \mathcal{D}} \left( \mathbb{I}_{\text{test}}(d) \cdot \mathbb{I}_{\text{reachable}}(d) \cdot \mathbb{I}_{\text{doc}}(d) \cdot \mathbb{I}_{\text{showcase}}(d) \right) \equiv 1.0$$
+
+If any of the four factors is `0` - such as the 2026-09-09 dead modules where $\mathbb{I}_{\text{test}} = 1$ but $\mathbb{I}_{\text{reachable}} = 0$ - the product is `0` and the Deliverable cannot close.
+
+---
+
+### The 13-Week Engineering Cadence & Operational Reviews
+
+A scorecard that is only read at the end of the quarter is an autopsy report. RDOM wires the Four-Dimensional Engineering Scorecard into three operational reviews across the **13-Week Engineering Cadence**:
+
+#### 1. The Quarterly Invariant Review (First Monday of the Quarter)
+
+At the start of each 13-week quarter, the architect conducts the **Quarterly Invariant Review** to audit the closing quarter's receipts and ratify the new **Quarterly Engineering Contract**. Every contract binds functional wave milestones to explicit four-dimensional thresholds:
 
 ```yaml
-sagas_vow:
-  name: "Unified Ingress & Sovereign Mesh Gateway"
-  quarter: "2026-Q3"
-  strategic_alignment: "RLOM-SAGA-412"
-  valknut_commitments:
+quarterly_engineering_contract:
+  contract_id: "QEC-2026-Q4-RUNESTACK"
+  quarter: "2026-Q4 (13-Week Cadence)"
+  program_initiative: "Runestack Sovereign Platform Spine"
+  scorecard_invariants:
     faster:
-      mean_cycle_time_max_hours: 4.0
-      wave_completion_latency_p90_days: 3.5
+      mean_pr_cycle_time_max_hours: 4.0
+      docs_only_ci_duration_max_seconds: 20
+      court_card_action_latency_turns: 1
     bigger:
-      min_concurrent_agent_slices: 12
-      worktree_parallelism_mean: 8.5
-      target_validated_deeds_count: 140
+      target_concurrent_worktree_slices: 10
+      max_host_slices_hard_cap: 16
+      min_host_free_ram_mb: 2048
     cheaper:
-      min_token_efficiency_deeds_per_mtoken: 2.2
+      max_eat_prime_tokens: 800
       max_context_scrap_ratio: 0.15
-      max_ci_cost_per_deed_usd: 1.85
+      min_deliverables_per_megatoken: 2.5
     effective:
-      wave_boundary_defect_escape_rate: 0.0
-      multi_branch_collision_count: 0
-      witnessed_deed_completeness_ratio: 1.0
+      wave_boundary_escape_rate: 0.0
+      write_surface_collision_count: 0
+      caller_reachability_ratio: 1.0
+      triad_of_proof_completeness: 1.0
 ```
 
-If an initiative proposes to accelerate velocity (*Faster*) by relaxing wave gates (*Effective*), the Althing rejects the vow. If it scales concurrency (*Bigger*) without accounting for token economics (*Cheaper*), it is returned for structural refactoring.
+#### 2. The Monthly Architecture Review (First Monday of the Month)
 
-#### 2. Weekly & Daily Inspection Rituals
+Once a month, the **Monthly Architecture Review** inspects empirical distributions across all active repositories and runner pools:
 
-Valknut OKR health is monitored continuously through operational rituals:
+- Are any CI workflows missing `paths-ignore` or running redundant builds that violate ADR-0007?
+- Did any deferred scaffolds from last month's Hoist-vs-Defer tables (**DP-14**) gain a second consumer, triggering their scheduled extraction wave?
+- Are `forgejo-runner-scheduler` container budgets balanced between the Norns light lane and `eikthyrnir`, or are jobs queuing?
+- Has any repository drifted from the Checkout Custody Standard (`git-estate`) or accumulated stale worktrees?
 
-- **The Morning Muster (Daily):** Teams inspect the live wavefront rather than reciting status lists. Are worktrees idling on unhoisted dependencies (DP-13, DP-14)? Has any worker pulled the Andon cord (DP-12)? Are Daily Deed pull requests maintaining a sub-four-hour cycle time ($T_c$)? Telemetry anomalies halt dispatch immediately.
-- **The Ráð (Monthly):** The tactical steering council evaluates drift across empirical distributions: wave latencies ($L_w$), CI runner compute hours, token expenditure trends, and worktree concurrency. If token efficiency ($\eta_{\text{token}}$) declines, prompt templates are audited and EAT priming is enforced (DP-20).
-- **The Althing (Quarterly Audit):** The closing Saga's Vow undergoes an unsparing mathematical audit. Completed deeds are verified against the live running system (DP-10). Unmet commitments trigger root-cause analysis rather than narrative excuses.
+#### 3. The Daily Fleet Sweep / Morning Muster (Daily Bench Check)
+
+Every day on the floor begins with the **Daily Fleet Sweep (Morning Muster)** using `doom momentum --quiet`, the `Doomcourt` docket, and Linear health views:
+
+- **Flush the Docket First:** Answer and act on every pending court decision card on the current turn so zero worker slices idle waiting on human rulings.
+- **Inspect Live Panes and Uncommitted Diffs:** Before parking or pruning any stalled slice, inspect its attached tmux windows (`zero-sessions-is-not-unused-check-attached-windows.md`) and read its uncommitted `git diff` so an in-flight hardware fix like the 2026-09-07 owl `PIXFORMAT_JPEG` patch is never thrown away.
+- **Check Wave Gate Readiness:** Verify which open wave tasks have cleared CI and **Snotra** review, execute first-hand squash merges (**DP-23**), trigger immediate RROM deployment (`merge-then-deploy`), and unlock the next topological wave.
 
 ---
 
-### Concrete Anti-Patterns & Defect Escapes
+### Concrete Failure Modes of Unbalanced Scorecards
 
-Organizations adopting OKRs without topological discipline succumb to four fatal failure modes.
+Every time a team drops one of the four dimensions, the floor breaks in a specific, repeatable pattern:
 
-#### 1. The Speed Trap (Velocity Without Quality)
-
-Leadership over-indexes on *Faster*, pressuring teams to minimize cycle time and maximize merge counts. Workers bypass integration suites, disable flaky tests, merge against synthetic mocks, and omit documentation.
-
-Apparent velocity spikes briefly, but unverified contracts escape across wave boundaries (violating DP-7). Because defect remediation costs scale geometrically ($C_{\text{escape}} = k \cdot 10^d$), downstream waves encounter broken dependencies ($d \ge 2$). Development halts for emergency triage, driving net lead time through the roof.
-
-#### 2. The Penny-Pinch Choke (Frugality Without Flow)
-
-Management fixates entirely on *Cheaper*, aggressively capping CI runner budgets, throttling staging environments, and restricting agent tokens.
-
-Deprived of AST topological context (`eat prime`), agents hallucinate non-existent interfaces. Deprived of CI runner capacity, pull requests queue for hours, collapsing fleet concurrency ($C_{\text{fleet}}$) and inflating cycle time ($T_c$). The organization saves hundreds of dollars in API tokens while wasting tens of thousands of dollars in engineering labor and missing delivery windows.
-
-#### 3. The Vanity Metric (Activity Without Provenance)
-
-OKRs track superficial output volumes: lines of code committed, raw pull request counts, or story points burned.
-
-In an agentic environment, this is lethal. An AI agent instructed to maximize PR volume generates boilerplate, inflates utility classes, and fragments refactors into unnecessary commits. None of this code advances business capability. RDOM anchors *Bigger* strictly to **Validated Deeds** backed by the Triad of Proof (DP-11). Raw PR counts and lines of code are treated as inventory waste (*Muda*) until proven otherwise.
-
-#### 4. The Disconnected Slide Deck (Intent Without Lineage)
-
-OKRs drafted in Notion, Jira, or slide decks bear zero cryptographic or mechanical lineage to the git commit tree.
-
-In this failure mode, OKRs exist in an alternate corporate dimension. Engineers fight production regressions while managers update subjective status dropdowns. At quarter-end, declared OKR successes bear no resemblance to live cluster reality. Under RDOM, an OKR that cannot be harvested automatically from Git logs, worktree states, and CI test artifacts is categorized as an unverified rumor.
+| Dropped Dimension | The Resulting Trap | Real Estate Receipt |
+|:---|:---|:---|
+| **Drop *Cheaper* (Runner & CI Hygiene)** | **The 9-Minute Markdown Tax:** Trivial doc PRs run full integration suites; supervisor cache reads drain API quota. | 2026-09-16: 1-file markdown PR ran 380 tests for **9m23s** (`ci.yml` missing `paths-ignore`); Fable + fleet cache reads drained Anthropic quota. |
+| **Drop *Cheaper* (Host Envelope)** | **The Necromancer's Swap Cliff:** Spawning unbounded agent slices until kernel swap thrashing freezes every worker on the box. | 2026-09-14: **33 live slices** on one workstation drove free RAM to **26 MB** and swap to **5.4 GB**. |
+| **Drop *Effective* (Reachability & Parity)** | **The Ghost Feature & Fiction Release:** High PR velocity and 100% green unit tests on code that is never called in prod. | 2026-09-09: **10 merged features with 73 passing tests and zero callers**; 2026-10-09: `DIS 1.8` live site advertised 7 constructs with 0 hits in repo. |
+| **Drop *Faster* (Poka-Yoke Friction)** | **The Oversight-Price Bypass:** Making test execution cost an approval prompt so agents skip testing to move faster. | `WALKER-004J` / `RAV-1962`: `read_file` was free, `bash` cost a prompt -> agent ran zero tests and shipped a module-level `NameError`. |
 
 ---
 
 ### Upstream & Downstream Integration (The Sovereign Triad)
 
-The Valknut OKR framework coordinates intent, execution, and verification across the **Sovereign Triad**.
+The Four-Dimensional Engineering Scorecard links all three *dōmbócs* into a single measurable feedback loop:
 
 ```
-       DEMAND & STRATEGY                  EXECUTION CADENCE                 RELEASE & RUNTIME
+       BOOK I: RLOM                      BOOK II: RDOM                     BOOK III: RROM
   +------------------------+        +------------------------+        +------------------------+
-  |          RLOM          |        |          RDOM          |        |          RROM          |
-  | Ravenhelm Linear       | =====> | Ravenhelm Development  | =====> | Ravenhelm Release      |
-  | Operating Method       |        | Operations Method      |        | Operations Method      |
+  | Quarterly Engineering  |        | 4D Scorecard Engine    |        | Harbor :b<N>@sha256    |
+  | Contract & Project     | =====> | Faster · Bigger        | =====> | Rail A/B/C Promotion   |
+  | Health (45/45 Set)     |        | Cheaper · Effective    |        | Live Reachability Gate |
   +------------------------+        +------------------------+        +------------------------+
-  - Long-Saga Portfolio            - Valknut OKR Matrix             - Immutable OCI Digests
-  - Demand Intake Boundary          - Topological Wavefront          - Production Deployment
 ```
 
-#### Upstream Contract: RLOM $\to$ RDOM (The Intake Boundary)
+- **Upstream (RLOM $\to$ RDOM):** RLOM enforces that 100% of active projects carry a live health status (ending the `0 of 45 projects with health set` blindness) and that every project update separates raw measurement from conclusion before ending with an action-item table. Those project targets compile directly into RDOM's four scorecard quadrants.
+- **Downstream (RDOM $\to$ RROM):** RDOM's *Faster* and *Cheaper* metrics benefit directly from RROM's **ADR-0007** (*"Builds are the unit; releases are names"*): compiling once on merge to `main` and promoting immutable Harbor digests eliminates redundant release-time rebuilds. Conversely, RROM's live deployment probes and backup restore verifiers feed RDOM's *Effective* quadrant: any post-merge deployment failure, `PrometheusRule` RBAC rejection (`RAV-2086`), or parity mismatch halts the wavefront and registers as an escape until the gate is hardened.
 
-Strategic demand originates in the **Ravenhelm Linear Operating Method (RLOM)** (`P-1` through `P-29`), where Wyrd Runes and Long-Sagas decompose into quarterly portfolio goals.
-
-Before execution, initiatives cross the intake boundary and bind to an RDOM Saga's Vow as a dependency graph ($G = (V, E)$). Valknut validates feasibility: if an initiative requires concurrency ($C_{\text{fleet}}$) or token budgets exceeding estate capacity, the graph is refactored before dispatch.
-
-#### Downstream Contract: RDOM $\to$ RROM (The Release Boundary)
-
-RDOM terminates at the Pull Request boundary (DP-23). Once an atomic deed passes automated test gates, documentation synchronization, and showcase execution (DP-11), it merges into trunk.
-
-Here, custody transfers to the **Ravenhelm Release Operations Method (RROM)** (`RP-1` through `RP-18`), operating under the doctrine: *"Builds are the unit; releases are names."* RROM compiles immutable OCI container images pinned to cryptographic content digests for automated deployment across runtime clusters.
-
-Valknut *Faster* and *Effective* metrics close their feedback loop through RROM runtime telemetry. Production rollbacks feed directly back into the Valknut scorecard as downstream escapes, halting subsequent waves for immediate Andon cord investigation.
-
-#### The Showcase-as-UAT Feedback Loop
-
-Validation of a Saga's Vow culminates when RDOM's witnessed showcase deeds return to RLOM for User Acceptance Testing (UAT). Stakeholders evaluate physical execution against live running environments (DP-10). When all showcase deeds satisfy original acceptance criteria, RLOM marks the initiative Complete, keeping strategic intent and physical execution in lockstep.
-
----
-
-> **Augmentation Surface — Continuous OKR Harvesting & Telemetry**
+> **Augmentation Surface - Real-Time Scorecard Telemetry**
 >
-> Where an agent layer transforms this practice: An autonomous telemetry governor continuously monitors the git repository, CI runner logs, worktree lifecycle events, and model proxy gateways. It calculates cycle times, fleet concurrency, token efficiency ratios, and defect escape rates in real time, synthesizing an automated, mathematically verified Valknut scorecard. If an active wave drifts—such as token scrap exceeding fifteen percent or wave latency exceeding the critical chain floor—the governor alerts engineering leads and pauses agent dispatch before budget or schedule overruns compound.
+> Where an agent layer transforms this practice: `Doomcourt`, `forgejo-runner-scheduler`, and the EAT substrate measure all four quadrants continuously without human spreadsheet maintenance. `eat prime` enforces the `<800`-token orientation ceiling automatically (**DP-20**); `forgejo-runner-scheduler` tracks runner queue depth and active container budgets; `Doomcourt` enforces host slice concurrency caps and checks caller reachability before flagging a PR for merge.
 >
-> What the human architect keeps: Inviolable sovereign authority over strategic trade-offs across the four quadrants. The human architect ratifies the quarterly Saga's Vow, sets minimum quality and economic thresholds, approves architectural exceptions (`consumes_exemption`), and provides final authorization for production release cutovers.
+> What the human architect keeps: Setting the quarterly trade-off envelope across Faster, Bigger, Cheaper, and Effective at the **Quarterly Invariant Review**, ruling on architectural escalations during the **Daily Fleet Sweep**, and holding non-delegable merge and cutover authority.
 
 <!-- RUBRIC_CHECK:
   structural: pass
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 2494
-  principle-citations: DP-2, DP-3, DP-4, DP-6, DP-7, DP-10, DP-11, DP-12, DP-13, DP-14, DP-19, DP-20, DP-23
+  word-count: 2682
+  principle-citations: DP-2, DP-3, DP-4, DP-6, DP-7, DP-10, DP-11, DP-13, DP-14, DP-19, DP-20, DP-23
   flagged-principle-gaps: none
 -->

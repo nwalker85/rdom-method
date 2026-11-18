@@ -1,199 +1,220 @@
 <!-- LICENSE: © 2026 Ravenhelm LLC. Licensed material. -->
 <!-- All rights reserved except as granted in LICENSE. Inquiries: nate@ravenhelm.co -->
 
-## Chapter 7 — Ceremonies of Truth (Althing, Ráð, and Morning Muster)
+## Chapter 7: Ceremonies of Truth - Quarterly Invariant Review, Monthly Architecture Review, and the Daily Fleet Sweep
 
-At 9:30 AM in software organizations worldwide, developers assemble for the daily standup. A manager shares a screen displaying a board cluttered with eighty cards. For twenty minutes, developers recite rehearsed monologues: *"Yesterday I worked on the auth bug; today I'm continuing to look into it; no blockers."* The manager nods, drags a card, and records a status note no one reads. Senior engineers triage an active staging outage on mute. Nothing of operational value is communicated, no dependencies are verified, and no broken interfaces are surfaced.
+On October 1, 2026, between 04:31Z and 04:34Z, twelve architectural ruling cards on `work.ravenhelm.dev` were answered in three minutes. The rulings arrived as `decision.answered` events on the supervisor watch channel while the fleet seat was executing a `Kanidm` identity provisioning apply. That command crossed the ten-minute synchronous tool ceiling and shifted into the background. The supervisor session finished its turn, emitted a polite summary, and went to sleep without draining the remaining eleven answers from the queue. Nothing woke it. For sixteen hours, twelve signed human authorizations sat cold in the docket until the operator opened the console at 20:41Z and typed two words: `"check again"`. Sitting inside that frozen pile were an emergency remediation for `Andvari` that left a MinIO console exposed to the public internet for sixteen hours, three approved pull request merges, and a production release cut. The ledger held the rulings. The factory floor never moved.
 
-Every other Friday, this performative theater escalates into the sprint retrospective. A scrum master opens a digital whiteboard partitioned into pastel quadrants: *What Went Well*, *What Puzzled Us*, and *What Could Be Improved*. Developers post colored sticky notes venting chronic frustrations: *"CI builds are too slow,"* and *"Staging was broken for three days."* The team votes with virtual dots, records an action item to "communicate earlier," and files it away. Two weeks later, the exact same failures recur, because emotional catharsis has replaced systems engineering.
+Twenty-four hours earlier, on September 30, 2026, worker slice `onyx.summit.trace` finished issue `RAV-2124` at 05:57Z, printed a five-item action table to its terminal stdout, and waited. It sat untouched for fifteen hours. The supervisor had been polling the docket summary table, which listed only lanes the supervisor had personally spawned. Because the operator had launched `onyx.summit.trace` directly in an interactive `Claude` / `Yager` harness, the slice reported to its own terminal pane rather than the docket index. When the operator forced a full read-only pane sweep across every live `tmux` socket on the workstation (`tmux -L doom-<id> capture-pane -p -J -S -120 -t main`), a single pass uncovered the fifteen-hour `RAV-2124` handoff, an unexecuted `Kanidm` provisioning script, the unguarded MinIO console without SSO, an unreviewed 2,400-line `yager` pull request, a worker slice that had killed a peer slice, and an unsent operator prompt sitting half-typed in a lane's input buffer. The docket summary was green. The panes were bleeding.
 
-Between these rituals lies sprint planning poker. Engineers sit in a circle holding cards inscribed with Fibonacci numbers, debating whether a distributed consensus migration is a "five" or an "eight." They bargain over subjective point values that disguise technical illiteracy and an absence of dependency analysis. Teams celebrate "velocity" as they burn down story points, even as trunk remains uncompilable, database migrations conflict, and releases stall behind manual regression testing.
+Traditional software organizations fail in the exact same geometry, merely slower and with better posture. At 9:30 AM across the industry, human engineering teams gather for the daily standup to recite rehearsed alibis in front of an eighty-card board: *"Yesterday I looked at the auth bug; today I am still looking at the auth bug; no blockers."* Nobody checks the commit graph, nobody reads the failing CI logs, and senior engineers triage an active staging outage on mute. Every second Friday, the team opens a pastel whiteboard for a sprint retrospective, places virtual dots on sticky notes complaining that staging was broken for three days, writes an action item to *"communicate earlier,"* and repeats the outage on Monday. Between those two rituals sits planning poker, where engineers wave Fibonacci cards to guess whether a distributed consensus migration is a five or an eight without mapping a single dependency edge.
 
-When autonomous AI coding agents enter this vacuum, collapse accelerates. Agents do not attend standups, vote on sticky notes, or parse story points. Left without mathematical boundaries, agents churn out thousands of lines of plausible code that satisfies tickets in name while shattering underlying system architecture.
+When we first replaced human standups with autonomous AI agent coordination, our v1 design repeated the error in silicon. We built a passive supervisor seat that waited for worker slices to post completion messages and checked only the high-level docket registry. On September 13, 2026, the `Odin's Runes` implementation lane sat wedged at an interactive directory-trust prompt for eight hours while idle sessions thrashed the workstation into swap. Passive reporting fails for the same reason human standups fail: a blocked actor cannot reliably report the shape of its own cage, and a summary view is a lossy transform that hides whatever fell off the happy path. Status is never a self-reported string.
 
-RDOM abolishes this ritual theater with the **Ceremonies of Truth**. Every ceremony is a mechanical governor designed for one objective: the uncompromising reconciliation of declared intent with observed reality. Status is never reported; it is extracted from physical deeds. Intent is never assumed; it is proven through directed acyclic graphs. Quality is never negotiated; it is enforced by green tests executing against the live running system.
+The **Ravenhelm Development Operations Methodology (RDOM)** replaces theatrical status meetings and passive docket polling with four **Ceremonies of Truth**: the **Quarterly Invariant Review**, the **Monthly Architecture Review** (coupled with **Wave Boundary Gate Reviews**), the **Daily Fleet Sweep (Morning Muster)**, and the **Doom Verification Gate**. Every ceremony is a closed-loop mechanical governor with one job: force declared intent in the ledger to confront physical state on the machine.
 
 ### The Theoretical & Mechanical Foundation
 
-Taiichi Ohno proved that production drift occurs whenever management relies on verbal status reports rather than directly inspecting the factory floor (*Gemba*). In software engineering, the factory floor is physical silicon: git commit graphs, compiler outputs, container registry digests, and live running network state.
+Taiichi Ohno established in the Toyota Production System that management drift begins the moment supervisors read paper summaries in an office instead of walking the shop floor (*Gemba*) where parts are stamped. In a hybrid human-agent software factory, the shop floor is made of git object databases, live `tmux` panes, container registry digests in `Harbor`, court dockets in `Doomcourt`, and running pods on the `Norns` cluster.
 
-The Ceremonies of Truth formalize engineering coordination as a closed-loop feedback control system operating across four discrete geometric scales: strategic, topological, tactical, and boundary gate.
+A summary compresses two independent measurements into a single soothing lie. If an engineer or a supervisor agent compresses *"the RF sweep is alive at 2,400 samples per second"* and *"the database write path is dead"* into *"RF detection is in progress,"* the receiver cannot diagnose the fault. The Ceremonies of Truth forbid lossy verbal compression by anchoring every cadence to raw system telemetry across four operational horizons:
 
 ```mermaid
 flowchart TD
-    subgraph STRATEGIC["1. Strategic Cadence (Quarterly)"]
-        A_In["RLOM Demand & Valknut OKRs"] --> A_Alt["The Althing Council"]
-        A_Alt --> A_Vow["Ratified Saga's Vow & Buffers (DP-4)"]
+    subgraph STRATEGIC["1. Quarterly Invariant Review (13-Week Cadence)"]
+        A_In["RLOM Demand & 4D Scorecard\n(Faster, Bigger, Cheaper, Effective)"] --> A_Rev["Quarterly Invariant Review"]
+        A_Rev --> A_Contract["Ratified Quarterly Engineering Contract\n& 20% Critical Chain Buffer (DP-4)"]
     end
 
-    subgraph TOPOLOGICAL["2. Topological Cadence (Wave Boundary)"]
-        A_Vow --> R_Draft["Draft DAG: G = (V, E)"]
-        R_Draft --> R_Rad["The Ráð Council"]
-        R_Rad --> R_Hoist{"DRY Hoisting (DP-13, DP-14)"}
-        R_Hoist -- "Collision" --> R_HNode["Hoist to Wave N-1"]
+    subgraph TOPOLOGICAL["2. Monthly Architecture & Wave Boundary Review"]
+        A_Contract --> R_Draft["Draft Dependency DAG: G = (V, E)"]
+        R_Draft --> R_Rev["Architecture & Wave Review"]
+        R_Rev --> R_Hoist{"DRY Hoisting Scan (DP-13, DP-14)\n& Blast Radius Audit (DP-3)"}
+        R_Hoist -- "Overlap / Duplicate" --> R_HNode["Hoist Shared Surface to Wave N-1\nor Schedule Extraction"]
         R_HNode --> R_Draft
-        R_Hoist -- "Disjoint" --> R_Rat["Ratified Wave DAG (DP-1, DP-3)"]
+        R_Hoist -- "Disjoint & Clean" --> R_Rat["Ratified Wave DAG (DP-1, DP-2)"]
     end
 
-    subgraph TACTICAL["3. Execution Cadence (Daily)"]
-        R_Rat --> M_Disp["Dispatch Worktrees (DP-19)"]
-        M_Disp --> M_Must["The Morning Muster"]
-        M_Must --> M_Q{"3 Factual Questions:\nDeeds, Radii, Andon"}
-        M_Q -- "Andon (DP-12)" --> M_Halt["Halt Slice (DP-5)"]
-        M_Halt --> R_Rad
-        M_Q -- "Deeds (DP-11)" --> M_Trunk["Trunk Merge (DP-23)"]
+    subgraph TACTICAL["3. Daily Fleet Sweep / Morning Muster"]
+        R_Rat --> M_Disp["Dispatch Isolated Worktrees (DP-19)"]
+        M_Disp --> M_Sweep["Active Fleet Sweep (doom ps + pane capture)"]
+        M_Sweep --> M_Cards["Drain Answered Court Cards (court-state read)"]
+        M_Cards --> M_Q{"Classify Every Live Slice:\nWorking / Waiting / Done / Wedged"}
+        M_Q -- "Andon / Blocker (DP-12)" --> M_Halt["Checkpoint WIP (DP-22) & Escalate Card"]
+        M_Halt --> R_Rev
+        M_Q -- "Verified PR Ready (DP-11)" --> M_Trunk["Review & Trunk Merge (DP-23)"]
     end
 
-    subgraph PROMOTION["4. Boundary Gate Cadence (Wave Completion)"]
-        M_Trunk --> D_Done{"All Tasks Done?"}
-        D_Done -- "Yes" --> D_Doom["The Doom Verification Gate"]
-        D_Doom --> D_Aud{"100% Live Green?\nTriad Attached?"}
-        D_Aud -- "Fail" --> D_Andon["Sound Andon (DP-12)\nGate Locked"]
-        D_Andon --> M_Must
-        D_Aud -- "Pass (DP-7)" --> D_Disp["Worktree Disposal (DP-24)"]
-        D_Disp --> D_Unl["Unlock Wave N+1 / RROM Release"]
+    subgraph PROMOTION["4. Doom Verification Gate (Wave Exit)"]
+        M_Trunk --> D_Done{"All Wave Tasks Merged?"}
+        D_Done -- "Yes" --> D_Doom["Doom Verification Gate"]
+        D_Doom --> D_Aud{"100% Live Green (DP-10)?\nTriad Attached (DP-11)?"}
+        D_Aud -- "Fail" --> D_Andon["Sound Andon (DP-12)\nKeep Wave N+1 Locked"]
+        D_Andon --> M_Sweep
+        D_Aud -- "Pass (DP-7)" --> D_Disp["Prune Worktrees (DP-24)\nUnlock Wave N+1 / Trigger RROM"]
     end
 ```
 
-#### 1. The Althing (Quarterly Strategic Council)
+#### 1. The Quarterly Invariant Review (13-Week Strategic Alignment)
 
-The Althing convenes quarterly, assembling principal architects, engineering directors, and product operators to pass judgment on reality and ratify the next **Saga's Vow**.
+The **Quarterly Invariant Review** convenes at the boundary of every 13-week engineering cycle. Its purpose is to audit the estate against **The Four-Dimensional Engineering Scorecard** (*Faster, Bigger, Cheaper, Effective*), inspect every production defect escape from the trailing quarter, and ratify the **Quarterly Engineering Contract**.
 
-- **Cadence**: Quarterly, preceding the execution quarter.
-- **Inputs**: The Valknut Scorecard (*Faster*, *Bigger*, *Cheaper*, *Effective*), trailing defect post-mortems, and candidate RLOM initiatives.
-- **Outputs**: Ratified Saga's Vow committing critical path initiatives (**DP-4**), and capacity allocations reserving at least 20% of engineering throughput for critical chain buffers and substrate maintenance.
-- **Truth Criterion**: No initiative is admitted without topological feasibility proof, an identified owner, and verified runner capacity.
+- **Cadence**: Once per 13-week cycle, prior to Wave 0 of the new quarter.
+- **Required Inputs**:
+  1. Trailing 13-week measurements across the Four-Dimensional Scorecard: cycle time and build latency (*Faster*), workload scale and repository coverage (*Bigger*), unit compute and token cache efficiency (*Cheaper*), and defect escape rate plus restore-proof pass rate (*Effective*).
+  2. Candidate **Strategic Invariants** and **Program Initiatives** from the **Ravenhelm Linear Operating Method (RLOM)** that have passed the Definition of Ready.
+  3.Measured infrastructure ceilings: `Norns` cluster allocatable CPU/RAM, `Forgejo` runner slot capacity, and LLM token quota burn rates.
+- **Concrete Outputs**:
+  1. A ratified **Quarterly Engineering Contract** locking the committed initiatives and their Critical Chain floor (**DP-4**).
+  2. Explicit capacity reservation allocating at least 20% of total engineering and runner bandwidth to Critical Chain feeding buffers and Layer 0 substrate maintenance.
+- **Inviolable Truth Criterion**: No initiative enters the Quarterly Engineering Contract without a compiled top-level dependency graph, a named human accountable owner, and verified runner/compute headroom. Wishful roadmaps die at the door.
 
-#### 2. The Ráð (Wave Architecture & Hoisting Council)
+#### 2. The Monthly Architecture Review & Wave Boundary Gate
 
-The Ráð is the technical council held at each topological wave boundary ($W_0 \to \dots \to W_N$). Executing a wave without an approved Ráð is an unauthorized mutation of the estate.
+The **Monthly Architecture Review** operates at two levels: a monthly estate-wide audit of **The Architecture Record (ADRs & Runbooks)** and a mandatory topological gate convened prior to opening each execution wave ($W_0 \to W_1 \to \dots \to W_k$). Launching concurrent worker slices without passing the wave boundary review is an unauthorized mutation of the estate.
 
-- **Cadence**: At each topological wave boundary.
-- **Inputs**: Candidate wave DAG $G = (V, E)$ (**DP-1**, **DP-2**), interface schemas (Protobufs, OpenAPI, DDL), and declared blast radii across repositories, crates, and database tables.
-- **Outputs**: Ratified wave DAG with partitioned blast radii (**DP-3**), DRY hoisting allocations moving common abstractions into Wave $N-1$ (**DP-13**, **DP-14**), and binding worktree allocations (**DP-19**).
-- **Truth Criterion**: The **Disjoint Blast Radius Guarantee**. If concurrent tasks in candidate wave $W_k$ target overlapping schemas, configurations, or library interfaces, the Ráð halts execution until the shared dependency is hoisted into Wave $W_{k-1}$ or serialized across waves.
+- **Cadence**: Monthly for estate-wide ADR drift and consumption floor audits; per wave boundary for tactical DAG ratification.
+- **Required Inputs**:
+  1. Candidate wave dependency graph $G = (V, E)$ (**DP-1**, **DP-2**).
+  2. Concrete interface contracts (`Consumes` / `Produces`, Protobufs, OpenAPI specs, SQL DDL migrations) and declared spatial blast radii $\mathcal{B}(v)$ for every task in the wave.
+  3. The estate's Supply-Side Surface Catalog (`library-surfaces.json`) and Demand-Side Lane Floor (`lane-consumption.json`).
+- **Concrete Outputs**:
+  1. Ratified wave DAG with proven disjoint blast radii across all parallel tasks (**DP-3**).
+  2. Planning-Time DRY Hoisting mutations (**DP-13**, **DP-14**): known shared surfaces hoisted into Wave $W_{k-1}$ and unknown future abstractions explicitly scheduled as extraction tasks in Wave $W_{k+1}$.
+  3. Binding worktree custody assignments (**DP-19**) and ratified Architectural Decision Records (ADRs).
+- **Inviolable Truth Criterion**: **Disjoint Blast Radius and Zero Unacknowledged Duplication**. If two tasks in candidate wave $W_k$ touch intersecting files, tables, or routes ($\mathcal{B}(u) \cap \mathcal{B}(v) \neq \emptyset$), or if both implement the same capability without an upstream hoist or scheduled extraction, the review halts dispatch until the graph is refactored.
 
-#### 3. The Morning Muster (Daily Alignment & Blocker Inspection)
+#### 3. The Daily Fleet Sweep (Morning Muster)
 
-The Morning Muster is the daily pulse of tactical execution—an adversarial synchronization capped strictly at fifteen minutes (or executed asynchronously via structured agent digests).
+The **Daily Fleet Sweep** (executed synchronously as the **Morning Muster** by human leads and continuously every cycle by the fleet supervisor seat) is the tactical heartbeat of the factory floor. Born directly from the September 13, September 30, and October 1, 2026 supervisor failures, it replaces verbal standups with direct physical inspection of every live execution lane.
 
-- **Cadence**: Daily, fifteen minutes maximum.
-- **Format**: Every engineer and agent coordinator answers three factual questions only:
-  1. *What verified deeds were merged into trunk in the last 24 hours?* Must cite merged PR hashes and green CI runs satisfying the Triad of Proof (**DP-11**, **DP-23**).
-  2. *What isolated worktree slice is currently checked out, and what is its declared blast radius?* Stating the exact worktree path and canonical branch (**DP-19**).
-  3. *Is any Andon cord currently pulled or upstream dependency broken?* Surface blocked interfaces immediately (**DP-5**, **DP-12**).
-- **Truth Criterion**: **The Ban on Promissory Status**. Terms such as *"almost done"* or *"ninety percent complete"* are prohibited. Status exists only as witnessed deeds merged to trunk.
+- **Cadence**: Daily fifteen-minute hard ceiling for human alignment; continuous sweep loop (at least every two hours and at the start and end of every supervisor turn) for the autonomous fleet seat.
+- **Protocol**: The sweep never trusts a ticket board or a docket summary alone. It executes a strict seven-step hardware-and-session inspection:
+  1. **Drain Answered Court Cards First**: Query `court-state read --json` for any card with `status=answered` lacking an execution receipt. Execute every answered ruling in the exact turn it arrives, ordered strictly by blast radius: public exposure and security remediations first, then approved PR merges, then deployments. Never end a turn while an answered ruling sits unacted upon.
+  2. **Enumerate Every Live Slice**: Run `doom ps` across the host to list every non-closed slice, whether launched by the supervisor seat or opened directly by the operator in `Claude`, `Antigravity`, `Ullr`, or `Yager`.
+  3. **Capture Every Pane Read-Only**: For every live slice, inspect its terminal buffer without injecting keystrokes (`tmux -L doom-<id> capture-pane -p -J -S -120 -t main`) and check its session-log modification timestamp. Never judge idleness from checkpoint age alone; on September 30, 2026, slices with four-day-old checkpoints were actively compiling code that same hour.
+  4. **Classify Each Slice into One of Five States**:
+     - *Working*: Active compiler/test output or recent session-log writes. Leave undisturbed.
+     - *Waiting on Benign Prompt*: Stuck on a directory trust prompt or a question already answered in the task brief. Nudge it forward.
+     - *Waiting on Sovereign Ruling*: Blocked on an architectural decision, a production mutation, or a privileged credential. Read its staged script and file a structured card on `work.ravenhelm.dev` (one question per card, full options, explicit recommendation).
+     - *Finished with Deliverable*: Work complete, PR opened or action table printed in the pane. Route the PR to `Snotra` / review immediately and close the slice once its deliverable is recorded so idle processes never hoard RAM.
+     - *Operator's Personal Session*: A pane containing unsent text in the `❯` input box or belonging to the operator's direct exploration. Hands off completely; never inject text and never kill it.
+  5. **Verify Turn-State Metadata**: Confirm that `because`, `here`, `next`, and `blocker` fields are populated on every active slice.
+  6. **Enforce the Three Factual Muster Questions**: Every human engineer or slice coordinator reports only:
+     - *What verified commits merged to `main` in the last 24 hours?* (Cite PR numbers and green CI receipts satisfying **DP-11** and **DP-23**).
+     - *What isolated worktree path is currently leased, and what is its declared blast radius?* (**DP-19**).
+     - *What Andon cord is pulled or what upstream dependency is broken?* (**DP-5**, **DP-12**).
+- **Inviolable Truth Criterion**: **The Ban on Promissory Status and Partial Sweeps**. Phrases like *"90% done"* or *"wrapping up tests"* are inadmissible. A task is either merged with receipts ($1$) or unmerged ($0$). A sweep that checks the docket summary without reading the panes is a failed sweep.
 
-#### 4. The Doom Verification (Wave Gate Acceptance & Promotion)
+#### 4. The Doom Verification Gate (Wave Boundary Acceptance)
 
-The Doom Verification is the terminal gatekeeper of a topological wave, ensuring no downstream work begins on an unverified promise.
+The **Doom Verification Gate** is the airlock between topological waves. When every task in Wave $W_k$ claims completion, the gatekeeper verifies that the integrated trunk actually works on live infrastructure before Wave $W_{k+1}$ is permitted to open.
 
-- **Cadence**: Triggered when all constituent tasks in wave $W_k$ claim completion.
-- **Inputs**: Aggregated test suites executed against live unmocked infrastructure (**DP-10**), the Triad of Proof for every node (**DP-11**), and custody audit logs proving zero dirty worktrees remain (**DP-24**).
-- **Outputs**: Signed Wave Certification Attestation, automated worktree pruning (**DP-24**), and cryptographic unlocking of Wave $W_{k+1}$.
-- **Truth Criterion**: **Six Sigma Zero-Defect Gate** (**DP-7**). Test suites must execute 100% green against live systems. A single test failure invalidates the gate, holding Wave $W_{k+1}$ locked while capacity swarms on the regression.
+- **Cadence**: Triggered at the completion of every topological wave $W_k$.
+- **Required Inputs**: Full integration test battery executed against live, unmocked containers and databases (**DP-10**); the Triad of Proof (**DP-11**: green tests, updated living documentation in `docs/` and `AGENTS.md`, and a witnessed execution showcase); and a worktree custody audit proving zero orphaned or dirty checkouts remain (**DP-24**).
+- **Concrete Outputs**: Cryptographic wave completion attestation, automated disposal of completed Wave $W_k$ worktrees, and the unlock signal for Wave $W_{k+1}$ (or handoff to **RROM** for `:b<N>` release promotion).
+- **Inviolable Truth Criterion**: **Six Sigma Wave Exit Gate** (**DP-7**). Wave $W_{k+1}$ never opens on a promise. If a single integration test fails or a merged feature has zero callers on the live runtime path, the gate stays locked.
 
 ### Operational Mechanics & Step-by-Step Protocols
 
-To eliminate ambiguity across human-agent fleets, each ceremony operates under explicit rules of engagement and state transitions.
+To keep human engineers and autonomous agent slices synchronized without bureaucracy, the four ceremonies bind directly to deterministic state transitions.
 
-| Ceremony | Primary Objective | Required Inputs | Concrete Outputs | Inviolable Truth Criterion |
-|:---|:---|:---|:---|:---|
-| **The Althing** | Strategic intent ratification; OKR governance | Valknut Scorecard, RCAs, RLOM Initiatives | Saga's Vow, OKR Targets, 20% Buffers | Feasibility proof required for all accepted demand (**DP-4**). |
-| **The Ráð** | Wave DAG validation; DRY hoisting | Candidate DAG $G=(V,E)$, Interface Schemas | Ratified Wave DAG, Hoisting ADRs | Disjoint blast radii across parallel slices (**DP-3**, **DP-13**). |
-| **The Morning Muster** | Tactical synchronization; blocker extraction | 24h Git reflogs, PR hashes, CI logs | Daily Muster Digest, Andon Escalations | Status admitted only via merged PR deeds (**DP-11**). |
-| **The Doom Verification** | Wave gate acceptance; promotion gating | Live integration runs, Triad of Proof packages | Wave Attestation, Pruned Worktrees | 100% live green; zero promissory advancement (**DP-7**, **DP-24**). |
+| Ceremony | Cadence | Primary Objective | Required Inputs | Concrete Outputs | Inviolable Truth Criterion |
+|:---|:---|:---|:---|:---|:---|
+| **Quarterly Invariant Review** | Every 13 weeks | Strategic intent ratification; scorecard audit | 4D Scorecard (*Faster, Bigger, Cheaper, Effective*), RCAs, RLOM Initiatives | Quarterly Engineering Contract, 20% Buffer Allocation | Topological feasibility and runner headroom proven (**DP-4**). |
+| **Monthly Architecture & Wave Review** | Monthly & per wave boundary | Wave DAG validation; DRY hoisting; ADR governance | Candidate DAG $G=(V,E)$, Interface Contracts, Blast Radii $\mathcal{B}(v)$ | Ratified Wave DAG, Hoisted Wave $W_{k-1}$ Tasks, ADRs | Disjoint blast radii ($\mathcal{B}(u) \cap \mathcal{B}(v) = \emptyset$) (**DP-3**, **DP-13**). |
+| **Daily Fleet Sweep (Morning Muster)** | Daily (15m) & continuous seat loop | Drain answered cards; sweep all live panes; unblock lanes | `court-state read --json`, `doom ps`, read-only `tmux` pane captures, git reflogs | Executed Rulings, Classified Lanes, Court Cards, Closed Idle Slices | Zero unacted card answers; status admitted only via merged PRs (**DP-11**). |
+| **Doom Verification Gate** | Every wave exit ($W_k \to W_{k+1}$) | Live integration proof; worktree custody cleanup | Live test runs (**DP-10**), Triad of Proof packages, `git worktree list` | Wave Attestation, Pruned Worktrees, Wave $W_{k+1}$ Unlock | 100% live green; zero promissory promotion (**DP-7**, **DP-24**). |
 
-#### The Ban on Promissory Status
+#### The Mathematics of Binary Task State
 
-Traditional engineering management treats progress as continuous: a developer reports a feature as "70% done," and later as "90% done," where it lingers for weeks. In distributed systems, boundary complexity spikes exponentially: the final "10%"—integration, edge cases, race conditions, and documentation—consumes 90% of cognitive effort.
+Conventional project management treats task completion as a continuous variable on $[0, 1]$, allowing tickets to sit at `"85% complete"` for three weeks while edge cases, SQL migrations, and deployment permissions remain unsolved. In distributed systems, the final ten percent of integration holds ninety percent of the failure modes.
 
-RDOM models task state as strictly binary: $S(T) \in \{0, 1\}$. A task evaluates to $0$ if implementation is incomplete, tests pass only against mocks, documentation is unwritten, or its pull request remains unmerged. It transitions to $1$ only when the pull request satisfies the Triad of Proof (**DP-11**), passes branch protection gates (**DP-23**), and lands cleanly on trunk.
+RDOM restricts task state to a binary step function $S(v) \in \{0, 1\}$:
 
-During the Morning Muster, participants reporting promissory status are called to order immediately. Progress is measured strictly as $\text{Deed Count} = \sum_{i=1}^{M} S(T_i)$. If no deed has transitioned to $1$, the worker reports: *"Zero deeds merged; working worktree slice [ID]; [Blocker state]."* This strips psychological bias from tracking and exposes delivery bottlenecks immediately.
+$$S(v) = \begin{cases} 1 & \text{if } \text{Merged}(v) \land \text{LiveGreen}(v) \land \text{DocsUpdated}(v) \land \text{Witnessed}(v) \\ 0 & \text{otherwise} \end{cases}$$
 
-#### The Andon Escalation Mechanism in Muster and Ráð
+Wave progress is the exact sum of completed binary nodes across the active wave:
 
-The Andon Cord protocol (**DP-12**) provides an explicit operational circuit breaker:
+$$\text{Progress}(W_k) = \frac{1}{|W_k|} \sum_{v \in W_k} S(v)$$
 
+During the Daily Fleet Sweep, any report that attempts to claim fractional credit for unmerged work is rejected. If a worker slice has written 1,200 lines of code in its worktree but has not passed live verification and merged to `main`, $S(v) = 0$. The lane reports its worktree path, its current commit checkpoint, and whether its path is clear or blocked.
+
+#### The Andon Escalation & Court Card Loop
+
+When a worker slice encounters a broken upstream contract, an unexpected database constraint, or a permission boundary, Principle **DP-5** (*Upstream-Jump Circuit Breaker*) and Principle **DP-12** (*The Andon Cord*) forbid the worker from improvising a local hack or routing around the safety check.
+
+```text
+[Boundary Fault / Blocker Hit]
+       │
+       ▼
+[Commit WIP Checkpoint (DP-22) & Halt Slice (DP-5)]
+       │
+       ▼
+[Supervisor Sweep Captures Pane & Files Court Card on work.ravenhelm.dev]
+       │
+       ▼
+{Human Operator Answers Card (decision.answered)}
+       ├── Same-Turn Execution ──> [Apply Ruling: Security -> Merge -> Deploy]
+       └── Architectural Fault ──> [Convene Emergency Wave Review & Hoist to Wave N-1 (DP-13)]
 ```
-  [Defect Detected] ===> [Pull Andon Cord (DP-12)] ===> [Halt Slice & Commit WIP (DP-22)]
-                                  │
-                                  ▼
-                     {Resolved by Lead in 2 Hours?}
-                       ├── YES ──> Clear Andon & Resume Slice
-                       └── NO  ──> Convene Emergency Ráð (Refactor DAG & Hoist — DP-13)
-```
 
-1. **Local Detection**: When an engineer or agent encounters an unresolvable interface mismatch, unexpected schema mutation, or upstream compilation failure, the worker is prohibited from inventing a local workaround or speculative mock (**DP-5**). The worker commits a WIP checkpoint (**DP-22**), broadcasts an explicit Andon alert, and halts execution on that worktree slice.
-2. **Muster Triage**: If an Andon alert is active during the Morning Muster, the Tech Lead has exactly two hours to resolve the impediment or pair with the worker.
-3. **Emergency Ráð Trigger**: If an upstream impediment cannot be cleared within two hours, an ad-hoc Ráð is automatically convened. The council inspects graph topology, refactors the DAG, and hoists the broken interface into an antecedent wave (**DP-13**, **DP-14**). Workers are never left idling or writing speculative dead code.
+1. **Local Halt and WIP Checkpoint**: The worker commits its current state using a structured `WIP:` commit (**DP-22**) and halts cleanly. It never invents a synthetic mock to hide the broken dependency.
+2. **Proactive Pane Extraction**: On its next cycle, the supervisor seat captures the halted pane, extracts the exact failure trace or staged script, and posts a single-question decision card to `work.ravenhelm.dev` with concrete options and a recommended ruling.
+3. **Same-Turn Execution Upon Answer**: The moment the operator answers the card, the `decision.answered` event wakes or notifies the seat. The supervisor executes the ruling in that exact turn before ending its loop. If the blocker exposes a structural collision in the wave graph, an emergency Architecture Review refactors the DAG and hoists the missing interface into an antecedent wave (**DP-13**).
 
 ### Concrete Anti-Patterns & Defect Escapes
 
-When teams transition from conventional Agile to RDOM, four recurring anti-patterns represent the primary failure modes.
+Four operational failures recur whenever teams relax the Ceremonies of Truth.
 
-#### Anti-Pattern 1: The Standup Monologue
+#### Anti-Pattern 1: The Docket-Only Supervisor Blindfold
 
-- **The Illusion**: The daily standup stretches to forty-five minutes as engineers narrate internal thoughts, tickets they "plan to investigate," and philosophical musings on code structure.
-- **The Mechanism of Failure**: Monologues mask zero throughput. A developer can speak convincingly daily for two weeks without ever merging a verified deed into trunk, while active worktrees drift into conflicting schema migrations.
-- **The RDOM Poka-Yoke**: The Muster Arbiter enforces the fifteen-minute hard stop and a sixty-second ceiling per speaker. The display shows only the trunk commit log and worktree registry. If a statement does not announce a merged commit hash, an isolated worktree path, or an Andon blocker, the speaker is called to order.
+- **The Corpse of v1**: On September 30, 2026, the fleet supervisor reviewed only the `Doomcourt` docket assignment table and reported the estate healthy while `onyx.summit.trace` (`RAV-2124`) sat finished and ignored for fifteen hours in its terminal pane and a 2,400-line `yager` PR waited unreviewed.
+- **The Mechanism of Failure**: The docket tracks only slices formally bound to the supervisor's launch roster. Direct operator sessions, detached helper slices, and backgrounded commands fall outside the summary index. Watching the index while ignoring `doom ps` and live `tmux` panes leaves completed work stranded and security gaps open.
+- **The RDOM Poka-Yoke**: `doom sweep` enumerates every live `tmux` socket on the host, captures the last 120 lines of every non-closed pane read-only, pairs pane output with session-log write age, and refuses to certify a sweep complete until every live slice is classified.
 
-#### Anti-Pattern 2: The Uncontested Ráð
+#### Anti-Pattern 2: Backgrounded Tool Sleep (The 16-Hour Frozen Ruling)
 
-- **The Illusion**: Under schedule pressure, the engineering team treats the Ráð as a ceremonial rubber stamp, declaring the wave open without inspecting low-level interface schemas or migration targets.
-- **The Mechanism of Failure**: Parallel slices dispatched into Wave $N$ modify the same database table or shared library incompatibly. Slices compile against their local mocks, but collide violently when PRs merge, breaking trunk and burning days on conflict resolution.
-- **The RDOM Poka-Yoke**: The Ráð requires an explicit Blast Radius Manifest for every node. Static analysis tooling intersects file paths, crate exports, and SQL migration targets. If the intersection is non-empty ($\text{Blast}(T_A) \cap \text{Blast}(T_B) \neq \emptyset$), the tool physically refuses to issue wave authorization tokens until the graph is restructured (**DP-3**, **DP-13**).
+- **The Corpse of v1**: On October 1, 2026, twelve answered court cards arrived during a ten-minute `Kanidm` apply. When the command backgrounded, the supervisor ended its turn and left `Andvari`'s MinIO console publicly exposed for sixteen hours along with three approved merges and a release.
+- **The Mechanism of Failure**: Event watches notify a session inside an active turn; if the turn closes without draining the answered queue, no secondary edge trigger wakes the agent.
+- **The RDOM Poka-Yoke**: Before any supervisor turn is permitted to terminate, a mandatory pre-exit check runs `court-state read --json`, filters for `status=answered` cards lacking a completion note, and executes them immediately in risk order (exposure/security $\to$ merges $\to$ deployments). Long-running commands are backgrounded explicitly so the foreground turn stays alive to clear the docket.
 
 #### Anti-Pattern 3: The Retrospective of Grievances
 
-- **The Illusion**: The team holds biweekly retrospectives filled with emotional catharsis, concluding with broad agreements to "communicate better."
-- **The Mechanism of Failure**: Emotional venting without structural remediation normalizes deviance, institutionalizing continuous failure without updating architectural standards or erecting automated gates.
-- **The RDOM Poka-Yoke**: RDOM replaces subjective retrospectives with mechanical defect analysis during the Althing and Doom Verification. Grievances are inadmissible; only defect escapes with reproducible traces are analyzed. Every identified failure must terminate in an Architectural Decision Record (ADR), an automated lint/Poka-Yoke gate (**DP-9**), or an upstream hoisted substrate primitive (**DP-14**).
+- **The Corpse of v1**: Biweekly human meetings where engineers vent about flaky CI runners or undocumented schemas, vote on sticky notes, and produce non-binding resolutions to *"be more careful during code review."*
+- **The Mechanism of Failure**: Catharsis substitutes for engineering. Because no code, linter, or contract was altered, the exact same defect escapes two weeks later when the team is under deadline pressure.
+- **The RDOM Poka-Yoke**: Subjective grievances are inadmissible in the Quarterly Invariant Review and Monthly Architecture Review. Every defect escape must terminate in a physical mechanism: an automated Poka-Yoke check (**DP-9**), a repository law entry in `AGENTS.md`, or a hoisted substrate crate (**DP-13**). If a review does not produce a gate or a DAG mutation, the review is incomplete.
 
 #### Anti-Pattern 4: The Promissory Wave Gate
 
-- **The Illusion**: As the deadline for Wave $N$ approaches, the lead declares: *"We are 95% there; let's unlock Wave $N+1$ now and backfill the failing telemetry fix tomorrow."*
-- **The Mechanism of Failure**: Violating Principle **DP-7** (*Verified Green Precedes Promotion*) causes defects to metastasize. Downstream tasks in Wave $N+1$ build on the broken harness, multiplying failures across the estate until developers can no longer isolate regressions.
-- **The RDOM Poka-Yoke**: The execution engine enforces physical gate interlocks. Unlocking Wave $N+1$ task dispatch requires a cryptographically signed Doom Verification attestation. If a single test fails, the wave gate remains sealed. Overriding the gate requires an executive emergency bypass that sounds a platform-wide Andon alert and records an irreversible governance violation.
+- **The Corpse of v1**: Under schedule pressure, a lead declares Wave 1 *"95% done"* because all PRs are open and unit tests pass against mocks, unlocking Wave 2 while a database migration in Wave 1 is still failing against live PostgreSQL.
+- **The Mechanism of Failure**: Violating **DP-7** (*Verified Green Precedes Promotion*) exports a broken foundation into every parallel consumer in Wave 2. Five downstream slices immediately build workarounds against broken schemas, multiplying rework tenfold.
+- **The RDOM Poka-Yoke**: Wave $W_{k+1}$ dispatch is gated by the Doom Verification attestation. Until every task in Wave $W_k$ is merged to `main` and passes integration tests against live infrastructure (**DP-10**), `Doomcourt` holds Wave $W_{k+1}$ locked.
 
 ### Upstream & Downstream Integration (The Sovereign Triad)
 
-The Ceremonies of Truth provide the mechanical clock-ticks synchronizing RDOM across the Sovereign Triad: upstream to demand (RLOM) and downstream to release (RROM).
+The Ceremonies of Truth serve as the synchronization gears linking **RLOM** (Intent), **RDOM** (Execution), and **RROM** (Custody).
 
-#### Upstream Integration: RLOM to RDOM
+1. **Upstream Integration (RLOM $\to$ RDOM)**:
+   - Strategic initiatives from RLOM enter the **Quarterly Invariant Review** only when they carry falsifiable acceptance criteria and an explicit dependency outline.
+   - During the **Monthly Architecture & Wave Review**, RLOM issues (`RAV-<id>`) are compiled into topological wave nodes with explicit blast radius contracts.
+   - During the **Daily Fleet Sweep**, merged commits and Triad of Proof receipts (**DP-11**) synchronize back to Linear automatically, ensuring no issue transitions to `Done` without a live verification receipt.
+2. **Downstream Integration (RDOM $\to$ RROM)**:
+   - When a wave clears the **Doom Verification Gate**, the merged `main` commit triggers RROM's immutable build pipeline (`.forgejo/workflows/build.yml`), producing a monotonic `:b<N>` OCI artifact pinned by `sha256` digest in `Harbor`.
+   - When the operator approves a release or deployment card during the **Daily Fleet Sweep**, the supervisor executes the release promotion across Rail A (`norns-gitops` / Argo CD) and Rail B (`nate/tools` Homebrew tap) in the same turn and proves the new digest running on live silicon.
 
-The interface between the Ravenhelm Linear Operating Method (RLOM) and RDOM is governed by demand ratification and factual deed closure:
+### Augmentation Surface - Automated Fleet Sweep & Gate Verification
 
-1. **Strategic Intent Injection (RLOM $\to$ Althing)**: Business demand enters the Althing exclusively through RLOM initiatives meeting the strict Definition of Ready (DoR). The Althing interrogates candidate initiatives against engineering capacity, transforming market demand into the Saga's Vow.
-2. **Topological Refinement (RLOM $\to$ Ráð)**: High-level RLOM projects are decomposed into directed acyclic graphs. The Ráð verifies that every leaf node corresponds to an executable technical slice with verifiable acceptance criteria.
-3. **Factual State Synchronization (Muster $\to$ RLOM)**: Developers no longer manually update ticket statuses. In RDOM, the Morning Muster links issue updates directly to verified deeds. When a pull request satisfying the Triad of Proof merges into trunk, the harness automatically attaches the commit SHA, CI logs, and showcase recording to the corresponding RLOM issue and marks it complete (**DP-11**).
-
-#### Downstream Integration: RDOM to RROM
-
-The interface between RDOM and the Ravenhelm Release Operations Methodology (RROM) is governed by verified wave boundaries and artifact custody:
-
-1. **Adversarial Gate Attestation (Doom $\to$ RROM)**: RROM operates under the axiom *"Builds are the unit; releases are names."* RROM never builds untested code. The Doom Verification ceremony executes the comprehensive test battery against live running environments (**DP-10**). Upon achieving 100% green verification, the Doom Arbiter generates an immutable attestation bundle containing the git commit tree hash, test execution manifests, and environment telemetry.
-2. **Automated Pipeline Triggering**: The Doom Verification attestation acts as the cryptographic key unlocking RROM build automation. The release engine compiles the verified commit into an immutable OCI container image, registers it in the Harbor registry pinned to its cryptographic digest (`:b<N>@sha256:...`), and promotes it across GitOps deployment rails (Argo CD) and workstation distribution channels (Homebrew tap).
-3. **Sovereign Cutover Invariance**: While Doom Verification authorizes release candidate compilation and staging deployment, production cutovers modifying live customer traffic or mutating production data stores remain gated by explicit human architectural authorization.
-
-### Augmentation Surface — Automated Muster & Gate Verification
-
-As autonomous AI agent fleets scale across the enterprise, tracking dozens of concurrent worktrees, checking blast radii, and executing gate verifications becomes unsustainable for human leads alone. The ceremonies are transformed through autonomous agent augmentation.
-
-> **Augmentation Surface — Automated Muster & Gate Verification**
+> **Augmentation Surface - The Deterministic Supervisor Loop**
 >
-> Where an agent layer transforms this practice:
+> **Where an agent layer transforms this practice:**
+> 1. **Deterministic Fleet Sweep (`doom sweep`)**: Designed on September 13, 2026 to run as a deterministic Rust control loop (and executed by the Fable supervisor seat), the sweep daemon cycles through every live slice on the machine and across the `Norns` K3s COO pod (`ARCH-0027`). It inspects `tmux` panes read-only, verifies session-log liveness, checks `because / here / next / blocker` metadata, nudges benign prompts, closes finished slices to reclaim memory, and compiles a factual digest without human polling.
+> 2. **Automated Blast Radius & Hoisting Audit**: Ahead of each Wave Boundary Review, an analyzer parses the candidate wave's `Consumes`/`Produces` blocks and file allowlists, flags spatial intersections ($\mathcal{B}(u) \cap \mathcal{B}(v) \neq \emptyset$), and surfaces repeated capabilities across tasks for Planning-Time DRY Hoisting (**DP-13**).
+> 3. **Adversarial Doom Gatekeeper**: When all tasks in Wave $W_k$ merge, an independent verification agent runs the end-to-end test battery against live ephemeral infrastructure, checks that every new feature has live runtime callers, verifies `AGENTS.md` and runbook updates, and certifies the wave gate (**DP-7**, **DP-10**, **DP-11**).
 >
-> 1. **The Headless Muster Agent**: An automated supervisor agent continuously monitors git reflogs, bare repository worktrees, active PR branch states, and CI pipeline results. Every morning, the agent compiles a cryptographically signed *Morning Muster Digest*. It maps active slices, detects unmerged WIP commits older than twelve hours, flags stale worktrees, and computes blast radius overlaps across active branches. Engineers and agent swarms review an objective, mathematically generated reality manifest rather than verbal status updates.
-> 2. **Autonomous DAG Ingestion & Hoisting Analysis**: During wave preparation, an architecture agent parses candidate task specifications, constructs candidate graph $G=(V, E)$, and runs AST-level dependency analysis across existing estate crates. The agent identifies duplicated functions, proposed database migrations, and repeated API definitions, presenting concrete hoisting recommendations prior to the Ráð (**DP-13**, **DP-14**).
-> 3. **The Autonomous Doom Gatekeeper**: Upon completion of all nodes in a topological wave, an adversarial verification agent provisions pristine container environments mirroring live production infrastructure (**DP-10**). The gatekeeper executes end-to-end integration batteries, runs fuzz tests against public interfaces (**DP-9**), audits documentation updates, verifies the executable showcase walkthrough, and validates clean worktree pruning (**DP-24**). Only when all criteria are physically proven does the gatekeeper sign the wave certification.
->
-> What the human architect keeps:
->
-> - **Sovereign Intent & Valknut OKRs**: Humans alone decide strategic value, pass judgment on organizational capacity, and ratify the Saga's Vow at the Althing.
-> - **Hoisting & Architecture Adjudication**: Humans hold sole authority during the Ráð to authorize architectural exceptions, approve Layer 0 substrate abstractions, and sign Architectural Decision Records.
-> - **Production Cutover Authorization**: No automated gatekeeper may execute a destructive database migration or live production traffic cutover without sovereign human approval.
+> **What the human architect keeps:**
+> - **Sovereign Contract Ratification**: Humans alone set the Quarterly Engineering Contract, weigh the Four-Dimensional Scorecard, and allocate strategic buffers during the Quarterly Invariant Review.
+> - **Court Card Rulings & Merge Authority**: Agents surface evidence, options, and recommendations on `work.ravenhelm.dev`, but the human operator clicks the accept/reject button on architectural trade-offs, PR merge approvals (**DP-23**), and production cutovers.
 
 ---
 
@@ -202,7 +223,7 @@ As autonomous AI agent fleets scale across the enterprise, tracking dozens of co
   content: pass
   funnel: pass
   chapter-type-extras: n/a
-  word-count: 2904
+  word-count: 3012
   principle-citations: DP-1, DP-2, DP-3, DP-4, DP-5, DP-7, DP-9, DP-10, DP-11, DP-12, DP-13, DP-14, DP-19, DP-22, DP-23, DP-24
   flagged-principle-gaps: none
 -->

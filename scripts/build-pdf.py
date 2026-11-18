@@ -2,8 +2,8 @@
 """Typeset Ravenhelm Development Operations Methodology (RDOM) as publication-grade PDF using Typst.
 
 Compiles two editions:
-  dark   — bone on obsidian (screen edition, matching RLOM Dark and RROM Dark)
-  print  — obsidian on bone paper (the print / digest edition)
+  dark   - bone on obsidian (screen edition, matching RLOM Dark and RROM Dark)
+  print  - obsidian on bone paper (the print / digest edition)
 
 Faces: Source Serif 4 (proposition/body), IBM Plex Mono (evidence/folios/code/colophon).
 Trim: 5.5 x 8.5 in (digest chapbook / executive monograph).
@@ -24,24 +24,24 @@ IMPRINT = "Ravenhelm Publishing Series LLC"
 COPYRIGHT = "© 2026 Ravenhelm LLC. All rights reserved."
 
 CHAPTER_FILES = [
-    ("01-what-this-is.md", "01", "What This Is and Why Modern Engineering Drifts", "SCOPE: METHODOLOGY FRONT DOOR · APPLIES TO ALL TEAMS", "The Theoretical Foundation · The Four Pillars of RDOM · Upstream & Downstream Integration"),
-    ("02-the-sovereign-triad.md", "02", "The Sovereign Triad: RLOM, RDOM, RROM", "FOUNDATION: THE SOVEREIGN TRIAD · RLOM · RDOM · RROM", "Cosmology & Triad Architecture · Interface Contracts · Concrete Failure Modes · Fleet Orchestration"),
+    ("01-what-this-is.md", "01", "What This Is and Why Modern Engineering Drifts", "SCOPE: METHODOLOGY FRONT DOOR · BOOK II OF THE TRILOGY", "The Social Layer Does Not Transfer · The Ehwaz Doctrine · Four Pillars of RDOM"),
+    ("02-the-sovereign-triad.md", "02", "The Sovereign Triad: RLOM, RDOM, RROM", "FOUNDATION: THE SOVEREIGN TRIAD · RLOM · RDOM · RROM", "The Three Dombocs · Interface Contracts · Cascading Failure Modes · Fleet Orchestration"),
     ("03-numbered-principles.md", "03", "The 24 Numbered Principles", "CANON: 24 NUMBERED PRINCIPLES · DP-1 THROUGH DP-24", "Ehwaz Doctrine & Concurrency · Six Sigma & TDD Gates · DRY Architecture · Workspace Custody"),
-    ("04-the-hierarchy-of-deeds.md", "04", "The Hierarchy of Deeds: Wyrd Rune to Daily Deed", "TAXONOMY: DEED HIERARCHY · WYRD RUNE TO DAILY DEED", "Cosmology of Deed Custody · Four Invariants · Concrete Workflows · Lineage Traceability"),
-    ("05-the-four-codices.md", "05", "The Four Codices: Shield, Cycle, Grimoire, Shield-Band", "STANDARDS: THE FOUR CODICES · SHIELD · CYCLE · GRIMOIRE · SHIELD-BAND", "Living Documentation · Mechanical Enforcement · Anti-Patterns & Defect Escapes · Semantic Auditing"),
-    ("06-the-engineering-okr-framework.md", "06", "The Engineering OKR Framework: Faster, Bigger, Cheaper, Effective", "ALIGNMENT: VALKNUT OKR MATRIX · FASTER · BIGGER · CHEAPER · EFFECTIVE", "Valknut OKR Matrix · Mathematical Formulations · Quarterly Cadence · Triad Metric Alignment"),
-    ("07-ceremonies-of-truth.md", "07", "Ceremonies of Truth: Althing, Ráð, and Morning Muster", "CEREMONIES: ALTHING · RÁÐ · MORNING MUSTER · DOOM GATE", "Truth Invariants · Operational Mechanics · Doom Gate Protocols · Automated Verification"),
-    ("08-the-dependency-dag-and-critical-chain.md", "08", "The Dependency DAG: Critical Path vs. Critical Chain", "TOPOLOGY: DEPENDENCY DAG · GOLDRATT CCPM · CRITICAL CHAIN", "Topological Theory · Goldratt CCPM · Feeding Buffers · Automated DAG Synthesis & Fever Charts"),
-    ("09-topological-waves-replacing-sprints.md", "09", "Topological Waves: Replacing the Two-Week Sprint", "CADENCE: TOPOLOGICAL WAVES · HEIJUNKA LEVELING · BATCH CONTROL", "Wave Boundary Mathematics · Heijunka Leveling · Batch Control · Defect-Free Wave Execution"),
-    ("10-zero-collision-multi-agent-boundaries.md", "10", "Zero Collision by Construction: Multi-Agent Fleet Boundaries", "CONCURRENCY: ZERO-COLLISION BOUNDARIES · DISJOINT BLAST RADIUS", "Disjoint Blast Radii · Static Resource Isolation · Write-Intent Verification · Merge Gates"),
-    ("11-jit-elaboration-and-anti-inventory.md", "11", "Just-In-Time Elaboration: Eradicating Inventory Waste (Muda)", "LEAN MANUFACTURE: JIT ELABORATION · ERADICATING INVENTORY MUDA", "Anti-Inventory Canon · Two-Wave Planning Horizon · Late Binding · Eliminating Stale Specs"),
-    ("12-the-dry-hoisting-protocol.md", "12", "The DRY Hoisting Protocol: Anti-Snowflake Planning", "REFACTORING: DRY HOISTING PROTOCOL · TWO-CONSUMER GATE", "Two-Consumer Rule · Abstraction Economics · Platform Promotion · Anti-Snowflake Refactoring"),
-    ("13-six-sigma-wave-boundary-gates.md", "13", "Six Sigma Wave Boundary Gates: No Exit on a Promise", "QUALITY: SIX SIGMA WAVE GATES · DMAIC · TRIAD OF PROOF", "DMAIC Rigor · Triad of Proof (Pass/P99/Parity) · Zero-Defect Handoff · Evidence Capture"),
-    ("14-poka-yoke-interface-design.md", "14", "Poka-Yoke Interface Design & The Live System Rule", "ERROR PROOFING: SHINGO POKA-YOKE · TYPE STATES · LIVE SYSTEM RULE", "Shingo Error-Proofing · Type-State Compilers · Live System Confirmation · Anti-Mock Mandate"),
-    ("15-the-andon-cord-and-circuit-breakers.md", "15", "The Andon Cord Protocol & Upstream-Jump Circuit Breakers", "CIRCUIT BREAKERS: THE ANDON CORD · LIVE SILICON · STOP-THE-LINE", "Stop-the-Line Authority · Live Silicon Rule · Five Whys Root Cause · Circuit-Breaker Latches"),
-    ("16-workspace-custody-bare-and-worktrees.md", "16", "Workspace Custody: Bare Repositories and Disposable Worktrees", "INFRASTRUCTURE: CHECKOUT CUSTODY STANDARD · BARE & WORKTREES", "Checkout Custody Standard · Disposable Worktrees · Concurrent Fleet Isolation · Anti-Stash Canon"),
-    ("17-zero-waste-context-substrate-eat.md", "17", "The Zero-Waste Context Substrate: Topological Priming vs. Directory Dumps", "CONTEXT SUBSTRATE: EAT KNOWLEDGE SUBSTRATE · ZERO CONTEXT WASTE", "EAT Knowledge Substrate · AST Byte Retrieval · Sub-800 Token Priming · Context Economics"),
-    ("18-the-sovereign-engineering-organization.md", "18", "The Sovereign Engineering Organization: Operating Human-Agent Fleets", "ORGANIZATION: THE SOVEREIGN FLEET · HUMAN ARCHITECTS & AGENT SLICES", "Human Architects & Autonomous Slices · Metric Stack · Governance Rails · The Sovereign Firm"),
+    ("04-the-hierarchy-of-deeds.md", "04", "The Topological Work Hierarchy: From Strategic Invariant to Atomic Commit", "TAXONOMY: TOPOLOGICAL WORK HIERARCHY · INVARIANT TO COMMIT", "Curing Altitude Drift · Strategic Invariants · Quarterly Contracts · Lineage Traceability"),
+    ("05-the-four-codices.md", "05", "The Four Operational Contracts: Repository Law, Cadence, Architecture, and Fleet Custody", "CONTRACTS: REPOSITORY LAW · CADENCE · ARCHITECTURE · FLEET CUSTODY", "AGENTS.md Law · The Cadence Ledger · ADRs & Runbooks · Fleet Custody & Routing"),
+    ("06-the-engineering-okr-framework.md", "06", "The Four-Dimensional Engineering Scorecard: Faster, Bigger, Cheaper, Effective", "SCORECARD: FASTER · BIGGER · CHEAPER · EFFECTIVE", "Balanced Engineering Control Matrix · CI & Quota Physics · Quarterly Cadence · Metric Alignment"),
+    ("07-ceremonies-of-truth.md", "07", "Ceremonies of Truth: Quarterly Invariant Review, Monthly Architecture Review, and the Daily Fleet Sweep", "CEREMONIES: QUARTERLY REVIEW · MONTHLY REVIEW · DAILY FLEET SWEEP", "Reconciling the Docket · Flushing Court Cards · Sweeping Active Panes · Automated Gates"),
+    ("08-the-dependency-dag-and-critical-chain.md", "08", "The Dependency DAG: Critical Path vs. Critical Chain", "TOPOLOGY: DEPENDENCY DAG · GOLDRATT CCPM · CRITICAL CHAIN", "The Ehwaz Doctrine Part I · Goldratt CCPM · Feeding Buffers · Curing Upstream Jumps"),
+    ("09-topological-waves-replacing-sprints.md", "09", "Topological Waves: Replacing the Two-Week Sprint", "CADENCE: TOPOLOGICAL WAVES · HEIJUNKA LEVELING · BATCH CONTROL", "The Ehwaz Doctrine Part II · Wave Boundary Math · Doomcourt Dispatch · Defect-Free Waves"),
+    ("10-zero-collision-multi-agent-boundaries.md", "10", "Zero Collision by Construction: Multi-Agent Fleet Boundaries", "CONCURRENCY: ZERO-COLLISION BOUNDARIES · DISJOINT BLAST RADIUS", "Disjoint Write Surfaces · Modern git merge-tree · Isolated Test Schemas · Merge Gates"),
+    ("11-jit-elaboration-and-anti-inventory.md", "11", "Just-In-Time Elaboration: Eradicating Inventory Waste (Muda)", "LEAN MANUFACTURE: JIT ELABORATION · ERADICATING INVENTORY MUDA", "Anti-Inventory Canon · Open-Wave TDD Detailing · Future-Wave Contracts · Eliminating Stale Specs"),
+    ("12-the-dry-hoisting-protocol.md", "12", "The DRY Hoisting Protocol: Anti-Snowflake Planning", "REFACTORING: DRY HOISTING PROTOCOL · HOIST VS. DEFER", "Planning-Time DRY Scan · Hoist-vs-Defer Test · Consumption Contracts · Project Factory Scaffolds"),
+    ("13-six-sigma-wave-boundary-gates.md", "13", "Six Sigma Wave Boundary Gates: No Exit on a Promise", "QUALITY: SIX SIGMA WAVE GATES · CHECKS THAT CAN FAIL · TRIAD OF PROOF", "Checks That Prove They Can Fail · Caller Reachability · Triad of Proof · Zero-Defect Handoff"),
+    ("14-poka-yoke-interface-design.md", "14", "Poka-Yoke Interface Design & The Live System Rule", "ERROR PROOFING: SHINGO POKA-YOKE · GRANULARITY EXACT · LIVE SYSTEM", "Pricing Verification Below Guessing · Boundary Parsers · Live System Truth · Anti-Mock Rule"),
+    ("15-the-andon-cord-and-circuit-breakers.md", "15", "The Andon Cord Protocol & Upstream-Jump Circuit Breakers", "CIRCUIT BREAKERS: THE ANDON CORD · DOOM MOMENTUM · STOP-THE-LINE", "Stop-the-Line Authority · Rescuing Uncommitted Diffs · Five Whys Root Cause · Replan Cards"),
+    ("16-workspace-custody-bare-and-worktrees.md", "16", "Workspace Custody: Bare Repositories and Disposable Worktrees", "INFRASTRUCTURE: CHECKOUT CUSTODY STANDARD · BARE & WORKTREES", "Checkout Custody Standard · Fetch Refspecs · One Worktree Per PR · Custody-Gated Disposal"),
+    ("17-zero-waste-context-substrate-eat.md", "17", "The Zero-Waste Context Substrate: Topological Priming vs. Directory Dumps", "CONTEXT SUBSTRATE: EAT KNOWLEDGE SUBSTRATE · ZERO CONTEXT WASTE", "EAT Knowledge Substrate · Sub-800 Token Priming · Sub-10ms AST Byte Reads · Context Economics"),
+    ("18-the-sovereign-engineering-organization.md", "18", "The Sovereign Engineering Organization: Operating Human-Agent Fleets", "ORGANIZATION: THE SOVEREIGN FLEET · HUMAN ARCHITECTS & AGENT SLICES", "Declarative Cores, Dumb Edges · Supervisor-Worker Topology · Governance Rails · Sovereign Scale"),
     ("appendix-a-presales-and-demo-ops.md", "A", "Presales, Solution Architecture & DemoOps Integration", "COMMERCIAL: DEMOOPS · EPHEMERAL SANDBOXES · PROTOTYPE HOISTING", "Ephemeral Sandboxes · Prototype Hoisting · Zero-Drift Customer Demos · Commercial Rails"),
 ]
 
@@ -87,7 +87,10 @@ def build_typst_document(edition):
 
     def format_toc_title(t):
         wrap_targets = [
-            "The Engineering OKR Framework: Faster, Bigger, Cheaper, Effective",
+            "The Topological Work Hierarchy: From Strategic Invariant to Atomic Commit",
+            "The Four Operational Contracts: Repository Law, Cadence, Architecture, and Fleet Custody",
+            "The Four-Dimensional Engineering Scorecard: Faster, Bigger, Cheaper, Effective",
+            "Ceremonies of Truth: Quarterly Invariant Review, Monthly Architecture Review, and the Daily Fleet Sweep",
             "Zero Collision by Construction: Multi-Agent Fleet Boundaries",
             "Just-In-Time Elaboration: Eradicating Inventory Waste (Muda)",
             "Workspace Custody: Bare Repositories and Disposable Worktrees",
@@ -123,7 +126,7 @@ def build_typst_document(edition):
 #set document(
   title: "Ravenhelm Development Operations Methodology (RDOM)",
   author: "{BYLINE}",
-  keywords: ("RDOM", "Ravenhelm", "Ehwaz", "Valknut", "Autonomous Agents", "Six Sigma", "Topological Waves")
+  keywords: ("RDOM", "Ravenhelm", "Ehwaz", "Critical Chain", "Autonomous Agents", "Six Sigma", "Topological Waves")
 )
 
 #set page(
@@ -223,19 +226,19 @@ def build_typst_document(edition):
 ]
 
 #let toc-entry(num, title, label-id, summary) = [
-  #v(0.26em)
+  #v(0.22em)
   #grid(
     columns: (18pt, 1fr),
     gutter: 5pt,
     text(font: "IBM Plex Mono", size: 7.8pt, weight: 600, fill: garnet)[#num],
     [
       #block(width: 100%)[
-        #text(font: "Source Serif 4", size: 8.4pt, weight: 600, fill: ink)[#link(label(label-id))[#title]]
+        #text(font: "Source Serif 4", size: 8.2pt, weight: 600, fill: ink)[#link(label(label-id))[#title]]
         #box(width: 1fr, pad(x: 4pt, repeat([#text(fill: ash, size: 7pt)[. ]])))
         #text(font: "IBM Plex Mono", size: 7.8pt, fill: ash)[#context counter(page).at(label(label-id)).first()]
       ]
-      #v(0.05em)
-      #text(font: "Source Serif 4", size: 7.0pt, fill: ash)[#summary]
+      #v(0.04em)
+      #text(font: "Source Serif 4", size: 6.8pt, fill: ash)[#summary]
     ]
   )
 ]
@@ -252,7 +255,9 @@ def build_typst_document(edition):
   #align(center)[
     #v(0.35in)
     #image("{raven_logo}", width: 2.25in)
-    #v(0.45in)
+    #v(0.40in)
+    #text(font: "IBM Plex Mono", size: 7.0pt, fill: garnet, tracking: 0.14em)[THE RAVENHELM OPERATIONS METHODOLOGY · BOOK II]
+    #v(0.12in)
     #text(font: "Source Serif 4", size: 16.5pt, weight: 600, fill: ink)[Ravenhelm Development Operations]
     #v(0.08in)
     #text(font: "Source Serif 4", size: 14.5pt, weight: 400, fill: garnet)[Methodology]
@@ -282,12 +287,13 @@ def build_typst_document(edition):
        it is earned through topological proof."
     ]
     #v(0.08in)
-    #text(font: "IBM Plex Mono", size: 7pt, fill: garnet, tracking: 0.14em)[— THE FIRST CONCURRENCY INVARIANT (DP-2)]
+    #text(font: "IBM Plex Mono", size: 7pt, fill: garnet, tracking: 0.14em)[THE FIRST CONCURRENCY INVARIANT (DP-2)]
   ]
   #v(1fr)
   #set text(font: "IBM Plex Mono", size: 7pt, fill: ash, tracking: 0.04em, hyphenate: false)
   #set par(justify: false, first-line-indent: 0em, leading: 0.9em)
   *Ravenhelm Development Operations Methodology (RDOM)* \\
+  Book II of *The Ravenhelm Operations Methodology* (*RLOM · RDOM · RROM*) \\
   Version 1.0.0 (2026-11-17) \\
   Authored by {BYLINE}. \\
   {COPYRIGHT} \\
@@ -301,7 +307,7 @@ def build_typst_document(edition):
   Source repository: github.com/nwalker85/rdom-method \\
   \\
   Set in Source Serif 4 and IBM Plex Mono. \\
-  Typeset using Typst 0.15.1 on macOS. \\
+  Typeset using Typst on macOS. \\
   #v(0.4in)
 ]
 
@@ -357,15 +363,15 @@ def build_typst_document(edition):
   The chapters build sequentially from foundational axioms to topological wave planning, zero-collision multi-agent fleet boundaries, DRY hoisting protocols, Six Sigma wave boundary gates, and the sovereign engineering organization. Chapter 3 (*The 24 Numbered Principles*) establishes the formal canon cited throughout every subsequent chapter as `DP-1` through `DP-24`.
 
   #v(0.12in)
-  #text(font: "IBM Plex Mono", size: 7.8pt, weight: 600, fill: garnet, tracking: 0.12em)[BY ROLE — THE INSTALL PATH] \\
+  #text(font: "IBM Plex Mono", size: 7.8pt, weight: 600, fill: garnet, tracking: 0.12em)[BY ROLE - THE INSTALL PATH] \\
   #set text(size: 8.8pt)
-  *Chief Technology Officer & Architect:* Chapters 01, 02, 05, 06, 12, 18 (Sovereign Triad, Four Codices, DRY Hoisting, OKR Alignment). \\
-  *Fleet Lead & Engineering Manager:* Chapters 04, 07, 08, 09, 11, 13 (Deed Hierarchy, Ceremonies, Dependency DAGs, Wave Gates). \\
-  *Agent Engineer & Operator:* Chapters 03, 10, 14, 15, 16, 17 (Zero Collision, Type-State Poka-Yoke, Andon Cord, Bare Worktrees, EAT Substrate). \\
-  *Systems Quality & Verification Auditor:* Chapters 07, 10, 13, 14, 15, Appendix A (Six Sigma Gates, Triad of Proof, Live Silicon, DemoOps).
+  *Chief Technology Officer & Architect:* Chapters 01, 02, 05, 06, 12, 18 (Sovereign Triad, Four Operational Contracts, DRY Hoisting, Four-Dimensional Scorecard). \\
+  *Fleet Lead & Engineering Manager:* Chapters 04, 07, 08, 09, 11, 13 (Topological Work Hierarchy, Ceremonies of Truth, Dependency DAGs, Wave Gates). \\
+  *Agent Engineer & Operator:* Chapters 03, 10, 14, 15, 16, 17 (Zero Collision, Poka-Yoke Interfaces, Andon Cord, Bare Worktrees, EAT Substrate). \\
+  *Systems Quality & Verification Auditor:* Chapters 07, 10, 13, 14, 15, Appendix A (Six Sigma Gates, Triad of Proof, Live Running System, DemoOps).
 
   #v(0.12in)
-  #text(font: "IBM Plex Mono", size: 7.8pt, weight: 600, fill: garnet, tracking: 0.12em)[BY NEED — RECOVERY & SCALING] \\
+  #text(font: "IBM Plex Mono", size: 7.8pt, weight: 600, fill: garnet, tracking: 0.12em)[BY NEED - RECOVERY & SCALING] \\
   #set text(size: 8.8pt)
   *Halting Sprint Collapses & Merge Collisions:* Read Chapters 01, 08, 09, 10. \\
   *Eliminating Multi-Agent Hallucinations & Snowflakes:* Read Chapters 10, 11, 12, 17. \\
@@ -374,7 +380,7 @@ def build_typst_document(edition):
   #v(0.12in)
   #text(font: "IBM Plex Mono", size: 7.8pt, weight: 600, fill: garnet, tracking: 0.12em)[NAVIGATING THIS BOOK] \\
   #set text(size: 8.8pt)
-  The bookmark outline carries every chapter and major section. Chapter openers feature metadata badges citing applicable codices and principles. Code symbols, AST byte manifests, and CLI recipes follow strict POSIX standards.
+  The bookmark outline carries every chapter and major section. Chapter openers feature metadata badges citing applicable operational contracts and principles. Code symbols, AST byte manifests, and CLI recipes follow strict POSIX standards.
 ]
 
 // ==========================================
@@ -393,39 +399,37 @@ def build_typst_document(edition):
   #set text(font: "IBM Plex Mono", size: 7.2pt, fill: ash)
   #set par(justify: false, first-line-indent: 0em, leading: 0.8em)
 
-  #text(weight: "bold", fill: garnet)[GROUP A — TOPOLOGICAL FOUNDATION & CRITICAL CHAIN] \\
-  #text(fill: ink)[DP-1] A plan is a directed acyclic graph, not a task list \\
-  #text(fill: ink)[DP-2] Concurrency is earned through topological proof; quality is gated by verified green \\
-  #text(fill: ink)[DP-3] No two agents may possess write-intent on overlapping blast radii \\
-  #text(fill: ink)[DP-4] Protect the critical chain over local resource utilization \\
-  #text(fill: ink)[DP-5] The cost of an unaddressed blocker compounds exponentially with time \\
+  #text(weight: "bold", fill: garnet)[PILLAR I - THE DEPENDENCY WAVEFRONT (THE EHWAZ DOCTRINE)] \\
+  #text(fill: ink)[DP-1] The Graph Precedes the Plan: every plan opens with a dependency DAG \\
+  #text(fill: ink)[DP-2] Topological Wave Partitioning: group work into discrete resolved waves \\
+  #text(fill: ink)[DP-3] Zero Collision by Construction: disjoint write surfaces within waves \\
+  #text(fill: ink)[DP-4] The Critical Chain Floor: the longest dependent path sets the schedule floor \\
+  #text(fill: ink)[DP-5] Upstream-Jump Circuit Breaker: never branch outward on unfinished deps \\
+  #text(fill: ink)[DP-6] Progressive JIT Elaboration: detail only the open wave; avoid Muda \\
   \\
-  #text(weight: "bold", fill: garnet)[GROUP B — JIT ELABORATION & ANTI-INVENTORY] \\
-  #text(fill: ink)[DP-6] Speculative architecture is toxic inventory; detail decays with distance \\
-  #text(fill: ink)[DP-7] Defect prevention upstream is an order of magnitude cheaper than downstream rework \\
-  #text(fill: ink)[DP-8] Write the verification fixture before writing the execution logic \\
-  #text(fill: ink)[DP-9] If a state transition is invalid, make it unrepresentable in the type system \\
+  #text(weight: "bold", fill: garnet)[PILLAR II - SIX SIGMA DEFECT PREVENTION & TDD GATES] \\
+  #text(fill: ink)[DP-7] Verified Green Precedes Promotion: checks must prove they can fail \\
+  #text(fill: ink)[DP-8] Red-Green-Refactor as State Transitions: failing test before code \\
+  #text(fill: ink)[DP-9] Poka-Yoke Interface Design: price verification below guessing \\
+  #text(fill: ink)[DP-10] Live Running System as Truth: verify entrypoint call graphs, not mocks \\
+  #text(fill: ink)[DP-11] Witnessed Deliverable Attachment: Code, Docs, and Executable Showcase \\
+  #text(fill: ink)[DP-12] The Andon Cord Protocol: halt dispatch and inspect uncommitted diffs \\
   \\
-  #text(weight: "bold", fill: garnet)[GROUP C — SILICON INTEGRITY & SIX SIGMA GATES] \\
-  #text(fill: ink)[DP-10] Never mock what you have not already proven in live containerized silicon \\
-  #text(fill: ink)[DP-11] A deed is not complete until witnessed by a passing test on clean silicon \\
-  #text(fill: ink)[DP-12] Stop the line immediately upon defect escape \\
-  #text(fill: ink)[DP-13] If code is written twice without being hoisted, the third use is a defect \\
+  #text(weight: "bold", fill: garnet)[PILLAR III - DRY ARCHITECTURE & ANTI-SNOWFLAKE HOISTING] \\
+  #text(fill: ink)[DP-13] Planning-Time DRY Refactoring: scan the DAG for snowflakes upfront \\
+  #text(fill: ink)[DP-14] The Hoist-vs-Defer Rule: hoist known interfaces; schedule guessed ones \\
+  #text(fill: ink)[DP-15] Zero Unacknowledged Duplication: bind repeats to extraction contracts \\
+  #text(fill: ink)[DP-16] Scaffolding from Working Reality: extract templates from proven prod code \\
+  #text(fill: ink)[DP-17] Shared Substrate Invariance: never re-roll estate gateway or vault crates \\
+  #text(fill: ink)[DP-18] Locality Invariance: authoritative root AGENTS.md travels with code \\
   \\
-  #text(weight: "bold", fill: garnet)[GROUP D — DRY HOISTING & TYPE ARCHITECTURE] \\
-  #text(fill: ink)[DP-14] Refactoring is not an afterthought; it is the planned hoisting phase of wave execution \\
-  #text(fill: ink)[DP-15] The interface belongs to the consumer; the implementation belongs to the producer \\
-  #text(fill: ink)[DP-16] Every shared dependency must declare an explicit semantic contract \\
-  #text(fill: ink)[DP-17] Every system must emit structured, traceable evidence of its state transitions \\
-  #text(fill: ink)[DP-18] What works on the developer machine must work identically in production \\
-  \\
-  #text(weight: "bold", fill: garnet)[GROUP E — WORKSPACE CUSTODY & CONTEXT SUBSTRATE] \\
-  #text(fill: ink)[DP-19] History lives once in a bare clone; worktrees are disposable projections \\
-  #text(fill: ink)[DP-20] Prime on topology in \\<800 tokens; never dump directory trees \\
-  #text(fill: ink)[DP-21] Never carry uncommitted work across branch boundaries via stash \\
-  #text(fill: ink)[DP-22] Deletion of any workspace requires positive proof of custody \\
-  #text(fill: ink)[DP-23] The atomic unit of delivery is the witnessed Daily Deed \\
-  #text(fill: ink)[DP-24] Never rewrite an existing deed; supersede it with an explicit amendment
+  #text(weight: "bold", fill: garnet)[PILLAR IV - WORKSPACE CUSTODY & MULTI-AGENT ERGONOMICS] \\
+  #text(fill: ink)[DP-19] Dedicated Worktree Custody: canonical .bare/ hub and one worktree per PR \\
+  #text(fill: ink)[DP-20] Anti-Thrash Context Priming: orient in \\<800 tokens via eat prime \\
+  #text(fill: ink)[DP-21] Zero Ambient Mutation on Hosts: never edit live servers over SSH \\
+  #text(fill: ink)[DP-22] WIP Commit Checkpointing: commit dirty state; never use git stash \\
+  #text(fill: ink)[DP-23] The PR Boundary & Supervisor Merge Gate: human-approved squash & ship \\
+  #text(fill: ink)[DP-24] Custody-Gated Worktree Disposal: prove zero unpushed/dirty work first
 ]
 
 // ==========================================
@@ -494,13 +498,14 @@ def build_typst_document(edition):
   #set text(font: "IBM Plex Mono", size: 7pt, fill: ash, tracking: 0.04em, hyphenate: false)
   #set par(justify: false, first-line-indent: 0em, leading: 0.95em)
   Ravenhelm Development Operations Methodology (RDOM) \\
+  Book II of The Ravenhelm Operations Methodology (RLOM · RDOM · RROM) \\
   Version 1.0.0 (2026-11-17) \\
   Authored by {BYLINE}. \\
   {COPYRIGHT} \\
   Published by {IMPRINT}. \\
   Distributed under the Apache License, Version 2.0. \\
   Set in Source Serif 4 and IBM Plex Mono. \\
-  Typeset using Typst 0.15.1 on macOS. \\
+  Typeset using Typst on macOS. \\
   ravenhelm.co · nwalker.cc
 ]
 #v(0.6in)
